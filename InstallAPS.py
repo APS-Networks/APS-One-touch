@@ -5,7 +5,6 @@ import zipfile
 installation_files = {
     "bsp": "BF2556X-1T_BSP_9.0.0-master.zip",
     "sde": "bf-sde-9.0.0.tar",
-    "set_sde_bash": "set_sde.bash",
     "irq_debug_tgz": "irq_debug.tgz",
     "mv_pipe_config_zip": "mv_pipe_config.zip"}
 
@@ -36,7 +35,21 @@ def build_sde(sde):
     tar.extractall()
     tar.close()
     os.chdir(sde_folder_name)
-    sde_install_cmd = "./p4studio_build/p4studio_build.py -up p4_runtime_profile.yaml"
+    build_opt = "-up"
+    default_profile = "p4_runtime_profile"
+    profile_name = input(
+        "Enter profile name to build SDE or i for interactive mode [{}]".format(
+            default_profile))
+    if not profile_name:
+        profile_name = default_profile
+
+    if profile_name == "i":
+        build_opt = ""
+        profile_name = ""
+
+    sde_install_cmd = "./p4studio_build/p4studio_build.py {} {}".format(
+        build_opt,
+        profile_name)
     print(sde_install_cmd)
     os.system(sde_install_cmd)
 
@@ -107,6 +120,7 @@ def start_bf_switchd():
             "sudo {0}/install/bin/bf_switchd --install-dir {0}/install "
             "--conf-file {0}/pkgsrc/p4-examples/tofino/tofino_skip_p4.conf.in "
             "--skip-p4".format(sde_folder_path))
+
 
 ######################################################################
 ######################################################################
