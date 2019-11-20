@@ -1,4 +1,5 @@
 import os
+import pprint
 import tarfile
 import zipfile
 
@@ -11,29 +12,35 @@ installation_files = {
 abspath = os.path.abspath(__file__)
 dname = os.path.dirname(abspath)
 
-print("Checking if all required installation files are present...")
+print(
+    "All or subset of following packages can be installed. Default path for searching following installation files is {}, or give custom path during installation :".format(
+        dname))
 for key, val in installation_files.items():
-    if not os.path.exists(val):
-        print("{} is missing, Please contact Stordis Support.".format(val))
-        exit(0)
-
-print("Found all required files, Proceeding installation.")
+    print("{}{}{}".format(key, " -> ", val))
 
 ######################################################################
 ######################################################################
 sde_folder_path = ""
 sde = installation_files["sde"]
-tar = tarfile.open(sde)
-sde_folder_path = os.getcwd() + "/" + tar.getnames()[0]
-tar.close()
 
 
-def build_sde(sde):
-    print("Building SDE.")
-    tar = tarfile.open(sde)
-    sde_folder_name = tar.getnames()[0]
-    tar.extractall()
-    tar.close()
+# tar = tarfile.open(sde)
+# sde_folder_path = os.getcwd() + "/" + tar.getnames()[0]
+# tar.close()
+
+
+def build_sde(sde_path):
+    print("Building SDE from {}.".format(sde_path))
+    if not tarfile.is_tarfile(sde_path):
+        print("Invalid tofino SDE tar file {} can not build.".format(sde_path))
+        return 0
+
+    sde_tar = tarfile.open(sde_path)
+    sde_folder_name = sde_tar.getnames()[0]
+    global sde_folder_path
+    sde_folder_path = sde_folder_name
+    sde_tar.extractall()
+    sde_tar.close()
     os.chdir(sde_folder_name)
     build_opt = "-up"
     default_profile = "p4_runtime_profile"
@@ -59,31 +66,48 @@ def install_bf_sde():
     if not install_sde:
         install_sde = "y"
     if install_sde == "y":
-
-        if tarfile.is_tarfile(sde):
-            print("Extracting {}...".format(sde))
-            build_sde(sde)
+        sde_path = input("Enter the full path of sde tar [{}]?".format(sde))
+        if not sde_path:
+            sde_path = sde
+        build_sde(sde_path)
     else:
         print("You selected not to build SDE.")
 
 
 ######################################################################
 ######################################################################
-def install_switch_bsp():
-    os.chdir(dname)
+def checkBF_SDE_Installation():
+    global sde_folder_path
     if not os.path.exists(sde_folder_path):
-        print("Could not find {} exiting.".format(sde_folder_path))
-        exit(0)
+        sde_folder_path = input(
+            "Enter full path of Barefoot SDE installation directory, was not found at [{}]:".format(
+                "./"))
+        if not os.path.exists(sde_folder_path):
+            print(
+                "Invalid Barefoot SDE installation directory {}, Exiting installer.".format(
+                    sde_folder_path))
+            exit(0)
+    else:
+        print(
+            "Found BF SDE installation at {}, BSP will be installed in this SDE.".format(
+                sde_folder_path))
 
+
+def install_switch_bsp():
     install_bsp = input("Do you want to build BSP [y]/n?")
     if not install_bsp:
         install_bsp = "y"
     if install_bsp == "y":
+        checkBF_SDE_Installation()
         os.chdir(dname)
-        bsp = installation_files["bsp"]
-        if zipfile.is_zipfile(bsp):
-            print("Installing {}".format(bsp))
-            zip_ref = zipfile.ZipFile(bsp)
+        bsp_installation_file = input(
+            "Enter full path of BSP installation package [{}]".format(
+                installation_files["bsp"]))
+        if not bsp_installation_file:
+            bsp_installation_file = installation_files["bsp"]
+        if zipfile.is_zipfile(bsp_installation_file):
+            print("Installing {}".format(bsp_installation_file))
+            zip_ref = zipfile.ZipFile(bsp_installation_file)
             zip_ref.extractall()
             extracted_dir_name = zip_ref.namelist()[0]
             zip_ref.close()
@@ -109,9 +133,13 @@ def install_switch_bsp():
 
 ######################################################################
 ######################################################################
+
 def start_bf_switchd():
     os.chdir(dname)
-    start_switchd = input("Do you want to start switchd [y]/n?")
+    print("Starting switchd without any P4 program, "
+          "Useful to validate switch installation.")
+    start_switchd = input(
+        "Do you want to start switchd [y]/n?")
     if not start_switchd:
         start_switchd = "y"
     if start_switchd == "y":
@@ -124,14 +152,19 @@ def start_bf_switchd():
 
 ######################################################################
 ######################################################################
+
 def install_irq_debug():
     os.chdir(dname)
     install_irq_debug = input("Do you want to install irq_debug_drivers [y]/n?")
     if not install_irq_debug:
         install_irq_debug = "y"
     if install_irq_debug == "y":
-        print("Installing irq debug drivers.")
         irq = installation_files["irq_debug_tgz"]
+        irq_file_path = input(
+            "Enter path for irq_debug_driver [{}]".format(irq))
+        if irq_file_path:
+            irq = irq_file_path
+        print("Installing irq debug drivers.")
         tar = tarfile.open(irq)
         irq_folder_name = tar.getnames()[0]
         tar.extractall()
@@ -139,14 +172,16 @@ def install_irq_debug():
         print(irq_folder_name)
         os.chdir(irq_folder_name)
         os.system("make")
+        print("Removing module irq_debug.")
         if os.system("sudo rmmod ./irq_debug.ko") != 0:
             print("Ignore above ERROR.")
+        print("Installing module irq_debug.")
         os.system("sudo insmod ./irq_debug.ko")
         os.system("sudo modprobe -q i2c-i801")
 
+######################################################################
+######################################################################
 
-######################################################################
-######################################################################
 def install_mv_pipe():
     os.chdir(dname)
     build_mv_pipe_config = input("Do you want to build mv_pipe_config [y]/n?")
@@ -154,6 +189,10 @@ def install_mv_pipe():
         build_mv_pipe_config = "y"
     if build_mv_pipe_config == "y":
         mv_pipe = installation_files["mv_pipe_config_zip"]
+        mv_pipe_path = input(
+            "Enter path for mv_pipe package [{}]".format(mv_pipe))
+        if mv_pipe_path:
+            mv_pipe = mv_pipe_path
         zip_ref = zipfile.ZipFile(mv_pipe)
         zip_ref.extractall()
         extracted_dir_name = zip_ref.namelist()[0]
@@ -163,6 +202,28 @@ def install_mv_pipe():
         os.system("sudo mkdir /delta")
         os.system("sudo cp ./mv_pipe_config /delta/")
 
+######################################################################
+######################################################################
+
+def load_bf_kdrv():
+    global sde_folder_path
+    if not os.path.exists(sde_folder_path):
+        sd_path = input("Enter path of BF SDE installation directory:")
+        if os.path.exists(sd_path):
+            sde_folder_path = sd_path
+        else:
+            print("Invalid path of BF SDE installation, Exiting installer.")
+            exit(0)
+
+    print("Using SDE {} for loading bf_kdrv.".format(sde_folder_path))
+    os.system(
+        "sudo {}/install/bin/bf_kdrv_mod_unload {}/install/".format(
+            sde_folder_path, sde_folder_path))
+    os.system(
+        "sudo {}/install/bin/bf_kdrv_mod_load {}/install/".format(
+            sde_folder_path, sde_folder_path))
+    os.system("sudo modprobe -q i2c-dev")
+
 
 ######################################################################
 ######################################################################
@@ -171,11 +232,4 @@ if __name__ == '__main__':
     install_switch_bsp()
     install_irq_debug()
     install_mv_pipe()
-    os.system(
-        "sudo {}/install/bin/bf_kdrv_mod_unload {}/install/".format(
-            sde_folder_path, sde_folder_path))
-    os.system(
-        "sudo {}/install/bin/bf_kdrv_mod_load {}/install/".format(
-            sde_folder_path, sde_folder_path))
-    os.system("sudo modprobe -q i2c-dev")
     start_bf_switchd()
