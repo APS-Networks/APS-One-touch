@@ -18,6 +18,15 @@ print(
 for key, val in installation_files.items():
     print("{}{}{}".format(key, " -> ", val))
 
+
+######################################################################
+######################################################################
+
+def install_deps():
+    print("Installing dependencies...")
+    os.system("sudo apt install python python3")
+
+
 ######################################################################
 ######################################################################
 sde_folder_path = ""
@@ -228,8 +237,10 @@ def load_bf_kdrv():
 ######################################################################
 ######################################################################
 if __name__ == '__main__':
+    install_deps()
     install_bf_sde()
     install_switch_bsp()
     install_irq_debug()
     install_mv_pipe()
+    load_bf_kdrv()
     start_bf_switchd()
