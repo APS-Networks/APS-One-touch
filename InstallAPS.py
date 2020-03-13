@@ -47,7 +47,7 @@ def build_sde(sde_path):
     sde_tar = tarfile.open(sde_path)
     sde_folder_name = sde_tar.getnames()[0]
     global sde_folder_path
-    sde_folder_path = sde_folder_name
+    sde_folder_path = os.path.abspath(sde_folder_name)
     sde_tar.extractall()
     sde_tar.close()
     os.chdir(sde_folder_name)
@@ -89,8 +89,7 @@ def checkBF_SDE_Installation():
     global sde_folder_path
     if not os.path.exists(sde_folder_path):
         sde_folder_path = input(
-            "Enter full path of Barefoot SDE installation directory, was not found at [{}]:".format(
-                "./"))
+            "Enter full path of Barefoot SDE installation directory:")
         if not os.path.exists(sde_folder_path):
             print(
                 "Invalid Barefoot SDE installation directory {}, Exiting installer.".format(
@@ -183,7 +182,7 @@ def install_irq_debug():
         os.system("make")
         print("Removing module irq_debug.")
         if os.system("sudo rmmod ./irq_debug.ko") != 0:
-            print("Ignore above ERROR.")
+            print("Ignore above ERROR. As this is forced removal for non existing module.")
         print("Installing module irq_debug.")
         os.system("sudo insmod ./irq_debug.ko")
         os.system("sudo modprobe -q i2c-i801")
@@ -215,6 +214,7 @@ def install_mv_pipe():
 ######################################################################
 
 def load_bf_kdrv():
+    print("Loading bf_kdrv....")
     global sde_folder_path
     if not os.path.exists(sde_folder_path):
         sd_path = input("Enter path of BF SDE installation directory:")
