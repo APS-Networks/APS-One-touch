@@ -15,10 +15,13 @@ installation_dir = {
 }
 
 abspath = os.path.abspath(__file__)
+# Absolute directory name containing this file
 dname = os.path.dirname(abspath)
 
 print(
-    "All or subset of following packages can be installed. Default path for searching following installation files is {}, or give custom path during installation :".format(
+    "All or subset of following packages can be installed. Default path for "
+    "searching following installation files is {}, or give custom path during "
+    "installation :".format(
         dname))
 for key, val in installation_files.items():
     print("{}{}{}".format(key, " -> ", val))
@@ -98,14 +101,16 @@ def checkBF_SDE_Installation():
                 installation_dir["sde_home"]))
         if not sde_folder_path:
             sde_folder_path = installation_dir["sde_home"]
+            print("Using SDE {}".format(sde_folder_path))
         if not os.path.exists(sde_folder_path):
             print(
-                "Invalid Barefoot SDE installation directory {}, Exiting installer.".format(
+                "Invalid Barefoot SDE installation directory {}, Exiting "
+                "installer.".format(
                     sde_folder_path))
             return False
     else:
         print(
-            "Found BF SDE installation at {}, BSP will be installed in this SDE.".format(
+            "Found BF SDE installation at {}.".format(
                 sde_folder_path))
         return True
 
@@ -151,19 +156,36 @@ def install_switch_bsp():
 ######################################################################
 ######################################################################
 
-def verify_loaded_modules():
+def load_and_verify_kernel_modules():
     loaded_modules = subprocess.run(['lsmod'], stdout=subprocess.PIPE,
                                     stderr=subprocess.STDOUT)
     output = loaded_modules.stdout.decode('UTF-8')
-    irq_debug=True
-    bf_kdrv=True
+
+    irq_debug = True
+    bf_kdrv = True
+
     if 'irq_debug' not in output:
-        irq_debug=False
+        install_irq_debug()
+
+    if 'bf_kdrv' not in output:
+        load_bf_kdrv()
+
+    os.system("sudo modprobe -q i2c-i801")
+    os.system("sudo modprobe -q i2c-dev")
+
+    loaded_modules = subprocess.run(['lsmod'], stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT)
+    output = loaded_modules.stdout.decode('UTF-8')
+
+    if 'irq_debug' not in output:
+        irq_debug = False
         print("ERROR:irq_debug is not loaded")
 
     if 'bf_kdrv' not in output:
-        irq_debug=False
+        irq_debug = False
         print("ERROR:bf_kdrv is not loaded")
+
+    # TODO Check for i2c modules to be loaded as well.
 
     return irq_debug and bf_kdrv
 
@@ -178,16 +200,14 @@ def start_bf_switchd():
         start_switchd = "y"
     if start_switchd == "y":
         checkBF_SDE_Installation()
-        os.system("sudo modprobe -q i2c-i801")
-        os.system("sudo modprobe -q i2c-dev")
-        load_bf_kdrv()
-        if not verify_loaded_modules():
+        if not load_and_verify_kernel_modules():
             print("ERROR:Some kernel modules are not loaded.")
             exit(0)
         print("Starting switchd without p4 program")
         # LD_LIBRARY_PATH is set for ONLPv2 case, libs in install/lib folder are not found there
         # but this does not cause any harm for Ubuntu case either.
-        os.environ['LD_LIBRARY_PATH']="./{0}/install/lib".format(sde_folder_path)
+        os.environ['LD_LIBRARY_PATH'] = "./{0}/install/lib".format(
+            sde_folder_path)
         # os.system(
         #     "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:{0}/install/lib".format(
         #         sde_folder_path))
@@ -205,33 +225,31 @@ def start_bf_switchd():
 
 def install_irq_debug():
     os.chdir(dname)
-    install_irq_debug = input("Do you want to install irq_debug_drivers [y]/n?")
-    if not install_irq_debug:
-        install_irq_debug = "y"
-    if install_irq_debug == "y":
-        irq = installation_files["irq_debug_tgz"]
-        irq_file_path = input(
-            "Enter path for irq_debug_driver [{}]".format(irq))
-        if irq_file_path:
-            irq = irq_file_path
-        print("Installing irq debug drivers.")
-        tar = tarfile.open(irq)
-        irq_folder_name = tar.getnames()[0]
-        tar.extractall()
-        tar.close()
-        print(irq_folder_name)
-        os.chdir(irq_folder_name)
-        os.system("make")
-        print("Removing module irq_debug.")
-        if os.system("sudo rmmod ./irq_debug.ko") != 0:
-            print(
-                "Ignore above ERROR. As this is forced removal for non existing module.")
-        print("Installing module irq_debug.")
-        os.system("sudo insmod ./irq_debug.ko")
+    print("Working dir :{}".format(dname))
+    irq = installation_files["irq_debug_tgz"]
+    irq_file_path = input(
+        "Enter path for irq_debug_driver [{}]".format(irq))
+    if irq_file_path:
+        irq = irq_file_path
+    print("Installing irq debug drivers.")
+    tar = tarfile.open(irq)
+    irq_folder_name = tar.getnames()[0]
+    tar.extractall()
+    tar.close()
+    print(irq_folder_name)
+    os.chdir(irq_folder_name)
+    os.system("make")
+    print("Removing module irq_debug.")
+    if os.system("sudo rmmod ./irq_debug.ko") != 0:
+        print(
+            "Ignore above ERROR. As this is forced removal for non existing module.")
+    print("Installing module irq_debug.")
+    os.system("sudo insmod ./irq_debug.ko")
 
 
 ######################################################################
 ######################################################################
+
 
 def install_mv_pipe():
     os.chdir(dname)
@@ -258,10 +276,6 @@ def install_mv_pipe():
 ######################################################################
 
 def load_bf_kdrv():
-    # load_bf_kdrv_module = input("Do you want to load bf_kdrv drivers [y]/n?")
-    # if not load_bf_kdrv_module:
-    #     load_bf_kdrv_module = "y"
-    # if load_bf_kdrv_module == "y":
     print("Loading bf_kdrv....")
     checkBF_SDE_Installation()
     global sde_folder_path
@@ -288,7 +302,5 @@ if __name__ == '__main__':
     install_deps()
     install_bf_sde()
     install_switch_bsp()
-    install_irq_debug()
     install_mv_pipe()
-    # load_bf_kdrv()
     start_bf_switchd()
