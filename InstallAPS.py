@@ -100,7 +100,7 @@ def checkBF_SDE_Installation():
             "Enter full path of Barefoot SDE installation directory[{0}]:".format(
                 installation_dir["sde_home"]))
         if not sde_folder_path:
-            sde_folder_path = installation_dir["sde_home"]
+            sde_folder_path = dname+"/"+installation_dir["sde_home"]
             print("Using SDE {}".format(sde_folder_path))
         if not os.path.exists(sde_folder_path):
             print(
@@ -206,7 +206,7 @@ def start_bf_switchd():
         print("Starting switchd without p4 program")
         # LD_LIBRARY_PATH is set for ONLPv2 case, libs in install/lib folder are not found there
         # but this does not cause any harm for Ubuntu case either.
-        os.environ['LD_LIBRARY_PATH'] = "./{0}/install/lib".format(
+        os.environ['LD_LIBRARY_PATH'] = "/{0}/install/lib".format(
             sde_folder_path)
         # os.system(
         #     "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:{0}/install/lib".format(
