@@ -100,8 +100,10 @@ def checkBF_SDE_Installation():
             "Enter full path of Barefoot SDE installation directory[{0}]:".format(
                 installation_dir["sde_home"]))
         if not sde_folder_path:
-            sde_folder_path = dname+"/"+installation_dir["sde_home"]
+            sde_folder_path = dname + "/" + installation_dir["sde_home"]
             print("Using SDE {}".format(sde_folder_path))
+            os.environ['SDE'] = sde_folder_path
+            os.environ['SDE_INSTALL'] = os.environ['SDE'] + "/install"
         if not os.path.exists(sde_folder_path):
             print(
                 "Invalid Barefoot SDE installation directory {}, Exiting "
@@ -163,6 +165,10 @@ def load_and_verify_kernel_modules():
 
     irq_debug = True
     bf_kdrv = True
+    mv_pipe = True
+
+    os.system("sudo modprobe -q i2c-i801")
+    os.system("sudo modprobe -q i2c-dev")
 
     if 'irq_debug' not in output:
         install_irq_debug()
@@ -170,8 +176,8 @@ def load_and_verify_kernel_modules():
     if 'bf_kdrv' not in output:
         load_bf_kdrv()
 
-    os.system("sudo modprobe -q i2c-i801")
-    os.system("sudo modprobe -q i2c-dev")
+    if not os.path.exists("/delta/mv_pipe_config"):
+        install_mv_pipe()
 
     loaded_modules = subprocess.run(['lsmod'], stdout=subprocess.PIPE,
                                     stderr=subprocess.STDOUT)
@@ -179,21 +185,24 @@ def load_and_verify_kernel_modules():
 
     if 'irq_debug' not in output:
         irq_debug = False
-        print("ERROR:irq_debug is not loaded")
+        print("ERROR:irq_debug is not loaded.")
 
     if 'bf_kdrv' not in output:
         irq_debug = False
-        print("ERROR:bf_kdrv is not loaded")
+        print("ERROR:bf_kdrv is not loaded.")
+
+    if not os.path.exists("/delta/mv_pipe_config"):
+        mv_pipe = False
+        print("ERROR:mv_pipe_config not installed.")
 
     # TODO Check for i2c modules to be loaded as well.
 
-    return irq_debug and bf_kdrv
+    return irq_debug and bf_kdrv and mv_pipe
 
 
 def start_bf_switchd():
     os.chdir(dname)
-    print("Starting switchd without any P4 program, "
-          "Useful to validate switch installation.")
+    print("Starting switchd...")
     start_switchd = input(
         "Do you want to start switchd [y]/n?")
     if not start_switchd:
@@ -203,20 +212,28 @@ def start_bf_switchd():
         if not load_and_verify_kernel_modules():
             print("ERROR:Some kernel modules are not loaded.")
             exit(0)
-        print("Starting switchd without p4 program")
-        # LD_LIBRARY_PATH is set for ONLPv2 case, libs in install/lib folder are not found there
-        # but this does not cause any harm for Ubuntu case either.
-        os.environ['LD_LIBRARY_PATH'] = "/{0}/install/lib".format(
-            sde_folder_path)
-        # os.system(
-        #     "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:{0}/install/lib".format(
-        #         sde_folder_path))
-        os.system("echo $LD_LIBRARY_PATH")
-        start_switchd_cmd = "sudo {0}/install/bin/bf_switchd --install-dir {0}/install --conf-file {0}/pkgsrc/p4-examples/tofino/tofino_skip_p4.conf.in --skip-p4".format(
-            sde_folder_path)
+        p4_prog_name = input(
+            "Enter P4 program name to start switchd with or leave blank:")
+
+        if not p4_prog_name:
+            print("Starting switchd without p4 program")
+            # LD_LIBRARY_PATH is set for ONLPv2 case, libs in install/lib folder are not found there
+            # but this does not cause any harm for Ubuntu case either.
+            os.environ['LD_LIBRARY_PATH'] = "/{0}/install/lib".format(
+                sde_folder_path)
+            os.system("echo $LD_LIBRARY_PATH")
+            start_switchd_cmd = "sudo {0}/install/bin/bf_switchd --install-dir {" \
+                                "0}/install --conf-file {" \
+                                "0}/pkgsrc/p4-examples/tofino/tofino_skip_p4.conf" \
+                                ".in --skip-p4".format(
+                sde_folder_path)
+        else :
+            print("Starting switchd with P4 prog:{}".format(p4_prog_name))
+            start_switchd_cmd=sde_folder_path+"/run_switchd.sh -p {}".format(p4_prog_name.replace(".p4",""))
         username = getpass.getuser()
         if username == "root":
             start_switchd_cmd = start_switchd_cmd.replace("sudo", "")
+        print("Starting switchd with command : {}".format(start_switchd_cmd))
         os.system(start_switchd_cmd)
 
 
@@ -224,6 +241,7 @@ def start_bf_switchd():
 ######################################################################
 
 def install_irq_debug():
+    print("Installing irq_debug...")
     os.chdir(dname)
     print("Working dir :{}".format(dname))
     irq = installation_files["irq_debug_tgz"]
@@ -252,24 +270,21 @@ def install_irq_debug():
 
 
 def install_mv_pipe():
+    print("Building mv_pipe_config...")
     os.chdir(dname)
-    build_mv_pipe_config = input("Do you want to build mv_pipe_config [y]/n?")
-    if not build_mv_pipe_config:
-        build_mv_pipe_config = "y"
-    if build_mv_pipe_config == "y":
-        mv_pipe = installation_files["mv_pipe_config_zip"]
-        mv_pipe_path = input(
-            "Enter path for mv_pipe package [{}]".format(mv_pipe))
-        if mv_pipe_path:
-            mv_pipe = mv_pipe_path
-        zip_ref = zipfile.ZipFile(mv_pipe)
-        zip_ref.extractall()
-        extracted_dir_name = zip_ref.namelist()[0]
-        zip_ref.close()
-        os.chdir(extracted_dir_name)
-        os.system("gcc mv_pipe_config.c -o mv_pipe_config")
-        os.system("sudo mkdir /delta")
-        os.system("sudo cp ./mv_pipe_config /delta/")
+    mv_pipe = installation_files["mv_pipe_config_zip"]
+    mv_pipe_path = input(
+        "Enter path for mv_pipe package [{}]".format(mv_pipe))
+    if mv_pipe_path:
+        mv_pipe = mv_pipe_path
+    zip_ref = zipfile.ZipFile(mv_pipe)
+    zip_ref.extractall()
+    extracted_dir_name = zip_ref.namelist()[0]
+    zip_ref.close()
+    os.chdir(extracted_dir_name)
+    os.system("gcc mv_pipe_config.c -o mv_pipe_config")
+    os.system("sudo mkdir /delta")
+    os.system("sudo cp ./mv_pipe_config /delta/")
 
 
 ######################################################################
@@ -278,15 +293,6 @@ def install_mv_pipe():
 def load_bf_kdrv():
     print("Loading bf_kdrv....")
     checkBF_SDE_Installation()
-    global sde_folder_path
-    if not os.path.exists(sde_folder_path):
-        sd_path = input("Enter path of BF SDE installation directory:")
-        if os.path.exists(sd_path):
-            sde_folder_path = sd_path
-        else:
-            print("Invalid path of BF SDE installation, Exiting installer.")
-            exit(0)
-
     print("Using SDE {} for loading bf_kdrv.".format(sde_folder_path))
     os.system(
         "sudo {}/install/bin/bf_kdrv_mod_unload {}/install/".format(
@@ -302,5 +308,4 @@ if __name__ == '__main__':
     install_deps()
     install_bf_sde()
     install_switch_bsp()
-    install_mv_pipe()
     start_bf_switchd()
