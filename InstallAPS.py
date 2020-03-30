@@ -1,17 +1,19 @@
+import getpass
 import os
+import platform
+import subprocess
 import tarfile
 import zipfile
-import getpass
-import subprocess
+from pathlib import Path
 
 installation_files = {
-    "bsp": "BF2556X-1T_BSP_9.0.0-master.zip",
-    "sde": "bf-sde-9.1.0.tar",
-    "irq_debug_tgz": "irq_debug.tgz",
-    "mv_pipe_config_zip": "mv_pipe_config.zip"}
+    "bsp": "./BF2556X-1T_BSP_9.0.0-master.zip",
+    "sde": "./bf-sde-9.1.0.tar",
+    "irq_debug_tgz": "./irq_debug.tgz",
+    "mv_pipe_config_zip": "./mv_pipe_config.zip"}
 
 installation_dir = {
-    "sde_home": "bf-sde-9.1.0"
+    "sde_home": "./bf-sde-9.1.0"
 }
 
 abspath = os.path.abspath(__file__)
@@ -79,13 +81,14 @@ def build_sde(sde_path):
 
 
 def install_bf_sde():
-    install_sde = input("Do you want to build SDE [y]/n?")
+    install_sde = input("Do you want to build SDE y/[n]?")
     if not install_sde:
-        install_sde = "y"
+        install_sde = "n"
     if install_sde == "y":
         sde_path = input("Enter the full path of sde tar [{}]?".format(sde))
         if not sde_path:
             sde_path = sde
+        create_symlinks()
         build_sde(sde_path)
     else:
         print("You selected not to build SDE.")
@@ -118,9 +121,9 @@ def checkBF_SDE_Installation():
 
 
 def install_switch_bsp():
-    install_bsp = input("Do you want to build BSP [y]/n?")
+    install_bsp = input("Do you want to build BSP y/[n]?")
     if not install_bsp:
-        install_bsp = "y"
+        install_bsp = "n"
     if install_bsp == "y":
         checkBF_SDE_Installation()
         os.chdir(dname)
@@ -152,17 +155,20 @@ def install_switch_bsp():
             os.system("make")
             os.system("sudo make install")
     else:
-        print("You choose not to install BSP")
+        print("You choose not to install BSP.")
 
 
 ######################################################################
 ######################################################################
+
+def get_cmd_output(cmd):
+    loaded_modules = subprocess.run(cmd.split(' '), stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT)
+    return loaded_modules.stdout.decode('UTF-8')
+
 
 def load_and_verify_kernel_modules():
-    loaded_modules = subprocess.run(['lsmod'], stdout=subprocess.PIPE,
-                                    stderr=subprocess.STDOUT)
-    output = loaded_modules.stdout.decode('UTF-8')
-
+    output = get_cmd_output('lsmod')
     irq_debug = True
     bf_kdrv = True
     mv_pipe = True
@@ -200,41 +206,47 @@ def load_and_verify_kernel_modules():
     return irq_debug and bf_kdrv and mv_pipe
 
 
+def alloc_dma():
+    output=get_cmd_output('cat /etc/sysctl.conf')
+    if 'vm.nr_hugepages = 128' not in output:
+        print('Setting up huge pages...')
+        dma_alloc_cmd = 'sudo ./{}/pkgsrc/ptf-modules/ptf-utils/dma_setup.sh'.format(
+                sde_folder_path)
+        os.system(dma_alloc_cmd)
+
+
 def start_bf_switchd():
     os.chdir(dname)
-    print("Starting switchd...")
-    start_switchd = input(
-        "Do you want to start switchd [y]/n?")
-    if not start_switchd:
-        start_switchd = "y"
-    if start_switchd == "y":
-        checkBF_SDE_Installation()
-        if not load_and_verify_kernel_modules():
-            print("ERROR:Some kernel modules are not loaded.")
-            exit(0)
-        p4_prog_name = input(
-            "Enter P4 program name to start switchd with or leave blank:")
+    checkBF_SDE_Installation()
+    if not load_and_verify_kernel_modules():
+        print("ERROR:Some kernel modules are not loaded.")
+        exit(0)
+    p4_prog_name = input(
+        "Enter P4 program name to start switchd with or leave blank:")
 
-        if not p4_prog_name:
-            print("Starting switchd without p4 program")
-            # LD_LIBRARY_PATH is set for ONLPv2 case, libs in install/lib folder are not found there
-            # but this does not cause any harm for Ubuntu case either.
-            os.environ['LD_LIBRARY_PATH'] = "/{0}/install/lib".format(
-                sde_folder_path)
-            os.system("echo $LD_LIBRARY_PATH")
-            start_switchd_cmd = "sudo {0}/install/bin/bf_switchd --install-dir {" \
-                                "0}/install --conf-file {" \
-                                "0}/pkgsrc/p4-examples/tofino/tofino_skip_p4.conf" \
-                                ".in --skip-p4".format(
-                sde_folder_path)
-        else :
-            print("Starting switchd with P4 prog:{}".format(p4_prog_name))
-            start_switchd_cmd=sde_folder_path+"/run_switchd.sh -p {}".format(p4_prog_name.replace(".p4",""))
-        username = getpass.getuser()
-        if username == "root":
-            start_switchd_cmd = start_switchd_cmd.replace("sudo", "")
-        print("Starting switchd with command : {}".format(start_switchd_cmd))
-        os.system(start_switchd_cmd)
+    # LD_LIBRARY_PATH is set for ONLPv2 case, libs in install/lib folder are
+    # not found there but this does not cause any harm for Ubuntu case either.
+    os.environ['LD_LIBRARY_PATH'] = "/{0}/install/lib".format(
+        sde_folder_path)
+    os.system("echo $LD_LIBRARY_PATH")
+
+    if not p4_prog_name:
+        print("Starting switchd without p4 program")
+        start_switchd_cmd = "sudo {0}/install/bin/bf_switchd --install-dir {" \
+                            "0}/install --conf-file {" \
+                            "0}/pkgsrc/p4-examples/tofino/tofino_skip_p4.conf" \
+                            ".in --skip-p4".format(sde_folder_path)
+    else:
+        print("Starting switchd with P4 prog:{}".format(p4_prog_name))
+        start_switchd_cmd = sde_folder_path + "/run_switchd.sh -p {}".format(
+            p4_prog_name.replace(".p4", ""))
+    username = getpass.getuser()
+
+    if username == "root":
+        start_switchd_cmd = start_switchd_cmd.replace("sudo", "")
+    alloc_dma()
+    print("Starting switchd with command : {}".format(start_switchd_cmd))
+    os.system(start_switchd_cmd)
 
 
 ######################################################################
@@ -250,6 +262,7 @@ def install_irq_debug():
     if irq_file_path:
         irq = irq_file_path
     print("Installing irq debug drivers.")
+    create_symlinks()
     tar = tarfile.open(irq)
     irq_folder_name = tar.getnames()[0]
     tar.extractall()
@@ -304,8 +317,153 @@ def load_bf_kdrv():
 
 ######################################################################
 ######################################################################
+def set_stratum_env():
+    checkBF_SDE_Installation()
+    os.environ['BF_SDE_INSTALL'] = "/{0}/install/".format(sde_folder_path)
+    os.environ['LD_LIBRARY_PATH'] = "/{0}/lib".format(
+        os.environ['BF_SDE_INSTALL'])
+    os.environ['PI_INSTALL'] = os.environ['BF_SDE_INSTALL']
+    os.environ['CONFIG_DIR'] = str(Path.home()) + "/config"
+    os.environ['STRATUM_HOME'] = str(Path.home()) + "/stratum"
+
+    print('Env for starting Stratum :\n{0}\n{1}\n{2}\n{3}\n{4}'.format(
+        'BF_SDE_INSTALL {}'.format(os.environ['BF_SDE_INSTALL']),
+        'LD_LIBRARY_PATH {}'.format(os.environ['LD_LIBRARY_PATH']),
+        'PI_INSTALL {}'.format(os.environ['PI_INSTALL']),
+        'CONFIG_DIR {}'.format(os.environ['CONFIG_DIR']),
+        'STRATUM_HOME {}'.format(os.environ['STRATUM_HOME'])))
+
+
+def is_onl():
+    if 'OpenNetworkLinux' in platform.release():
+        print('Platform info {}'.format(
+            platform.version()))
+        return True
+    return False
+
+
+def is_ubuntu():
+    if 'Ubuntu' in platform.version():
+        print('Platform info {}'.format(
+            platform.version()))
+        return True
+    return False
+
+
+def get_kernel_major_version():
+    rel = platform.release()
+    rel_list = rel.split(".")
+    return rel_list.pop(0) + "." + rel_list.pop(0)
+
+
+def create_symlinks():
+    ##currently following symlinks are necessary only in case of ONL.
+    if is_onl():
+        src = '/usr/share/onl/packages/amd64/onl-kernel-{}-lts-x86-64-all/mbuilds/'.format(
+            get_kernel_major_version())
+        # Needed to build sde.
+        sde_symlink = '/lib/modules/{}/build'.format(platform.release())
+        # needed to build irq.
+        irq_symlink = '/usr/src/linux-headers-{}'.format(platform.release())
+        if os.path.islink(sde_symlink):
+            print('Removing symlink {}'.format(sde_symlink))
+            os.unlink(sde_symlink)
+        print('Creating symlink {}'.format(sde_symlink))
+        os.symlink(src, sde_symlink)
+
+        if os.path.islink(irq_symlink):
+            print(print('Removing symlink {}'.format(irq_symlink)))
+            os.unlink(irq_symlink)
+        print('Creating symlink {}'.format(irq_symlink))
+        os.symlink(src, irq_symlink)
+
+
+def start_stratum():
+    if not is_onl():
+        print('ERROR: Stratum is not supported on this platform {}'.format(
+            platform.version()))
+        exit(0)
+    print("Starting Stratum....")
+    set_stratum_env()
+    stratum_start_cmd_bsp_less = '{0}/bazel-bin/stratum/hal/bin/barefoot/stratum_bf \
+    --external_stratum_urls=0.0.0.0:28000 \
+    --grpc_max_recv_msg_size=256 \
+    --bf_sde_install={1} \
+    --persistent_config_dir={2} \
+    --forwarding_pipeline_configs_file={2}/p4_pipeline.pb.txt \
+    --chassis_config_file={2}/chassis_config.pb.txt \
+    --write_req_log_file={2}/p4_writes.pb.txt \
+    --bf_switchd_cfg={0}/stratum/hal/bin/barefoot/tofino_skip_p4_no_bsp.conf'.format(
+        os.environ['STRATUM_HOME'],
+        os.environ['BF_SDE_INSTALL'],
+        os.environ['CONFIG_DIR']
+    )
+
+    stratum_start_cmd_bsp = '{0}/bazel-bin/stratum/hal/bin/barefoot/stratum_bf \
+        --external_stratum_urls=0.0.0.0:28000 \
+        --grpc_max_recv_msg_size=256 \
+        --bf_sde_install={1} \
+        --persistent_config_dir={2} \
+        --forwarding_pipeline_configs_file={2}/p4_pipeline.pb.txt \
+        --chassis_config_file={2}/chassis_config.pb.txt \
+        --write_req_log_file={2}/p4_writes.pb.txt \
+        --bf_sim'.format(
+        os.environ['STRATUM_HOME'],
+        os.environ['BF_SDE_INSTALL'],
+        os.environ['CONFIG_DIR']
+    )
+
+    print("Using SDE {} for loading bf_kdrv.".format(sde_folder_path))
+    os.system(
+        "sudo {}/install/bin/bf_kdrv_mod_unload {}/install/".format(
+            sde_folder_path, sde_folder_path))
+    os.system(
+        "sudo {}/install/bin/bf_kdrv_mod_load {}/install/".format(
+            sde_folder_path, sde_folder_path))
+
+    stratum_start_mode = input("Select start mode of stratum [bsp-less]/bsp?")
+    if not stratum_start_mode:
+        stratum_start_mode = 'bsp-less'
+
+    if stratum_start_mode == 'bsp-less':
+        print("Starting Stratum in bsp-less mode...")
+        print(stratum_start_cmd_bsp_less)
+        os.system(stratum_start_cmd_bsp_less)
+    else:
+        print("Starting Stratum in bsp-less mode...")
+        print(stratum_start_cmd_bsp_less)
+        os.system(stratum_start_cmd_bsp_less)
+
+
+def compile_stratum():
+    print('Buidlding stratum...')
+    set_stratum_env()
+    stratum_build_command = 'bazel build //stratum/hal/bin/barefoot:stratum_bf'
+    os.chdir(os.environ['STRATUM_HOME'])
+    print('Executing : {}'.format(stratum_build_command))
+    os.system(stratum_build_command)
+
+    ######################################################################
+    ######################################################################
+
+
 if __name__ == '__main__':
     install_deps()
     install_bf_sde()
     install_switch_bsp()
-    start_bf_switchd()
+    start_switchd = input("Do you want to start [switchd]/stratum?")
+    if not start_switchd:
+        start_switchd = "switchd"
+    if start_switchd == "switchd":
+        start_bf_switchd()
+    else:
+        build_stratum = input("Do you want to build stratum y/[n]?")
+        if not build_stratum:
+            build_stratum = "n"
+        if build_stratum == "y":
+            compile_stratum()
+        run_stratum = input("Do you want to start stratum y/[n]?")
+        if not run_stratum:
+            run_stratum = "n"
+        if run_stratum == "y":
+            start_stratum()
