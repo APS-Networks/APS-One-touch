@@ -1,6 +1,7 @@
 import getpass
 import os
 import platform
+import shutil
 import subprocess
 import tarfile
 import zipfile
@@ -10,7 +11,9 @@ installation_files = {
     "bsp": "./BF2556X-1T_BSP_9.0.0-master.zip",
     "sde": "./bf-sde-9.1.0.tar",
     "irq_debug_tgz": "./irq_debug.tgz",
-    "mv_pipe_config_zip": "./mv_pipe_config.zip"}
+    "mv_pipe_config_zip": "./mv_pipe_config.zip",
+    "stratum_repo": "https://github.com/stratum/stratum.git"
+}
 
 installation_dir = {
     "sde_home": "./bf-sde-9.1.0"
@@ -34,19 +37,13 @@ for key, val in installation_files.items():
 
 def install_deps():
     print("Installing dependencies...")
-    # os.system("sudo apt install python python3")
+    # os.system("sudo apt install python python3 patch")
 
 
 ######################################################################
 ######################################################################
 sde_folder_path = ""
 sde = installation_files["sde"]
-
-
-# tar = tarfile.open(sde)
-# sde_folder_path = os.getcwd() + "/" + tar.getnames()[0]
-# tar.close()
-
 
 def build_sde(sde_path):
     print("Building SDE from {}.".format(sde_path))
@@ -210,7 +207,7 @@ def alloc_dma():
     output=get_cmd_output('cat /etc/sysctl.conf')
     if 'vm.nr_hugepages = 128' not in output:
         print('Setting up huge pages...')
-        dma_alloc_cmd = 'sudo ./{}/pkgsrc/ptf-modules/ptf-utils/dma_setup.sh'.format(
+        dma_alloc_cmd = 'sudo /{}/pkgsrc/ptf-modules/ptf-utils/dma_setup.sh'.format(
                 sde_folder_path)
         os.system(dma_alloc_cmd)
 
@@ -270,10 +267,7 @@ def install_irq_debug():
     print(irq_folder_name)
     os.chdir(irq_folder_name)
     os.system("make")
-    print("Removing module irq_debug.")
-    if os.system("sudo rmmod ./irq_debug.ko") != 0:
-        print(
-            "Ignore above ERROR. As this is forced removal for non existing module.")
+
     print("Installing module irq_debug.")
     os.system("sudo insmod ./irq_debug.ko")
 
@@ -308,9 +302,6 @@ def load_bf_kdrv():
     checkBF_SDE_Installation()
     print("Using SDE {} for loading bf_kdrv.".format(sde_folder_path))
     os.system(
-        "sudo {}/install/bin/bf_kdrv_mod_unload {}/install/".format(
-            sde_folder_path, sde_folder_path))
-    os.system(
         "sudo {}/install/bin/bf_kdrv_mod_load {}/install/".format(
             sde_folder_path, sde_folder_path))
 
@@ -320,7 +311,7 @@ def load_bf_kdrv():
 def set_stratum_env():
     checkBF_SDE_Installation()
     os.environ['BF_SDE_INSTALL'] = "/{0}/install/".format(sde_folder_path)
-    os.environ['LD_LIBRARY_PATH'] = "/{0}/lib".format(
+    os.environ['LD_LIBRARY_PATH'] = "/{0}/lib:/lib/x86_64-linux-gnu".format(
         os.environ['BF_SDE_INSTALL'])
     os.environ['PI_INSTALL'] = os.environ['BF_SDE_INSTALL']
     os.environ['CONFIG_DIR'] = str(Path.home()) + "/config"
@@ -425,6 +416,9 @@ def start_stratum():
     if not stratum_start_mode:
         stratum_start_mode = 'bsp-less'
 
+    shutil.copyfile(os.environ['STRATUM_HOME']+'/stratum/hal/bin/barefoot/platforms/x86-64-stordis-bf2556x-1t-r0.json',
+                    os.environ['BF_SDE_INSTALL']+'/share/port_map.json')
+
     if stratum_start_mode == 'bsp-less':
         print("Starting Stratum in bsp-less mode...")
         print(stratum_start_cmd_bsp_less)
@@ -434,6 +428,8 @@ def start_stratum():
         print(stratum_start_cmd_bsp_less)
         os.system(stratum_start_cmd_bsp_less)
 
+def clone_stratum():
+    os.system('git clone https://github.com/stratum/stratum.git')
 
 def compile_stratum():
     print('Buidlding stratum...')
@@ -461,6 +457,11 @@ if __name__ == '__main__':
         if not build_stratum:
             build_stratum = "n"
         if build_stratum == "y":
+            stratum_clone = input("Do you want to clone stratum or provide code location y/[./stratum]?")
+            if not stratum_clone:
+                build_stratum = "n"
+            if stratum_clone == 'y':
+                clone_stratum()
             compile_stratum()
         run_stratum = input("Do you want to start stratum y/[n]?")
         if not run_stratum:
