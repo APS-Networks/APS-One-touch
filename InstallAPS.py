@@ -424,9 +424,9 @@ def start_stratum():
         print(stratum_start_cmd_bsp_less)
         os.system(stratum_start_cmd_bsp_less)
     else:
-        print("Starting Stratum in bsp-less mode...")
-        print(stratum_start_cmd_bsp_less)
-        os.system(stratum_start_cmd_bsp_less)
+        print("Starting Stratum in bsp mode...")
+        print(stratum_start_cmd_bsp)
+        os.system(stratum_start_cmd_bsp)
 
 def clone_stratum():
     os.system('git clone https://github.com/stratum/stratum.git')
