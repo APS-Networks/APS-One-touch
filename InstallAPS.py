@@ -45,6 +45,7 @@ def install_deps():
 sde_folder_path = ""
 sde = installation_files["sde"]
 
+
 def build_sde(sde_path):
     print("Building SDE from {}.".format(sde_path))
     if not tarfile.is_tarfile(sde_path):
@@ -102,8 +103,6 @@ def checkBF_SDE_Installation():
         if not sde_folder_path:
             sde_folder_path = dname + "/" + installation_dir["sde_home"]
             print("Using SDE {}".format(sde_folder_path))
-            os.environ['SDE'] = sde_folder_path
-            os.environ['SDE_INSTALL'] = os.environ['SDE'] + "/install"
         if not os.path.exists(sde_folder_path):
             print(
                 "Invalid Barefoot SDE installation directory {}, Exiting "
@@ -114,7 +113,11 @@ def checkBF_SDE_Installation():
         print(
             "Found BF SDE installation at {}.".format(
                 sde_folder_path))
-        return True
+    os.environ['SDE'] = sde_folder_path
+    os.environ['SDE_INSTALL'] = os.environ['SDE'] + "/install"
+    print('Environment variables set: \n SDE: {0} \n SDE_INSTALL: {1}'.format(
+        os.environ['SDE'], os.environ['SDE_INSTALL']))
+    return True
 
 
 def install_switch_bsp():
@@ -169,6 +172,7 @@ def load_and_verify_kernel_modules():
     irq_debug = True
     bf_kdrv = True
     mv_pipe = True
+    i2c_i801 = True
 
     os.system("sudo modprobe -q i2c-i801")
     os.system("sudo modprobe -q i2c-dev")
@@ -186,6 +190,11 @@ def load_and_verify_kernel_modules():
                                     stderr=subprocess.STDOUT)
     output = loaded_modules.stdout.decode('UTF-8')
 
+    if 'i2c_i801' not in output and is_ubuntu():
+        # Ubuntu check is there because i2c_i801 appears only in output of lsmod in Ubuntu
+        i2c_i801 = False
+        print('ERROR:i2c_i801 is not loaded.')
+
     if 'irq_debug' not in output:
         irq_debug = False
         print("ERROR:irq_debug is not loaded.")
@@ -198,17 +207,15 @@ def load_and_verify_kernel_modules():
         mv_pipe = False
         print("ERROR:mv_pipe_config not installed.")
 
-    # TODO Check for i2c modules to be loaded as well.
-
-    return irq_debug and bf_kdrv and mv_pipe
+    return irq_debug and bf_kdrv and mv_pipe and i2c_i801
 
 
 def alloc_dma():
-    output=get_cmd_output('cat /etc/sysctl.conf')
+    output = get_cmd_output('cat /etc/sysctl.conf')
     if 'vm.nr_hugepages = 128' not in output:
         print('Setting up huge pages...')
         dma_alloc_cmd = 'sudo /{}/pkgsrc/ptf-modules/ptf-utils/dma_setup.sh'.format(
-                sde_folder_path)
+            sde_folder_path)
         os.system(dma_alloc_cmd)
 
 
@@ -225,17 +232,20 @@ def start_bf_switchd():
     # not found there but this does not cause any harm for Ubuntu case either.
     os.environ['LD_LIBRARY_PATH'] = "/{0}/install/lib".format(
         sde_folder_path)
+    print("LD_LIBRARY_PATH : ")
     os.system("echo $LD_LIBRARY_PATH")
 
     if not p4_prog_name:
         print("Starting switchd without p4 program")
-        start_switchd_cmd = "sudo {0}/install/bin/bf_switchd --install-dir {" \
-                            "0}/install --conf-file {" \
-                            "0}/pkgsrc/p4-examples/tofino/tofino_skip_p4.conf" \
-                            ".in --skip-p4".format(sde_folder_path)
+        # start_switchd_cmd = "sudo {0}/install/bin/bf_switchd --install-dir {" \
+        #                     "0}/install --conf-file {" \
+        #                     "0}/pkgsrc/p4-examples/tofino/tofino_skip_p4.conf" \
+        #                     ".in --skip-p4".format(sde_folder_path)
+        start_switchd_cmd = "sudo -E {0}/run_switchd.sh -c {0}/pkgsrc/p4-examples/tofino/tofino_skip_p4.conf.in --skip-p4".format(
+            sde_folder_path)
     else:
         print("Starting switchd with P4 prog:{}".format(p4_prog_name))
-        start_switchd_cmd = sde_folder_path + "/run_switchd.sh -p {}".format(
+        start_switchd_cmd = 'sudo -E ' + sde_folder_path + "/run_switchd.sh -p {}".format(
             p4_prog_name.replace(".p4", ""))
     username = getpass.getuser()
 
@@ -316,6 +326,7 @@ def set_stratum_env():
     os.environ['PI_INSTALL'] = os.environ['BF_SDE_INSTALL']
     os.environ['CONFIG_DIR'] = str(Path.home()) + "/config"
     os.environ['STRATUM_HOME'] = str(Path.home()) + "/stratum"
+    os.environ['ONLP_INSTALL'] = str(Path.home()) + "/onlp-dev_1.0.1_amd64"
 
     print('Env for starting Stratum :\n{0}\n{1}\n{2}\n{3}\n{4}'.format(
         'BF_SDE_INSTALL {}'.format(os.environ['BF_SDE_INSTALL']),
@@ -369,14 +380,11 @@ def create_symlinks():
         os.symlink(src, irq_symlink)
 
 
-def start_stratum():
-    if not is_onl():
-        print('ERROR: Stratum is not supported on this platform {}'.format(
-            platform.version()))
-        exit(0)
+def start_stratum(stratum_mode):
+
     print("Starting Stratum....")
     set_stratum_env()
-    stratum_start_cmd_bsp_less = '{0}/bazel-bin/stratum/hal/bin/barefoot/stratum_bf \
+    stratum_start_cmd_bsp_less = 'sudo {0}/bazel-bin/stratum/hal/bin/barefoot/stratum_bf \
     --external_stratum_urls=0.0.0.0:28000 \
     --grpc_max_recv_msg_size=256 \
     --bf_sde_install={1} \
@@ -390,7 +398,7 @@ def start_stratum():
         os.environ['CONFIG_DIR']
     )
 
-    stratum_start_cmd_bsp = '{0}/bazel-bin/stratum/hal/bin/barefoot/stratum_bf \
+    stratum_start_cmd_bsp = 'sudo LD_LIBRARY_PATH=$BF_SDE_INSTALL/lib {0}/bazel-bin/stratum/hal/bin/barefoot/stratum_bf \
         --external_stratum_urls=0.0.0.0:28000 \
         --grpc_max_recv_msg_size=256 \
         --bf_sde_install={1} \
@@ -401,43 +409,54 @@ def start_stratum():
         --bf_sim'.format(
         os.environ['STRATUM_HOME'],
         os.environ['BF_SDE_INSTALL'],
-        os.environ['CONFIG_DIR']
+        os.environ['CONFIG_DIR'],
+        os.environ['LD_LIBRARY_PATH']
     )
 
-    print("Using SDE {} for loading bf_kdrv.".format(sde_folder_path))
-    os.system(
-        "sudo {}/install/bin/bf_kdrv_mod_unload {}/install/".format(
-            sde_folder_path, sde_folder_path))
-    os.system(
-        "sudo {}/install/bin/bf_kdrv_mod_load {}/install/".format(
-            sde_folder_path, sde_folder_path))
+    if not load_and_verify_kernel_modules():
+        print("ERROR:Some kernel modules are not loaded.")
+        exit(0)
 
-    stratum_start_mode = input("Select start mode of stratum [bsp-less]/bsp?")
-    if not stratum_start_mode:
-        stratum_start_mode = 'bsp-less'
-
-    shutil.copyfile(os.environ['STRATUM_HOME']+'/stratum/hal/bin/barefoot/platforms/x86-64-stordis-bf2556x-1t-r0.json',
-                    os.environ['BF_SDE_INSTALL']+'/share/port_map.json')
-
-    if stratum_start_mode == 'bsp-less':
+    shutil.copyfile(os.environ[
+                        'STRATUM_HOME'] + '/stratum/hal/bin/barefoot/platforms/x86-64-stordis-bf2556x-1t-r0.json',
+                    os.environ['BF_SDE_INSTALL'] + '/share/port_map.json')
+    os.chdir(os.environ['STRATUM_HOME'])
+    print('Current dir: {}'.format(os.getcwd()))
+    if stratum_mode == 'bsp-less':
         print("Starting Stratum in bsp-less mode...")
-        print(stratum_start_cmd_bsp_less)
+        print("Executing command {}".format(stratum_start_cmd_bsp_less))
         os.system(stratum_start_cmd_bsp_less)
     else:
         print("Starting Stratum in bsp mode...")
-        print(stratum_start_cmd_bsp)
+        print("Executing command {}".format(stratum_start_cmd_bsp))
         os.system(stratum_start_cmd_bsp)
+
 
 def clone_stratum():
     os.system('git clone https://github.com/stratum/stratum.git')
 
-def compile_stratum():
+
+def compile_stratum(stratum_mode):
     print('Buidlding stratum...')
+    print('Current working dir {}'.format(os.getcwd()))
     set_stratum_env()
     stratum_build_command = 'bazel build //stratum/hal/bin/barefoot:stratum_bf'
+    if stratum_mode == 'bsp':
+        stratum_build_command = stratum_build_command + ' --define phal_with_onlp=false'
+    stratum_clean_cmd = 'bezel clean'
     os.chdir(os.environ['STRATUM_HOME'])
     print('Executing : {}'.format(stratum_build_command))
     os.system(stratum_build_command)
+
+
+def clean_stratum(stratum_mode):
+    print('Cleaning stratum...')
+    print('Current working dir {}'.format(os.getcwd()))
+    set_stratum_env()
+    stratum_clean_cmd = 'bezel clean'
+    os.chdir(os.environ['STRATUM_HOME'])
+    print('Executing : {}'.format(stratum_clean_cmd))
+    os.system(stratum_clean_cmd)
 
     ######################################################################
     ######################################################################
@@ -454,17 +473,27 @@ if __name__ == '__main__':
         start_bf_switchd()
     else:
         build_stratum = input("Do you want to build stratum y/[n]?")
+
+        stratum_start_mode = 'bsp'
+        if is_onl():
+            # BSP or BSP-Less options are available only in ONL.
+            stratum_start_mode = input(
+                "Select start mode of stratum [bsp-less]/bsp?")
+            if not stratum_start_mode:
+                stratum_start_mode = 'bsp-less'
+
         if not build_stratum:
             build_stratum = "n"
         if build_stratum == "y":
-            stratum_clone = input("Do you want to clone stratum or provide code location y/[./stratum]?")
+            stratum_clone = input(
+                "Do you want to clone stratum or provide code location y/[./stratum]?")
             if not stratum_clone:
                 build_stratum = "n"
             if stratum_clone == 'y':
                 clone_stratum()
-            compile_stratum()
+            compile_stratum(stratum_start_mode)
         run_stratum = input("Do you want to start stratum y/[n]?")
         if not run_stratum:
             run_stratum = "n"
         if run_stratum == "y":
-            start_stratum()
+            start_stratum(stratum_start_mode)
