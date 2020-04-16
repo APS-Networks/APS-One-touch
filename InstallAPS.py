@@ -98,7 +98,7 @@ def checkBF_SDE_Installation():
     global sde_folder_path
     if not os.path.exists(sde_folder_path):
         sde_folder_path = input(
-            "Enter full path of Barefoot SDE installation directory[{0}]:".format(
+            "Enter full path of Barefoot SDE directory[{0}]:".format(
                 installation_dir["sde_home"]))
         if not sde_folder_path:
             sde_folder_path = dname + "/" + installation_dir["sde_home"]
