@@ -1,0 +1,57 @@
+%YAML 1.2
+---
+SWITCH Model:
+  BF2556X_1T
+#BF6064X_T
+
+#To quick start go to bottom and just type in the profile name in 'selected' with * in the beginning.
+#All files and directory path are relative to user's home.
+
+
+BUILD_PROFILES: &build_profiles
+  stratum: &stratum_profile
+    name: stratum_profile
+
+  sde_sim: &sde_sim_profile
+    name: sde_sim_profile
+
+  sde_hw: &sde_hw_profile
+    name: sde_hw_profile
+
+  sal_hw: &sal_hw_profile
+    name: sal_hw_profile
+    sde_profile: *sde_hw_profile
+
+  selected: *sde_hw_profile
+
+BSP: &bsp
+  bsp_pkg: /bsp/BF2556X-1T_BSP_9.0.0-master.zip
+  #bsp_home: /bsp/BF2556X-1T_BSP_9.0.0-master
+
+BF SDE: &bf_sde
+  sde_pkg: /BF/bf-sde-9.1.0.tar
+  sde_home: # SDE path. If left blank default is APS-One-touch/<bf-sde-x.y.z>.
+  build_profile: stratum_profile #Leave it blank to enter detailed interactive P4 Studio build shell.
+  p4_name: #Leave it blank to start SDE without a P4 program or p4 program name which is already built in SDE.
+
+SAL: &sal
+  sal_pkg: sal.tar
+  sal_home: /sal
+
+GB: &gb
+  gb_pkg: gb.tar
+  gb_home: /Marvell/Delta-Marvell-Port/Px-4.2_2019_2_008/work/cpss
+
+STRATUM: &stratum
+  stratum_home: /stratum
+  stratum_repo: https://github.com/stratum/stratum.git
+  config: /config
+  modes:
+    - bsp
+    - bsp-less
+  selected_mode:
+    - bsp
+
+
+
+               
