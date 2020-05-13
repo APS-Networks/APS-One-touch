@@ -11,9 +11,18 @@ dname = os.path.dirname(abspath)
 settings_dict = {}
 
 sal_hw_profile_name = 'sal_hw_profile'
+sal_sim_profile_name = 'sal_sim_profile'
 sde_hw_profile_name = 'sde_hw_profile'
-sal_sim_profile_name = 'sde_sim_profile'
+sde_sim_profile_name = 'sde_sim_profile'
 stratum_hw_profile_name = 'stratum_profile'
+
+##ENV Var
+sal_home_env_var_name = 'SAL_HOME'
+pythonpath_env_var_name = 'PYTHONPATH'
+gb_home_env_var_name = 'GB_HOME'
+sde_env_var_name = 'SDE'
+sde_install_env_var_name = 'SDE_INSTALL'
+sde_include_env_var_name = 'SDE_INCLUDE'
 
 
 def validate_path_existence(some_path, path_for):
@@ -21,7 +30,7 @@ def validate_path_existence(some_path, path_for):
         print(
             "ERROR: Invalid {0} path {1}.".format(path_for,
                                                   some_path))
-        return False
+        exit(0)
     print('Found {} at {}'.format(path_for, some_path))
     return True
 
@@ -53,22 +62,21 @@ def get_path_relative_to_user_home(pth):
 
 
 def get_env_var(var_name):
+    try:
+        os.environ[var_name]
+    except KeyError as e:
+        print('Error: {} is not set.'.format(var_name))
+        print(e)
+        exit(0)
     return os.environ[var_name]
-
 
 def append_to_env_var(src_env, new_val):
     os.environ[src_env] = os.environ[src_env] + new_val
 
-
-def get_env_var(var_name):
-    return os.environ[var_name]
-
-
-def set_env_relative_to_user_home(var_name, var_val):
-    return set_env(var_name, get_path_relative_to_user_home(var_val))
-
-
-def set_env(var_name, var_val):
+def set_env_var(var_name, var_val):
+    """
+    Sets env_var to var_val.
+    """
     if validate_path_existence(var_val, var_name):
         os.environ[var_name] = var_val
         return True
@@ -142,8 +150,6 @@ def get_sde_dir_name_in_tar():
 
 
 def get_sde_home_absolute():
-    sde_pkg = get_sde_pkg_name()
-
     sde_home_in_config = get_from_setting_dict('BF SDE', 'sde_home')
     if sde_home_in_config:
         # return absolute path as configured in yaml
@@ -158,7 +164,33 @@ def get_selected_profile():
         'name')
 
 
-def get_bf_sde_profile():
-    if get_selected_profile() == sal_hw_profile_name:
-        return get_selected_profile().get('sde_profile').get('name')
-    return
+def get_bf_sde_profile_name():
+    if get_selected_profile_name() == sal_hw_profile_name:
+        return sde_hw_profile_name
+    elif get_selected_profile_name() == sal_sim_profile_name:
+        return sde_sim_profile_name
+    elif get_selected_profile_name() in [sde_hw_profile_name, sde_sim_profile_name]:
+        return get_selected_profile_name()
+    else:
+        print(
+            "Selected profile is not or doesn't have associated SDE profile !")
+
+
+def get_selected_profile_name():
+    return settings_dict.get('BUILD_PROFILES').get('selected').get('name')
+
+
+def get_sal_home_absolute():
+    return get_path_relative_to_user_home(get_sal_home_from_config())
+
+
+def get_sal_home_from_config():
+    return settings_dict.get('SAL').get('sal_home')
+
+
+def get_gb_home_from_config():
+    return settings_dict.get('GB').get('gb_home')
+
+
+def get_gb_home_absolute():
+    return get_path_relative_to_user_home(get_gb_home_from_config())

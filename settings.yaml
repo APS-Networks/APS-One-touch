@@ -4,7 +4,7 @@ SWITCH Model:
   BF2556X_1T
 #BF6064X_T
 
-#To quick start go to bottom and just type in the profile name in 'selected' with * in the beginning.
+#To quick start just type in the profile name in 'selected' with * in the beginning.
 #All files and directory path are relative to user's home.
 
 
@@ -20,9 +20,11 @@ BUILD_PROFILES: &build_profiles
 
   sal_hw: &sal_hw_profile
     name: sal_hw_profile
-    sde_profile: *sde_hw_profile
 
-  selected: *sde_hw_profile
+  sal_sim: &sal_sim_profile
+    name: sal_sim_profile
+
+  selected: *sal_hw_profile
 
 BSP: &bsp
   bsp_pkg: /bsp/BF2556X-1T_BSP_9.0.0-master.zip
@@ -31,7 +33,7 @@ BSP: &bsp
 BF SDE: &bf_sde
   sde_pkg: /BF/bf-sde-9.1.0.tar
   sde_home: # SDE path. If left blank default is APS-One-touch/<bf-sde-x.y.z>.
-  build_profile: stratum_profile #Leave it blank to enter detailed interactive P4 Studio build shell.
+  p4studio_build_profile: stratum_profile #Leave it blank to enter detailed interactive P4 Studio build shell.
   p4_name: #Leave it blank to start SDE without a P4 program or p4 program name which is already built in SDE.
 
 SAL: &sal

@@ -8,8 +8,9 @@ import glob
 import common
 from common import validate_path_existence, create_symlinks, get_cmd_output, \
     get_path_relative_to_user_home, \
-    get_from_setting_dict, get_env_var, set_env, get_sde_pkg_name, \
-    get_sde_home_absolute, get_sde_dir_name_in_tar
+    get_from_setting_dict, get_env_var, set_env_var, get_sde_pkg_name, \
+    get_sde_home_absolute, get_sde_dir_name_in_tar, get_bf_sde_profile_name, \
+    sde_env_var_name, sde_install_env_var_name, get_selected_profile_name
 from drivers import load_and_verify_kernel_modules
 
 
@@ -19,7 +20,7 @@ def build_sde():
 
     # Deletion is required otherwise moving the directories
     # in further steps might create issues.
-    if validate_path_existence(sde_home_absolute, 'SDE'):
+    if os.path.exists(sde_home_absolute):
         print("Deleting previous installation at {}.".format(sde_home_absolute))
         os.system('sudo rm -rf {}'.format(sde_home_absolute))
 
@@ -31,14 +32,15 @@ def build_sde():
     sde_tar.close()
     os.chdir(sde_home_absolute)
     build_opt = "-up"
-    profile_name = get_from_setting_dict('BF SDE', 'build_profile')
+    p4studio_build_profile = get_from_setting_dict('BF SDE',
+                                                   'p4studio_build_profile')
 
-    if profile_name == "":
+    if p4studio_build_profile == "":
         build_opt = ""
 
     sde_install_cmd = "./p4studio_build/p4studio_build.py {} {}".format(
         build_opt,
-        profile_name)
+        p4studio_build_profile)
     print(sde_install_cmd)
     os.system(sde_install_cmd)
 
@@ -46,15 +48,14 @@ def build_sde():
 def start_bf_switchd():
     # os.chdir(common.dname)
     print('Starting BF switchd.')
-    checkBF_SDE_Installation()
-    profile_name = common.settings_dict.get('BUILD_PROFILES').get(
-        'selected').get(
-        'name')
-    if profile_name == 'sde_hw_profile' and not load_and_verify_kernel_modules():
+    set_sde_env()
+    profile_name = get_bf_sde_profile_name()
+
+    if profile_name == common.sde_hw_profile_name and not load_and_verify_kernel_modules():
         print("ERROR:Some kernel modules are not loaded.")
         exit(0)
 
-    if profile_name == 'sde_sim_profile':
+    if profile_name == common.sde_sim_profile_name:
         # TODO Do something meaningful, Possibly launch tofino model in separate shell,
         # Currently This just an interrupt.
         input('Make sure that tofino-model is running?')
@@ -73,9 +74,7 @@ def start_bf_switchd():
                             "0}/install --conf-file {" \
                             "0}/pkgsrc/p4-examples/tofino/tofino_skip_p4.conf" \
                             ".in --skip-p4".format(get_env_var('SDE'))
-        if get_from_setting_dict('BUILD_PROFILES',
-                                 'selected').get(
-            'name') == 'sde_hw_profile':
+        if profile_name == common.sde_hw_profile_name:
             start_switchd_cmd = "sudo -E {0}/run_switchd.sh -c {0}/pkgsrc/p4-examples/tofino/tofino_skip_p4.conf.in --skip-p4".format(
                 get_env_var('SDE'))
     else:
@@ -111,8 +110,7 @@ def load_bf_sde_profile():
     else:
         print("You selected not to build SDE.")
 
-    if get_from_setting_dict('BUILD_PROFILES', 'selected').get(
-            'name') == 'sde_hw_profile':
+    if get_bf_sde_profile_name() == common.sde_hw_profile_name:
         install_bsp = input("Do you want to build BSP y/[n]?")
         if not install_bsp:
             install_bsp = "n"
@@ -120,30 +118,35 @@ def load_bf_sde_profile():
             install_switch_bsp()
         else:
             print("You selected not to build BSP.")
+    # SDE to be started only in case of SDE profiles
+    # Else SDE will be started by SAL or STRATUM
+    if get_selected_profile_name() in [common.sde_hw_profile_name,
+                                       common.sde_sim_profile_name]:
+        start_sde = input("Do you want to start SDE y/[n]?")
+        if not start_sde:
+            start_sde = "n"
+        if start_sde == "y":
+            start_bf_switchd()
+        else:
+            print("You selected not to start SDE.")
 
-    start_sde = input("Do you want to start SDE y/[n]?")
-    if not start_sde:
-        start_sde = "n"
-    if start_sde == "y":
-        start_bf_switchd()
-    else:
-        print("You selected not to start SDE.")
 
-
-def checkBF_SDE_Installation():
+def set_sde_env():
     sde_home_absolute = get_sde_home_absolute()
     if validate_path_existence(sde_home_absolute, 'SDE'):
-        set_env('SDE', sde_home_absolute)
-        set_env('SDE_INSTALL', get_env_var('SDE') + '/install')
+        set_env_var(common.sde_env_var_name, sde_home_absolute)
+        set_env_var(common.sde_install_env_var_name,
+                    get_env_var(common.sde_env_var_name) + '/install')
         print(
             'Environment variables set: \n SDE: {0} \n SDE_INSTALL: {1}'.format(
-                get_env_var('SDE'), get_env_var('SDE_INSTALL')))
+                get_env_var(common.sde_env_var_name),
+                get_env_var(common.sde_install_env_var_name)))
         return True
     return False
 
 
 def install_switch_bsp():
-    checkBF_SDE_Installation()
+    set_sde_env()
     bsp_installation_file = get_path_relative_to_user_home(
         get_from_setting_dict('BSP', 'bsp_pkg'))
 
