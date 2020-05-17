@@ -102,8 +102,8 @@ def run_sal():
         exit(0)
 
     sal_executable = os.environ['SAL_HOME'] + '/build/salRefApp'
-    os.system('sudo -E LD_LIBRARY_PATH={0} {1}'.format(
-        get_gb_home_absolute() + '/compilation_root', sal_executable))
+    os.system('sudo -E LD_LIBRARY_PATH={0}:{1} {2}'.format(
+        get_gb_home_absolute() + '/compilation_root',get_sde_home_absolute()+'/install/lib', sal_executable))
 
 
 def test_sal():
