@@ -1,15 +1,12 @@
 import os
 import shutil
-from operator import indexOf
 
 import common
 from bf_sde import set_sde_env, load_bf_sde_profile
-from common import get_from_setting_dict, \
-    set_env_var, pythonpath_env_var_name, \
-    get_sde_home_absolute, get_sal_home_absolute, \
+from common import set_env_var, get_sde_home_absolute, get_sal_home_absolute, \
     get_env_var, \
-    gb_home_env_var_name, get_gb_home_absolute, \
-    get_selected_profile_name, ld_lib_path_env_var_name
+    get_gb_home_absolute, \
+    get_selected_profile_name, read_settings
 from drivers import load_and_verify_kernel_modules
 
 
@@ -109,10 +106,7 @@ def run_sal():
 def test_sal():
     print("To be integrated")
 
-
-def load_sal_profile():
-    print('Installing dependent SWs....')
-    load_bf_sde_profile()
+def take_user_input():
     sal_input = input(
         "Do you want to build(b),clean(c),run(r),test(t) sal, "
         "Enter one or more action chars in appropriate order i.e. cbr?")
@@ -129,3 +123,19 @@ def load_sal_profile():
             build_sal()
         else:
             print("Unrecognised action.")
+
+def load_sal_profile():
+    print('Installing dependent SWs....')
+    load_bf_sde_profile()
+    take_user_input()
+
+def just_load_sal():
+    """
+    When deps of SAL are taken care , Directly execute this file.
+    :return:
+    """
+    read_settings()
+    take_user_input()
+
+if __name__ == '__main__':
+    just_load_sal()

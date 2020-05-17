@@ -8,28 +8,9 @@ from common import get_cmd_output, get_env_var, dname, create_symlinks, \
     is_ubuntu
 
 installation_files = {
-    #"bsp": "./BF2556X-1T_BSP_9.0.0-master.zip",
-    #"sde": "./bf-sde-9.1.0.tar",
     "irq_debug_tgz": "./irq_debug.tgz",
-    "mv_pipe_config_zip": "./mv_pipe_config.zip",
-    #"stratum_repo": "https://github.com/stratum/stratum.git",
-    #"sal": "./sal.zip",
-    #"gb": "./gb.zip"
+    "mv_pipe_config_zip": "./mv_pipe_config.zip"
 }
-
-installation_dir = {
-    "sde_home": "./bf-sde-9.1.0",
-    "sal_home": "./sal",
-    "gb_home": "./gb"
-}
-
-print(
-    "All or subset of following packages can be installed. Default path for "
-    "searching following installation files is {}, or give custom path during "
-    "installation :".format(
-        common.dname))
-for key, val in installation_files.items():
-    print("{}{}{}".format(key, " -> ", val))
 
 sde_folder_path = ""
 #sde = installation_files["sde"]
@@ -80,10 +61,6 @@ def install_irq_debug():
     os.chdir(dname)
     print("Working dir :{}".format(dname))
     irq = installation_files["irq_debug_tgz"]
-    # irq_file_path = input(
-    #     "Enter path for irq_debug_driver [{}]".format(irq))
-    # if irq_file_path:
-    #     irq = irq_file_path
     print("Installing irq debug drivers.")
     create_symlinks()
     tar = tarfile.open(irq)
@@ -101,10 +78,6 @@ def install_mv_pipe():
     print("Building mv_pipe_config...")
     os.chdir(common.dname)
     mv_pipe = installation_files["mv_pipe_config_zip"]
-    # mv_pipe_path = input(
-    #     "Enter path for mv_pipe package [{}]".format(mv_pipe))
-    # if mv_pipe_path:
-    #     mv_pipe = mv_pipe_path
     zip_ref = zipfile.ZipFile(mv_pipe)
     zip_ref.extractall()
     extracted_dir_name = zip_ref.namelist()[0]
