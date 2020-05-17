@@ -23,6 +23,7 @@ gb_home_env_var_name = 'GB_HOME'
 sde_env_var_name = 'SDE'
 sde_install_env_var_name = 'SDE_INSTALL'
 sde_include_env_var_name = 'SDE_INCLUDE'
+ld_lib_path_env_var_name = 'LD_LIBRARY_PATH'
 
 
 def validate_path_existence(some_path, path_for):
@@ -156,12 +157,6 @@ def get_sde_home_absolute():
         return get_path_relative_to_user_home(sde_home_in_config)
     # If not given in yaml, return sde_home relative to APS one touch
     return dname + '/' + get_sde_dir_name_in_tar()
-
-
-def get_selected_profile():
-    return settings_dict.get('BUILD_PROFILES').get(
-        'selected').get(
-        'name')
 
 
 def get_bf_sde_profile_name():

@@ -1,5 +1,6 @@
 import os
 import shutil
+from operator import indexOf
 
 import common
 from bf_sde import set_sde_env, load_bf_sde_profile
@@ -7,7 +8,9 @@ from common import get_from_setting_dict, \
     set_env_var, pythonpath_env_var_name, \
     get_sde_home_absolute, get_sal_home_absolute, \
     get_env_var, \
-    gb_home_env_var_name, get_gb_home_absolute
+    gb_home_env_var_name, get_gb_home_absolute, \
+    get_selected_profile_name, ld_lib_path_env_var_name
+from drivers import load_and_verify_kernel_modules
 
 
 def set_sal_env():
@@ -55,23 +58,52 @@ def clean_sal():
     make_file = os.environ['SAL_HOME'] + '/Makefile'
     cmake_dir = os.environ['SAL_HOME'] + '/CMakeFiles'
     bin_dir = os.environ['SAL_HOME'] + '/bin'
+
+    os.system('make -C {} clean'.format(os.environ['SAL_HOME']))
     try:
-        os.system('make -C {} clean'.format(os.environ['SAL_HOME']))
-        shutil.rmtree(build_dir, ignore_errors=True)
-        shutil.rmtree(log_dir, ignore_errors=True)
+        shutil.rmtree(build_dir)
+    except FileNotFoundError:
+        print('{} already deleted'.format(build_dir))
+
+    try:
+        shutil.rmtree(log_dir)
+    except FileNotFoundError:
+        print('{} already deleted.'.format(log_dir))
+    except PermissionError:
+        os.system('sudo rm -rf {}'.format(log_dir))
+
+    try:
         os.remove(cmake_cache_file)
-        shutil.rmtree(cmake_dir, ignore_errors=True)
-        shutil.rmtree(bin_dir, ignore_errors=True)
+    except FileNotFoundError:
+        print('{} already deleted.'.format(cmake_cache_file))
+
+    try:
+        shutil.rmtree(cmake_dir)
+    except FileNotFoundError:
+        print('{} already deleted'.format(cmake_dir))
+
+    try:
+        shutil.rmtree(bin_dir)
+    except FileNotFoundError:
+        print('{} already deleted'.format(bin_dir))
+
+    try:
         os.remove(make_file)
-    except FileNotFoundError as e:
-        print('SAL is already clean.')
+    except FileNotFoundError:
+        print('{} already deleted'.format(make_file))
 
 
 def run_sal():
     print('Starting SAL reference application...')
     set_sal_env()
+
+    if get_selected_profile_name() == common.sal_hw_profile_name and not load_and_verify_kernel_modules():
+        print("ERROR:Some kernel modules are not loaded.")
+        exit(0)
+
     sal_executable = os.environ['SAL_HOME'] + '/build/salRefApp'
-    os.system('sudo -E {}'.format(sal_executable))
+    os.system('sudo -E LD_LIBRARY_PATH={0} {1}'.format(
+        get_gb_home_absolute() + '/compilation_root', sal_executable))
 
 
 def test_sal():
@@ -82,15 +114,18 @@ def load_sal_profile():
     print('Installing dependent SWs....')
     load_bf_sde_profile()
     sal_input = input(
-        "Do you want to [build & run],build(b),clean(c),run(r),test(t) sal?")
-    if sal_input in ['clean', 'c']:
-        clean_sal()
-    elif sal_input in ['run', 'r']:
-        run_sal()
-    elif sal_input in ['test', 't']:
-        test_sal()
-    elif sal_input in ['build', 'b']:
-        build_sal()
-    else:
-        build_sal()
-        run_sal()
+        "Do you want to build(b),clean(c),run(r),test(t) sal, "
+        "Enter one or more action chars in appropriate order i.e. cbr?")
+
+    for action_char in sal_input:
+
+        if action_char == 'c':
+            clean_sal()
+        elif action_char == 'r':
+            run_sal()
+        elif action_char == 't':
+            test_sal()
+        elif action_char == 'b':
+            build_sal()
+        else:
+            print("Unrecognised action.")

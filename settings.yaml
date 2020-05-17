@@ -42,7 +42,7 @@ SAL: &sal
 
 GB: &gb
   gb_pkg: gb.tar
-  gb_home: /Marvell/Delta-Marvell-Port/Px-4.2_2019_2_008/work/cpss
+  gb_home: /Marvell/Delta-Marvell-Port/Px-4.2_2019_2_008/work
 
 STRATUM: &stratum
   stratum_home: /stratum
@@ -53,7 +53,3 @@ STRATUM: &stratum
     - bsp-less
   selected_mode:
     - bsp
-
-
-
-               
