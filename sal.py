@@ -122,7 +122,7 @@ def take_user_input():
         elif action_char == 'b':
             build_sal()
         else:
-            print("Unrecognised action.")
+            print("Unrecognised action {}.".format(action_char))
 
 def load_sal_profile():
     print('Installing dependent SWs....')

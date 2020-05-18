@@ -10,7 +10,8 @@ from common import validate_path_existence, create_symlinks, get_cmd_output, \
     get_path_relative_to_user_home, \
     get_from_setting_dict, get_env_var, set_env_var, get_sde_pkg_name, \
     get_sde_home_absolute, get_sde_dir_name_in_tar, get_bf_sde_profile_name, \
-    sde_env_var_name, sde_install_env_var_name, get_selected_profile_name
+    sde_env_var_name, sde_install_env_var_name, get_selected_profile_name, \
+    read_settings
 from drivers import load_and_verify_kernel_modules
 
 
@@ -99,8 +100,7 @@ def alloc_dma():
             get_env_var('SDE'))
         os.system(dma_alloc_cmd)
 
-
-def load_bf_sde_profile():
+def ask_user_for_building_sde():
     install_sde = input("Do you want to build SDE y/[n]?")
     if not install_sde:
         install_sde = "n"
@@ -110,6 +110,7 @@ def load_bf_sde_profile():
     else:
         print("You selected not to build SDE.")
 
+def ask_user_for_building_bsp():
     if get_bf_sde_profile_name() == common.sde_hw_profile_name:
         install_bsp = input("Do you want to build BSP y/[n]?")
         if not install_bsp:
@@ -118,17 +119,26 @@ def load_bf_sde_profile():
             install_switch_bsp()
         else:
             print("You selected not to build BSP.")
+
+def ask_user_for_starting_sde():
+    start_sde = input("Do you want to start SDE y/[n]?")
+    if not start_sde:
+        start_sde = "n"
+    if start_sde == "y":
+        start_bf_switchd()
+    else:
+        print("You selected not to start SDE.")
+
+def load_bf_sde_profile():
+
+    ask_user_for_building_sde()
+    ask_user_for_building_bsp()
+
     # SDE to be started only in case of SDE profiles
     # Else SDE will be started by SAL or STRATUM
     if get_selected_profile_name() in [common.sde_hw_profile_name,
                                        common.sde_sim_profile_name]:
-        start_sde = input("Do you want to start SDE y/[n]?")
-        if not start_sde:
-            start_sde = "n"
-        if start_sde == "y":
-            start_bf_switchd()
-        else:
-            print("You selected not to start SDE.")
+        ask_user_for_starting_sde()
 
 
 def set_sde_env():
@@ -177,3 +187,12 @@ def install_switch_bsp():
         shutil.rmtree(os.environ['BSP'])
     else:
         print("You choose not to install BSP.")
+
+def just_load_sde():
+    read_settings()
+    ask_user_for_building_sde()
+    ask_user_for_building_bsp()
+    ask_user_for_starting_sde()
+
+if __name__ == '__main__':
+    just_load_sde()
