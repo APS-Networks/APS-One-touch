@@ -5,35 +5,33 @@ from pathlib import Path
 import subprocess
 import yaml
 
+import constants
+from constants import sal_hw_profile_name, sal_sim_profile_name, \
+    sde_hw_profile_name, sde_sim_profile_name, stratum_hw_profile_name, \
+    stratum_sim_profile_name
+
 abspath = os.path.abspath(__file__)
 # Absolute directory name containing this file
 dname = os.path.dirname(abspath)
 settings_dict = {}
 
-sal_hw_profile_name = 'sal_hw_profile'
-sal_sim_profile_name = 'sal_sim_profile'
-sde_hw_profile_name = 'sde_hw_profile'
-sde_sim_profile_name = 'sde_sim_profile'
-stratum_hw_profile_name = 'stratum_profile'
 
-##ENV Var
-sal_home_env_var_name = 'SAL_HOME'
-pythonpath_env_var_name = 'PYTHONPATH'
-gb_home_env_var_name = 'GB_HOME'
-sde_env_var_name = 'SDE'
-sde_install_env_var_name = 'SDE_INSTALL'
-sde_include_env_var_name = 'SDE_INCLUDE'
-ld_lib_path_env_var_name = 'LD_LIBRARY_PATH'
-
-
-def validate_path_existence(some_path, path_for):
+def check_path(some_path, path_for):
     if not os.path.exists(some_path):
         print(
             "ERROR: Invalid {0} path {1}.".format(path_for,
                                                   some_path))
         exit(0)
-    print('Found {} at {}'.format(path_for, some_path))
     return True
+
+
+def validate_path_existence(some_path, path_for):
+    if ':' in some_path:
+        # in case when it is system path variable or so.
+        for pth in some_path.split(':'):
+            return check_path(pth, path_for)
+    else:
+        return check_path(some_path, path_for)
 
 
 def get_kernel_major_version():
@@ -57,22 +55,31 @@ def is_ubuntu():
         return True
     return False
 
+def get_path_prefix():
+    p = get_from_setting_dict(constants.path_prefix_node)
+    if not p:
+        return str(Path.home())
+    return p
 
 def get_path_relative_to_user_home(pth):
-    return str(Path.home()) + '/' + pth
+    return get_path_prefix()+ '/' + pth
 
 
 def get_env_var(var_name):
     try:
-        os.environ[var_name]
+        return os.environ[var_name]
     except KeyError as e:
-        print('Error: {} is not set.'.format(var_name))
+        print('INFO: {} is not set.'.format(var_name))
         print(e)
-        exit(0)
-    return os.environ[var_name]
 
-def append_to_env_var(src_env, new_val):
-    os.environ[src_env] = os.environ[src_env] + new_val
+
+def append_to_env_var(src_env_var_name, new_val):
+    if get_env_var(src_env_var_name) is None:
+        os.environ[src_env_var_name] = new_val
+    else:
+        os.environ[src_env_var_name] = get_env_var(
+            src_env_var_name) + ':' + new_val
+
 
 def set_env_var(var_name, var_val):
     """
@@ -159,28 +166,38 @@ def get_sde_home_absolute():
     return dname + '/' + get_sde_dir_name_in_tar()
 
 
-def get_bf_sde_profile_name():
-    if get_selected_profile_name() == sal_hw_profile_name:
-        return sde_hw_profile_name
-    elif get_selected_profile_name() == sal_sim_profile_name:
-        return sde_sim_profile_name
-    elif get_selected_profile_name() in [sde_hw_profile_name, sde_sim_profile_name]:
-        return get_selected_profile_name()
+def get_sde_install_dir_absolute():
+    return get_sde_home_absolute() + '/install'
+
+
+def get_sde_profile_dict():
+    if get_selected_profile_name() in [sal_hw_profile_name,
+                                       stratum_hw_profile_name]:
+        return settings_dict.get(constants.build_profiles_node).get(
+            constants.sde_hw_profile_node)
+    elif get_selected_profile_name() in [sal_sim_profile_name,
+                                         stratum_sim_profile_name]:
+        return settings_dict.get(constants.build_profiles_node).get(
+            constants.sde_sim_profile_node)
+    elif get_selected_profile_name() in [sde_hw_profile_name,
+                                         sde_sim_profile_name]:
+        return get_selected_profile_dict()
     else:
         print(
             "Selected profile is not or doesn't have associated SDE profile !")
 
 
+def get_sde_profile_name():
+    return get_sde_profile_dict().get(constants.name_node)
+
+
+def get_selected_profile_dict():
+    return settings_dict.get(constants.build_profiles_node).get(
+        constants.selected_node)
+
+
 def get_selected_profile_name():
-    return settings_dict.get('BUILD_PROFILES').get('selected').get('name')
-
-
-def get_sal_home_absolute():
-    return get_path_relative_to_user_home(get_sal_home_from_config())
-
-
-def get_sal_home_from_config():
-    return settings_dict.get('SAL').get('sal_home')
+    return get_selected_profile_dict().get(constants.name_node)
 
 
 def get_gb_home_from_config():
