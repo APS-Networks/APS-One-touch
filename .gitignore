@@ -1,0 +1,8 @@
+.idea/
+release/
+venv/
+logs/
+.vscode/
+__pycache__/
+irq_debug/
+autom4te.cache/

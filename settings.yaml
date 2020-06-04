@@ -1,0 +1,75 @@
+%YAML 1.2
+---
+
+#For quick start goto bottom and type in profile of choice under slected.
+
+SWITCH Model: BF2556X_1T #or BF6064X_T
+
+PATH_PREFIX: #Various paths used in this setting file are evaluated relative to this, Default is user home diretory
+
+BSP: &bsp
+  bsp_pkg: /bsp/BF2556X-1T_BSP_9.0.0-master.zip
+
+BF SDE: &bf_sde
+  sde_pkg: /BF/bf-sde-9.1.0.tar
+  sde_home: /BF/bf-sde-9.1.0 # SDE path relative to user home. If left blank default is APS-One-touch/<bf-sde-x.y.z>.
+  p4studio_build_profile: p4_runtime_profile #Leave it blank to enter detailed interactive P4 Studio build shell.
+  p4_name: #Leave it blank to start SDE without a P4 program or p4 program name which is already built in SDE.
+  build_flags: #Optional list of P4Studio build flags.
+    - -rb
+
+SAL: &sal
+  # Following parameters are useful when you have SAL src and building SAL, 
+  # otherwise SAL binaries are sufficient to run and can be ignored.
+  sal_pkg: sal.tar
+  sal_home: /sal
+  enable_grpc: true #Enables sal's grpc interface, Works only when SDE is built with p4runtime profile and selected APS profile is not stratum_xyz
+  enable_tofino: true #Enables Tofino control in SAL, Set it false if external application wants to take over Tofino control,
+  #And in case of stratum_xyz profile selected for stratum APS value is overridden to false automatically
+
+GB: &gb
+  gb_pkg: gb.tar
+  gb_home: /Marvell/Delta-Marvell-Port/Px-4.2_2019_2_008/work
+
+STRATUM: &stratum
+  stratum_home: /stratum
+  stratum_config: /stratum_config
+  mode: bsp #or bsp-less
+
+#To quick start just type in the profile name in 'selected' with * in the beginning.
+#All files and directory path are relative to user's home.
+# Profile which have 'sim' in their names are meant to work on PCs in simulation mode, 
+# Rest are suitable for actual switches.
+BUILD_PROFILES: &build_profiles
+  
+  sde_sim: &sde_sim_profile
+    name: sde_sim_profile
+    details: *bf_sde
+    deps:
+
+  sde_hw: &sde_hw_profile
+    name: sde_hw_profile
+    details: *bf_sde
+    deps: *bsp
+
+  sal_hw: &sal_hw_profile
+    name: sal_hw_profile
+    details: *sal
+    deps: *sde_hw_profile
+
+  sal_sim: &sal_sim_profile
+    name: sal_sim_profile
+    details: *sal
+    deps: *sde_sim_profile
+
+  stratum_sim: &stratum_sim_profile
+    name: stratum_sim_profile
+    details: *stratum
+    deps: *sal_sim_profile
+
+  stratum_hw: &stratum_hw_profile
+    name: stratum_hw_profile
+    details: *stratum
+    deps: *sde_hw_profile
+
+  selected: *sal_hw_profile
