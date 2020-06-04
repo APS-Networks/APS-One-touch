@@ -163,13 +163,15 @@ def ask_user_for_starting_sde():
 def load_bf_sde_profile():
     ask_user_for_building_sde()
     ask_user_for_building_bsp()
-
+    prepare_sde_release()
     # SDE to be started only in case of SDE profiles
     # Else SDE will be started by SAL or STRATUM
     if get_selected_profile_name() in [constants.sde_hw_profile_name,
                                        constants.sde_sim_profile_name]:
         ask_user_for_starting_sde()
 
+def prepare_sde_release():
+    pass
 
 def set_sde_env():
     print("Setting environment for BF_SDE.")
@@ -224,7 +226,9 @@ def just_load_sde():
     read_settings()
     ask_user_for_building_sde()
     ask_user_for_building_bsp()
+    prepare_sde_release()
     ask_user_for_starting_sde()
+    
 
 
 if __name__ == '__main__':

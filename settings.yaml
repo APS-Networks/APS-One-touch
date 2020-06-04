@@ -17,6 +17,7 @@ BF SDE: &bf_sde
     - -rb
 
 SAL: &sal
+  # Following parameters are useful when you have SAL src and building SAL, otherwise binaries are sufficient
   sal_pkg: sal.tar
   sal_home: /sal
   enable_grpc: true #Enables sal's grpc interface, Works only when SDE is built with p4runtime profile and selected APS profile is not stratum_xyz
@@ -35,7 +36,7 @@ STRATUM: &stratum
 
 #To quick start just type in the profile name in 'selected' with * in the beginning.
 #All files and directory path are relative to user's home.
-
+# Profile which have 'sim' in their names are meant to work on PCs in simulation mode, Rest are suitable for actual switches.
 BUILD_PROFILES: &build_profiles
   stratum_sim: &stratum_sim_profile
     name: stratum_sim_profile

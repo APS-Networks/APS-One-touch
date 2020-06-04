@@ -9,12 +9,29 @@ import constants
 from constants import sal_hw_profile_name, sal_sim_profile_name, \
     sde_hw_profile_name, sde_sim_profile_name, stratum_hw_profile_name, \
     stratum_sim_profile_name
+import shutil
 
 abspath = os.path.abspath(__file__)
 # Absolute directory name containing this file
 dname = os.path.dirname(abspath)
+
 settings_dict = {}
 
+def delete_files(file):
+    try:
+        shutil.rmtree(file)
+    except FileNotFoundError:
+        print('{} already deleted'.format(file))
+    except PermissionError:
+        i=input('Alert! deleting file {}, y/n ?'.format(file))
+        if i=='y':
+            os.system('sudo rm -rf {}'.format(file))
+    except NotADirectoryError:
+        os.system('rm {}'.format(file))
+
+release_dir=dname+'/release'
+if not os.path.exists(release_dir):
+    os.mkdir(release_dir)
 
 def check_path(some_path, path_for):
     if not os.path.exists(some_path):
