@@ -79,9 +79,9 @@ def start_bf_switchd():
     profile_name = get_sde_profile_name()
 
     # Check this is an HW and all drivers are loaded
-    if profile_name == constants.sde_hw_profile_name and not load_and_verify_kernel_modules():
-        print("ERROR:Some kernel modules are not loaded.")
-        exit(0)
+    # if profile_name == constants.sde_hw_profile_name and not load_and_verify_kernel_modules():
+    #     print("ERROR:Some kernel modules are not loaded.")
+    #     exit(0)
 
     if profile_name == constants.sde_sim_profile_name:
         # TODO Do something meaningful, Possibly launch tofino model in separate shell,
@@ -185,6 +185,10 @@ def set_sde_env():
                 get_env_var(constants.sde_env_var_name),
                 get_env_var(constants.sde_install_env_var_name)))
         return True
+
+    if get_sde_profile_name() == constants.sde_hw_profile_name and not load_and_verify_kernel_modules():
+         print("ERROR:Some kernel modules are not loaded.")
+         exit(0)
     return False
 
 

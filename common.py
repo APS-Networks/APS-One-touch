@@ -217,9 +217,18 @@ def get_selected_profile_name():
     return get_selected_profile_dict().get(constants.name_node)
 
 
-def get_gb_home_from_config():
-    return settings_dict.get('GB').get('gb_home')
+def get_gb_src_home_from_config():
+    return settings_dict.get('GB').get('gb_src')
 
 
-def get_gb_home_absolute():
-    return get_path_relative_to_user_home(get_gb_home_from_config())
+def get_gb_src_home_absolute():
+    return get_path_relative_to_user_home(get_gb_src_home_from_config())
+
+
+def get_gb_lib_home_from_config():
+    return settings_dict.get('GB').get('gb_lib')
+
+
+def get_gb_lib_home_absolute():
+    return get_path_relative_to_user_home(get_gb_lib_home_from_config())
+

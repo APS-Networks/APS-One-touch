@@ -5,7 +5,9 @@ import shutil
 import common
 import constants
 from bf_sde import set_sde_env, load_bf_sde_profile
-from common import delete_files, get_env_var, get_from_setting_dict, get_gb_home_absolute, get_path_relative_to_user_home, get_sde_home_absolute, get_selected_profile_dict, get_selected_profile_name, read_settings, set_env_var
+from common import delete_files, get_env_var, get_from_setting_dict, get_gb_lib_home_absolute, get_gb_src_home_absolute, get_path_relative_to_user_home, get_sde_home_absolute, get_selected_profile_dict, get_selected_profile_name, read_settings, set_env_var 
+get_gb_src_home_absolute, get_path_relative_to_user_home, get_sde_home_absolute, get_selected_profile_dict, 
+get_selected_profile_name, read_settings, set_env_var
 from drivers import load_and_verify_kernel_modules
 from sal_test import execute_sal_tests
 
@@ -19,24 +21,37 @@ def set_sal_env():
     set_env_var(constants.pythonpath_env_var_name, get_sal_home_absolute())
     set_env_var(constants.sde_include_env_var_name,
                 get_env_var(constants.sde_install_env_var_name) + '/include')
-    set_env_var(constants.gb_home_env_var_name, get_gb_home_absolute())
+    set_env_var(constants.gb_src_home_env_var_name, get_gb_src_home_absolute())
+    set_env_var(constants.gb_lib_home_env_var_name, get_gb_lib_home_absolute())
 
     print('SAL_HOME: {0} \
     \n PYTHONPATH: {1} \
     \n SDE: {2} \
     \n SDE_INSTALL: {3} \
     \n SDE_INCLUDE: {4} \
-    \n GB_HOME: {5} \
-    \n SAL_RELEASE_DIR:{6} '.format(
+    \n GB_SRC_HOME: {5} \
+    \n GB_LIB_HOME: {6} '.format(
         get_env_var(constants.sal_home_env_var_name),
         get_env_var(constants.pythonpath_env_var_name),
         get_env_var(constants.sde_env_var_name),
         get_env_var(constants.sde_install_env_var_name),
         get_env_var(constants.sde_include_env_var_name),
-        get_env_var(constants.gb_home_env_var_name),
-        sal_rel_dir))
+        get_env_var(constants.gb_src_home_env_var_name),
+        get_env_var(constants.gb_lib_home_env_var_name)))
     return True
 
+def set_sal_runtime_env():
+    print("Setting environment for SAL runtime.")
+    if not set_sde_env():
+        return False
+        exit()
+    set_env_var(constants.sal_home_env_var_name, sal_rel_dir)
+    print('SAL_HOME: {}'.format(get_env_var(constants.sal_home_env_var_name)))
+    # set_env_var(constants.gb_src_home_env_var_name, sal_rel_dir)
+    # set_env_var(constants.gb_lib_home_env_var_name, sal_rel_dir+'/lib')
+    # print('SAL_SRC_HOME: {}'.format(get_env_var(constants.sal_src_home_env_var_name)))
+    # print('SAL_LIB_HOME: {}'.format(get_env_var(constants.sal_lib_home_env_var_name)))
+    return True
 
 def get_sal_home_absolute():
     return get_path_relative_to_user_home(get_sal_home_from_config())
@@ -90,11 +105,13 @@ def prepare_sal_release():
         os.mkdir(sal_rel_dir)
 
     shutil.copytree(get_env_var(constants.sal_home_env_var_name)+'/include/',sal_rel_dir+'/include')
+    shutil.copytree(get_env_var(constants.sal_home_env_var_name)+'/src/include/',sal_rel_dir+'/src/include')
     shutil.copytree(get_env_var(constants.sal_home_env_var_name)+'/build',sal_rel_dir+'/build')
     shutil.copytree(get_env_var(constants.sal_home_env_var_name)+'/lib',sal_rel_dir+'/lib')
     shutil.copytree(get_env_var(constants.sal_home_env_var_name)+'/scripts',sal_rel_dir+'/scripts')
     shutil.copytree(get_env_var(constants.sal_home_env_var_name)+'/config',sal_rel_dir+'/config')
     shutil.copytree(get_env_var(constants.sal_home_env_var_name)+'/proto',sal_rel_dir+'/proto')
+    
     os.mkdir(sal_rel_dir+'/test')
     shutil.copyfile(get_env_var(constants.sal_home_env_var_name)+'/test/sal_service_test_direct.py',sal_rel_dir+'/test/sal_service_test_direct.py')
     shutil.copyfile(get_env_var(constants.sal_home_env_var_name)+'/sal_services_direct_pb2.py',sal_rel_dir+'/sal_services_direct_pb2.py')
@@ -111,7 +128,7 @@ def prepare_sal_release():
 def clean_sal():
     print('Cleaning SAL...')
     
-    to_delete = [get_env_var(constants.sal_home_env_var_name)+f for f in ['/bin', '/build', '/logs/', '/CMakeCache.txt', '/Makefile',
+    to_delete = [get_env_var(constants.sal_home_env_var_name)+f for f in ['/lib', '/bin', '/build', '/logs/', '/CMakeCache.txt', '/Makefile',
                                                                           '/CMakeFiles', '/cmake-build-debug']]
     os.system(
         'make -C {} clean'.format(get_env_var(constants.sal_home_env_var_name)))
@@ -122,15 +139,14 @@ def clean_sal():
 
 def run_sal():
     print('Starting SAL reference application...')
+    set_sal_runtime_env()
     if get_selected_profile_name() == constants.sal_hw_profile_name and not load_and_verify_kernel_modules():
         print("ERROR:Some kernel modules are not loaded.")
         exit(0)
 
-    #os.environ['TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD'] = '64077925800531312640'
-    set_env_var(constants.sal_home_env_var_name, sal_rel_dir)
-
     sal_executable = sal_rel_dir + '/build/salRefApp'
-    sal_run_cmd='sudo -E LD_LIBRARY_PATH={0}:{1} {2}'.format(
+    sal_run_cmd='sudo -E LD_LIBRARY_PATH={0}:{1}:{2} {3}'.format(
+        sal_rel_dir + '/build',
         sal_rel_dir + '/lib',
         get_sde_home_absolute() + '/install/lib', sal_executable)
     print('Running SAL with command: {}'.format(sal_run_cmd))
@@ -172,7 +188,7 @@ def take_user_input():
             prepare_sal_release()
         else:
             print(
-                "Unrecognised action {0} or action doesn't fit with selected profile {1}.".format(
+                "Invalid action {0} or action doesn't fit with selected profile {1}.".format(
                     action_char, get_selected_profile_name()))
     
 

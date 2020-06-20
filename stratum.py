@@ -1,12 +1,11 @@
 import os
 import shutil
 
-import common
+from common import append_to_env_var, get_env_var, get_path_relative_to_user_home, get_sde_install_dir_absolute, get_selected_profile_dict, get_selected_profile_name, read_settings, set_env_var
+import common   
 import constants
-from bf_sde import set_sde_env, load_bf_sde_profile
-from common import append_to_env_var, get_env_var, get_path_relative_to_user_home, get_sde_home_absolute, get_sde_install_dir_absolute, get_selected_profile_dict, get_selected_profile_name, read_settings, set_env_var
 from drivers import load_and_verify_kernel_modules
-from sal import set_sal_env, load_sal_profile
+from sal import load_sal_profile,  set_sal_runtime_env
 
 
 def start_stratum():
@@ -25,7 +24,7 @@ def start_stratum():
         get_env_var(constants.stratum_config_env_var_name)
     )
 
-    append_to_env_var(constants.ld_lib_path_env_var_name,common.get_gb_home_absolute()+'/compilation_root')
+    append_to_env_var(constants.ld_lib_path_env_var_name,common.get_gb_lib_home_absolute())
 
     stratum_start_cmd_bsp = 'sudo LD_LIBRARY_PATH={3} {0}/bazel-bin/stratum/hal/bin/barefoot/stratum_bf \
         --external_stratum_urls=0.0.0.0:28000 \
@@ -46,15 +45,16 @@ def start_stratum():
         print("ERROR:Some kernel modules are not loaded.")
         exit(0)
 
-    shutil.copyfile(get_env_var(
-        constants.stratum_home_env_var_name) + '/stratum/hal/bin/barefoot/platforms/x86-64-stordis-bf2556x-1t-r0.json',
-        get_env_var(
-        constants.bf_sde_install_env_var_name) + '/share/port_map.json')
+    
     os.chdir(get_env_var(constants.stratum_home_env_var_name))
     print('Current dir: {}'.format(os.getcwd()))
     if get_stratum_mode() == 'bsp-less':
         print("Starting Stratum in bsp-less mode...")
         print("Executing command {}".format(stratum_start_cmd_bsp_less))
+        shutil.copyfile(get_env_var(
+        constants.stratum_home_env_var_name) + '/stratum/hal/config/x86-64-stordis-bf2556x-1t-r0/port_map.json',
+        get_env_var(
+        constants.bf_sde_install_env_var_name) + '/share/port_map.json')
         os.system(stratum_start_cmd_bsp_less)
     else:
         print("Starting Stratum in bsp mode...")
@@ -68,7 +68,7 @@ def clone_stratum():
 
 
 def set_stratum_env():
-    if not set_sal_env():
+    if not set_sal_runtime_env():
         exit(0)
     print('Setting environment for stratum.')
     append_to_env_var(constants.ld_lib_path_env_var_name,
@@ -112,10 +112,10 @@ def clean_startum():
 
 def build_stratum():
     print('Building stratum...')
-    stratum_build_command = 'bazel build //stratum/hal/bin/barefoot' \
-                            ':stratum_bf --define phal_with_gb=true '
+    stratum_build_command = 'bazel build //stratum/hal/bin/barefoot:stratum_bf'
+                            #':stratum_bf --define phal_with_gb=true '
     if get_stratum_mode() == 'bsp':
-        stratum_build_command = stratum_build_command + ' --define phal_with_onlp=false'
+        stratum_build_command = stratum_build_command + ' --define phal_with_onlp=false --define sde_ver=9.1.0 '
     os.chdir(get_stratum_home_absolute())
     print('Executing : {}'.format(stratum_build_command))
     os.system(stratum_build_command)
@@ -124,7 +124,7 @@ def build_stratum():
 def clean_stratum():
     print('Cleaning stratum...')
     print('Current working dir {}'.format(os.getcwd()))
-    stratum_clean_cmd = 'bezel clean'
+    stratum_clean_cmd = 'bazel clean'
     os.chdir(get_env_var(constants.stratum_home_env_var_name))
     print('Executing : {}'.format(stratum_clean_cmd))
     os.system(stratum_clean_cmd)
@@ -150,8 +150,12 @@ def get_stratum_home_absolute():
 
 
 def get_stratum_config_dir_absolute():
-    return get_path_relative_to_user_home(
-        get_stratum_profile_details_dict().get('stratum_config'))
+    stratum_config_dir=get_stratum_profile_details_dict().get('stratum_config')
+    if stratum_config_dir is None:
+        return common.dname+'/stratum_config/'
+    else:
+        return get_path_relative_to_user_home(
+            get_stratum_profile_details_dict().get('stratum_config'))
 
 
 def load_stratum_profile():
