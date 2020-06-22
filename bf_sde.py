@@ -161,7 +161,9 @@ def load_bf_sde_profile():
                                        constants.sde_sim_profile_name]:
         ask_user_for_starting_sde()
 
+
 def prepare_sde_release():
+    #TODO prepare precompiled binaries from SDE, to avoid the need for building SDE.
     pass
 
 def set_sde_env():
