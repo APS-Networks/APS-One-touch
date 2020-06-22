@@ -188,6 +188,9 @@ def get_sde_install_dir_absolute():
 
 
 def get_sde_profile_dict():
+    """
+    Method returns sde profile dictionary valid for selected profile.
+    """
     if get_selected_profile_name() in [sal_hw_profile_name,
                                        stratum_hw_profile_name]:
         return settings_dict.get(constants.build_profiles_node).get(
@@ -203,10 +206,14 @@ def get_sde_profile_dict():
         print(
             "Selected profile is not or doesn't have associated SDE profile !")
 
-
 def get_sde_profile_name():
     return get_sde_profile_dict().get(constants.name_node)
 
+def get_sde_profile_details():
+    return get_sde_profile_dict().get(constants.details_node)
+
+def get_sde_version():
+    return get_sde_profile_details().get(constants.sde_version_node)
 
 def get_selected_profile_dict():
     return settings_dict.get(constants.build_profiles_node).get(

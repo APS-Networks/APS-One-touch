@@ -160,15 +160,13 @@ def test_sal():
 
 def take_user_input():
     sal_input = input(
-        "Do you want to build(b),clean(c),run(r),test(t),[do_nothing(n)] sal, "
+        "SAL : build(b),clean(c),run(r),test(t),[do_nothing(n)], "
         "Enter one or more action chars in appropriate order i.e. cbr?")
 
     if 'n' in sal_input or not sal_input:
         # In case user give nasty input like cbrn
         # User meant do nothing in such cases
         return
-
-    
 
     for action_char in sal_input:
         if action_char == 'c':

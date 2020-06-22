@@ -1,7 +1,7 @@
 import os
 import shutil
 
-from common import append_to_env_var, get_env_var, get_path_relative_to_user_home, get_sde_install_dir_absolute, get_selected_profile_dict, get_selected_profile_name, read_settings, set_env_var
+from common import append_to_env_var, get_env_var, get_path_relative_to_user_home, get_sde_install_dir_absolute, get_sde_version, get_selected_profile_dict, get_selected_profile_name, read_settings, set_env_var
 import common   
 import constants
 from drivers import load_and_verify_kernel_modules
@@ -26,20 +26,10 @@ def start_stratum():
 
     append_to_env_var(constants.ld_lib_path_env_var_name,common.get_gb_lib_home_absolute())
 
-    stratum_start_cmd_bsp = 'sudo LD_LIBRARY_PATH={3} {0}/bazel-bin/stratum/hal/bin/barefoot/stratum_bf \
-        --external_stratum_urls=0.0.0.0:28000 \
-        --grpc_max_recv_msg_size=256 \
-        --bf_sde_install={1} \
-        --persistent_config_dir={2} \
-        --forwarding_pipeline_configs_file={2}/p4_pipeline.pb.txt \
-        --chassis_config_file={2}/chassis_config.pb.txt \
-        --write_req_log_file={2}/p4_writes.pb.txt \
-        --bf_sim'.format(
-        get_env_var(constants.stratum_home_env_var_name),
-        get_env_var(constants.bf_sde_install_env_var_name),
-        get_env_var(constants.stratum_config_env_var_name),
-        get_env_var(constants.ld_lib_path_env_var_name)
-    )
+    
+
+    stratum_start_cmd_bsp = 'export PLATFORM=x86-64-stordis-bf2556x-1t-r0 && \
+    sudo -E start-stratum.sh --bf_sim '
 
     if not load_and_verify_kernel_modules():
         print("ERROR:Some kernel modules are not loaded.")
@@ -112,26 +102,34 @@ def clean_startum():
 
 def build_stratum():
     print('Building stratum...')
-    stratum_build_command = 'bazel build //stratum/hal/bin/barefoot:stratum_bf'
+    stratum_build_command = 'bazel build //stratum/hal/bin/barefoot:stratum_bf_deb --define sde_ver={} '.format(get_sde_version())
                             #':stratum_bf --define phal_with_gb=true '
     if get_stratum_mode() == 'bsp':
-        stratum_build_command = stratum_build_command + ' --define phal_with_onlp=false --define sde_ver=9.1.0 '
+        stratum_build_command += ' --define phal_with_onlp=false  '
     os.chdir(get_stratum_home_absolute())
-    print('Executing : {}'.format(stratum_build_command))
+    print('Executing stratum build cmd : {}'.format(stratum_build_command))
     os.system(stratum_build_command)
+    install_stratum()
+
+
+def install_stratum():
+    stratum_install_cmd='sudo apt-get update && \
+        sudo apt-get install -y --reinstall ./bazel-bin/stratum/hal/bin/barefoot/stratum_bf_deb.deb'
+    print('Executing stratum install cmd : {}'.format(stratum_install_cmd))
+    os.system(stratum_install_cmd)
 
 
 def clean_stratum():
     print('Cleaning stratum...')
-    print('Current working dir {}'.format(os.getcwd()))
     stratum_clean_cmd = 'bazel clean'
     os.chdir(get_env_var(constants.stratum_home_env_var_name))
     print('Executing : {}'.format(stratum_clean_cmd))
     os.system(stratum_clean_cmd)
+    print('Some warnings can be safely ignored, for more details refer - https://github.com/stratum/stratum/blob/master/stratum/hal/bin/barefoot/README.md')
 
 
 def get_stratum_mode():
-    get_stratum_profile_details_dict().get('mode')
+    return get_stratum_profile_details_dict().get('mode')
 
 
 def get_stratum_profile_dict():
@@ -165,7 +163,7 @@ def load_stratum_profile():
 
 def take_user_input():
     stratum_input = input(
-        "Do you want to build(b),clean(c),run(r),[do_nothing(n)] stratum, "
+        "STRATUM : build(b),clean(c),run(r),[do_nothing(n)],  "
         "Enter one or more action chars in appropriate order i.e. cbr?")
 
     if 'n' in stratum_input or not stratum_input:

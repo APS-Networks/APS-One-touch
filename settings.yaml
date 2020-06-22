@@ -13,6 +13,7 @@ BSP: &bsp
 BF SDE: &bf_sde
   sde_pkg: /BF/bf-sde-9.1.0.tar
   sde_home: /BF/bf-sde-9.1.0 # SDE path relative to user home. If left blank default is APS-One-touch/<bf-sde-x.y.z>.
+  sde_version: 9.1.0 #Required for stratum build
   p4studio_build_profile: p4_runtime_profile #Leave it blank to enter detailed interactive P4 Studio build shell, Value is overriden to stratum_profile in case stratum_hw_profile or stratum_sim_profile is selected
   p4_name: #Leave it blank to start SDE without a P4 program or p4 program name which is already built in SDE.
   build_flags: #Optional list of P4Studio build flags.

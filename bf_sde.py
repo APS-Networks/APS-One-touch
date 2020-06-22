@@ -7,18 +7,9 @@ import glob
 
 import common
 import constants
-from common import validate_path_existence, create_symlinks, get_cmd_output, \
-    get_path_relative_to_user_home, \
-    get_from_setting_dict, get_env_var, set_env_var, get_sde_pkg_name, \
-    get_sde_home_absolute, get_sde_dir_name_in_tar, get_sde_profile_name, \
-    get_selected_profile_name, \
-    read_settings, get_sde_profile_dict
+from common import create_symlinks, get_cmd_output, get_env_var, get_from_setting_dict, get_path_relative_to_user_home, get_sde_dir_name_in_tar, get_sde_home_absolute, get_sde_pkg_name, get_sde_profile_details, get_sde_profile_dict, get_sde_profile_name, get_selected_profile_name, read_settings, set_env_var, validate_path_existence
 from constants import sde_env_var_name, sde_install_env_var_name
 from drivers import load_and_verify_kernel_modules
-
-
-def get_sde_profile_details():
-    return get_sde_profile_dict().get(constants.details_node)
 
 
 def get_sde_build_flags():
