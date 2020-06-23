@@ -6,5 +6,5 @@ __pycache__/
 irq_debug/
 autom4te.cache/
 .project
-.history
+.history/
 .pydevproject
