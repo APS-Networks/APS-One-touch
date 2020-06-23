@@ -91,15 +91,6 @@ def set_stratum_env():
     ))
 
 
-def clean_startum():
-    print('Cleaning stratum.')
-    stratum_clean_cmd = 'bazel clean'
-    os.chdir(get_stratum_home_absolute())
-
-    print('Executing : {}'.format(stratum_clean_cmd))
-    os.system(stratum_clean_cmd)
-
-
 def build_stratum():
     print('Building stratum...')
     stratum_build_command = 'bazel build //stratum/hal/bin/barefoot:stratum_bf_deb --define sde_ver={} '.format(get_sde_version())
@@ -117,6 +108,7 @@ def install_stratum():
         sudo apt-get install -y --reinstall ./bazel-bin/stratum/hal/bin/barefoot/stratum_bf_deb.deb'
     print('Executing stratum install cmd : {}'.format(stratum_install_cmd))
     os.system(stratum_install_cmd)
+    print('Some warnings can be safely ignored, for more details refer - https://github.com/stratum/stratum/blob/master/stratum/hal/bin/barefoot/README.md')
 
 
 def clean_stratum():
@@ -125,8 +117,7 @@ def clean_stratum():
     os.chdir(get_env_var(constants.stratum_home_env_var_name))
     print('Executing : {}'.format(stratum_clean_cmd))
     os.system(stratum_clean_cmd)
-    print('Some warnings can be safely ignored, for more details refer - https://github.com/stratum/stratum/blob/master/stratum/hal/bin/barefoot/README.md')
-
+    
 
 def get_stratum_mode():
     return get_stratum_profile_details_dict().get('mode')
