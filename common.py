@@ -108,10 +108,10 @@ def set_env_var(var_name, var_val):
     return False
 
 
-def get_cmd_output(cmd):
-    loaded_modules = subprocess.run(cmd.split(' '), stdout=subprocess.PIPE,
+def execute_cmd(cmd):
+    cmd_output = subprocess.run(cmd.split(' '), stdout=subprocess.PIPE,
                                     stderr=subprocess.STDOUT)
-    return loaded_modules.stdout.decode('UTF-8')
+    return cmd_output.stdout.decode('UTF-8')
 
 
 def install_deps():
@@ -238,4 +238,8 @@ def get_gb_lib_home_from_config():
 
 def get_gb_lib_home_absolute():
     return get_path_relative_to_user_home(get_gb_lib_home_from_config())
+
+def get_switch_model_from_settings():
+    return get_from_setting_dict(constants.switch_model_node)
+
 

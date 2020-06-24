@@ -5,11 +5,10 @@ import tarfile
 import zipfile
 import glob
 
-import common
 import constants
-from common import create_symlinks, get_cmd_output, get_env_var, get_from_setting_dict, get_path_relative_to_user_home, get_sde_dir_name_in_tar, get_sde_home_absolute, get_sde_pkg_name, get_sde_profile_details, get_sde_profile_dict, get_sde_profile_name, get_selected_profile_name, read_settings, set_env_var, validate_path_existence
-from constants import sde_env_var_name, sde_install_env_var_name
-from drivers import load_and_verify_kernel_modules
+from common import create_symlinks, execute_cmd, get_env_var, get_from_setting_dict, get_path_relative_to_user_home, get_sde_dir_name_in_tar, get_sde_home_absolute, get_sde_pkg_name, get_sde_profile_details, get_sde_profile_name, get_selected_profile_name, read_settings, set_env_var, validate_path_existence,\
+    get_switch_model_from_settings
+from drivers import load_and_verify_kernel_modules, load_and_verify_kernel_modules_bf2556, load_and_verify_kernel_modules_bf6064
 
 
 def get_sde_build_flags():
@@ -29,7 +28,7 @@ def build_sde():
             print("Deleting previous installation at {}.".format(
                 sde_home_absolute))
             os.system('sudo rm -rf {}'.format(sde_home_absolute))
-        except FileNotFoundError as e:
+        except FileNotFoundError:
             print('{} already deleted.'.format(sde_home_absolute))
 
     # Extract tar here i.e. in APS one touch directory
@@ -69,11 +68,6 @@ def start_bf_switchd():
     set_sde_env()
     profile_name = get_sde_profile_name()
 
-    # Check this is an HW and all drivers are loaded
-    # if profile_name == constants.sde_hw_profile_name and not load_and_verify_kernel_modules():
-    #     print("ERROR:Some kernel modules are not loaded.")
-    #     exit(0)
-
     if profile_name == constants.sde_sim_profile_name:
         # TODO Do something meaningful, Possibly launch tofino model in separate shell,
         # Currently This just an interrupt for user to start tofino model.
@@ -111,7 +105,7 @@ def start_bf_switchd():
 
 
 def alloc_dma():
-    output = get_cmd_output('cat /etc/sysctl.conf')
+    output = execute_cmd('cat /etc/sysctl.conf')
     if 'vm.nr_hugepages = 128' not in output:
         print('Setting up huge pages...')
         dma_alloc_cmd = 'sudo /{}/pkgsrc/ptf-modules/ptf-utils/dma_setup.sh'.format(
@@ -166,6 +160,7 @@ def prepare_sde_release():
     #TODO prepare precompiled binaries from SDE, to avoid the need for building SDE.
     pass
 
+
 def set_sde_env():
     print("Setting environment for BF_SDE.")
     sde_home_absolute = get_sde_home_absolute()
@@ -177,12 +172,24 @@ def set_sde_env():
             'Environment variables set: \n SDE: {0} \n SDE_INSTALL: {1}'.format(
                 get_env_var(constants.sde_env_var_name),
                 get_env_var(constants.sde_install_env_var_name)))
-        return True
+    else:
+        return False
 
-    if get_sde_profile_name() == constants.sde_hw_profile_name and not load_and_verify_kernel_modules():
-         print("ERROR:Some kernel modules are not loaded.")
-         exit(0)
-    return False
+    if get_sde_profile_name() == constants.sde_hw_profile_name:
+        print('Loading kernel modules.')
+        if not load_and_verify_kernel_modules():
+            print("ERROR:Some kernel modules are not loaded.")
+            exit(0)    
+        if get_switch_model_from_settings() == constants.bf2556x_1t and not load_and_verify_kernel_modules_bf2556():
+            print("ERROR:Some kernel modules are not loaded.")
+            exit(0)
+        if get_switch_model_from_settings() == constants.bf6064x_t and not load_and_verify_kernel_modules_bf6064():
+            print("ERROR:Some kernel modules are not loaded.")
+            exit(0)
+    else:
+        print('Running simulation, No need to load kernel modules.')
+           
+    return True
 
 
 def install_switch_bsp():
@@ -205,7 +212,6 @@ def install_switch_bsp():
                 os.environ['BSP_INSTALL']))
         for pltfm in glob.glob('./bf-platforms*'):
             os.chdir(pltfm)
-        pltfm_dir = os.getcwd()
         os.system("autoreconf && autoconf")
         os.system("chmod +x ./autogen.sh")
         os.system("chmod +x ./configure")

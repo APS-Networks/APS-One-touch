@@ -4,7 +4,7 @@ import tarfile
 import zipfile
 
 import common
-from common import get_cmd_output, get_env_var, dname, create_symlinks, \
+from common import execute_cmd, get_env_var, dname, create_symlinks, \
     is_ubuntu
 
 installation_files = {
@@ -12,49 +12,81 @@ installation_files = {
     "mv_pipe_config_zip": "./mv_pipe_config.zip"
 }
 
-sde_folder_path = ""
-#sde = installation_files["sde"]
+
 def load_and_verify_kernel_modules():
-    output = get_cmd_output('lsmod')
-    irq_debug = True
+    output = execute_cmd('lsmod')
     bf_kdrv = True
-    mv_pipe = True
     i2c_i801 = True
 
     os.system("sudo modprobe -q i2c-i801")
     os.system("sudo modprobe -q i2c-dev")
 
-    if 'irq_debug' not in output:
-        install_irq_debug()
-
     if 'bf_kdrv' not in output:
         load_bf_kdrv()
 
-    if not os.path.exists("/delta/mv_pipe_config"):
-        install_mv_pipe()
-
-    loaded_modules = subprocess.run(['lsmod'], stdout=subprocess.PIPE,
-                                    stderr=subprocess.STDOUT)
-    output = loaded_modules.stdout.decode('UTF-8')
+    output = execute_cmd('lsmod')
 
     if 'i2c_i801' not in output and is_ubuntu():
         # Ubuntu check is there because i2c_i801 appears only in output of lsmod in Ubuntu
         i2c_i801 = False
         print('ERROR:i2c_i801 is not loaded.')
 
+    if 'bf_kdrv' not in output:
+        bf_kdrv = False
+        print("ERROR:bf_kdrv is not loaded.")
+
+    return bf_kdrv and i2c_i801
+
+
+
+def load_and_verify_kernel_modules_bf6064():
+
+    execute_cmd('sudo i2cset -y 0 0x70 0x20 \
+    sudo i2cset -y 0 0x32 0xE 0x0 \
+    sudo i2cset -y 0 0x32 0xF 0x0 \
+    sudo i2cset -y 0 0x34 0x2 0x0 \
+    sudo i2cset -y 0 0x34 0x3 0x0 \
+    sudo i2cset -y 0 0x34 0x4 0x0 \
+    sudo i2cset -y 0 0x35 0x2 0x0 \
+    sudo i2cset -y 0 0x35 0x3 0x0 \
+    sudo i2cset -y 0 0x35 0x4 0x0 \
+    sudo i2cset -y 0 0x70 0x20 \
+    sudo i2cset -y 0 0x32 0x14 0xff \
+    sudo i2cset -y 0 0x32 0x15 0xff \
+    sudo i2cset -y 0 0x34 0xB 0xff \
+    sudo i2cset -y 0 0x34 0xC 0xff \
+    sudo i2cset -y 0 0x34 0xD 0xff \
+    sudo i2cset -y 0 0x35 0xB 0xff \
+    sudo i2cset -y 0 0x35 0xC 0xff \
+    sudo i2cset -y 0 0x35 0xD 0xff')
+    return True
+
+    
+sde_folder_path = ""
+#sde = installation_files["sde"]
+def load_and_verify_kernel_modules_bf2556():
+    output = execute_cmd('lsmod')
+    irq_debug = True
+    mv_pipe = True
+
+    if 'irq_debug' not in output:
+        install_irq_debug()
+
+    if not os.path.exists("/delta/mv_pipe_config"):
+        install_mv_pipe()
+
+    #Verify that modules are loaded.
+    output = execute_cmd('lsmod')
+
     if 'irq_debug' not in output:
         irq_debug = False
         print("ERROR:irq_debug is not loaded.")
-
-    if 'bf_kdrv' not in output:
-        irq_debug = False
-        print("ERROR:bf_kdrv is not loaded.")
 
     if not os.path.exists("/delta/mv_pipe_config"):
         mv_pipe = False
         print("ERROR:mv_pipe_config not installed.")
 
-    return irq_debug and bf_kdrv and mv_pipe and i2c_i801
+    return irq_debug and mv_pipe
 
 def install_irq_debug():
     print("Installing irq_debug...")
