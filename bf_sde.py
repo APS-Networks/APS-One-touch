@@ -177,12 +177,14 @@ def set_sde_env():
             'Environment variables set: \n SDE: {0} \n SDE_INSTALL: {1}'.format(
                 get_env_var(constants.sde_env_var_name),
                 get_env_var(constants.sde_install_env_var_name)))
-        return True
+    else:
+        print('SDE env_var is not properly set.')
+        return False
 
     if get_sde_profile_name() == constants.sde_hw_profile_name and not load_and_verify_kernel_modules():
          print("ERROR:Some kernel modules are not loaded.")
          exit(0)
-    return False
+    return True
 
 
 def install_switch_bsp():
