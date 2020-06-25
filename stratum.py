@@ -1,7 +1,10 @@
 import os
 import shutil
 
-from common import append_to_env_var, get_env_var, get_path_relative_to_user_home, get_sde_install_dir_absolute, get_sde_version, get_selected_profile_dict, get_selected_profile_name, read_settings, set_env_var
+from common import append_to_env_var, get_env_var, \
+    get_path_relative_to_user_home, get_sde_install_dir_absolute, \
+    get_sde_version, get_selected_profile_dict, get_selected_profile_name, \
+    read_settings, set_env_var, get_switch_model_from_settings
 import common   
 import constants
 from drivers import load_and_verify_kernel_modules
@@ -26,16 +29,18 @@ def start_stratum():
 
     append_to_env_var(constants.ld_lib_path_env_var_name,common.get_gb_lib_home_absolute())
 
-    
-
     stratum_start_cmd_bsp = 'export PLATFORM=x86-64-stordis-bf2556x-1t-r0 && \
     sudo -E start-stratum.sh --bf_sim '
 
+    if get_switch_model_from_settings() == constants.bf6064x_t:
+        stratum_start_cmd_bsp = 'export PLATFORM=x86-64-stordis-bf6064x-t-r0 && \
+            sudo -E start-stratum.sh --bf_sim '
+
+    # Following call is made from bf_sde.py, following call will not be made if user does nothing for BF SDE.
     if not load_and_verify_kernel_modules():
         print("ERROR:Some kernel modules are not loaded.")
         exit(0)
 
-    
     os.chdir(get_env_var(constants.stratum_home_env_var_name))
     print('Current dir: {}'.format(os.getcwd()))
     if get_stratum_mode() == 'bsp-less':
