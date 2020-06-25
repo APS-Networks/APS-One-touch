@@ -119,7 +119,7 @@ def alloc_dma():
 
 
 def ask_user_for_building_sde():
-    install_sde = input("Do you want to build SDE y/[n]?")
+    install_sde = input("SDE : build y/[n]?")
     if not install_sde:
         install_sde = "n"
     if install_sde == "y":
@@ -131,7 +131,7 @@ def ask_user_for_building_sde():
 
 def ask_user_for_building_bsp():
     if get_sde_profile_name() == constants.sde_hw_profile_name:
-        install_bsp = input("Do you want to build BSP y/[n]?")
+        install_bsp = input("BSP : build y/[n]?")
         if not install_bsp:
             install_bsp = "n"
         if install_bsp == "y":
@@ -213,7 +213,7 @@ def install_switch_bsp():
     os.system("chmod +x ./autogen.sh")
     os.system("chmod +x ./configure")
     os.system(
-        "./configure --prefix={} --enable-thrift --with-tof-brgup-plat".format(
+        "CFLAGS=-Wno-error ./configure --prefix={} --enable-thrift --with-tof-brgup-plat".format(
             os.environ['BSP_INSTALL']))
     os.system("make")
     os.system("sudo make install")
