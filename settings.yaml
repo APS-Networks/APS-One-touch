@@ -77,4 +77,4 @@ BUILD_PROFILES: &build_profiles
     details: *stratum
     deps: *sal_hw_profile
 
-  selected: *sde_hw_profile
+  selected: *stratum_hw_profile

@@ -1,6 +1,7 @@
 import os
 import platform
 import tarfile
+import zipfile
 from pathlib import Path
 import subprocess
 import yaml
@@ -17,21 +18,24 @@ dname = os.path.dirname(abspath)
 
 settings_dict = {}
 
+
 def delete_files(file):
     try:
         shutil.rmtree(file)
     except FileNotFoundError:
         print('{} already deleted'.format(file))
     except PermissionError:
-        i=input('Alert! deleting file {}, y/n ?'.format(file))
-        if i=='y':
+        i = input('Alert! deleting file {}, y/n ?'.format(file))
+        if i == 'y':
             os.system('sudo rm -rf {}'.format(file))
     except NotADirectoryError:
         os.system('rm {}'.format(file))
 
-release_dir=dname+'/release'
+
+release_dir = dname + '/release'
 if not os.path.exists(release_dir):
     os.mkdir(release_dir)
+
 
 def check_path(some_path, path_for):
     if not os.path.exists(some_path):
@@ -72,14 +76,16 @@ def is_ubuntu():
         return True
     return False
 
+
 def get_path_prefix():
     p = get_from_setting_dict(constants.path_prefix_node)
     if not p:
         return str(Path.home())
     return p
 
+
 def get_path_relative_to_user_home(pth):
-    return get_path_prefix()+ '/' + pth
+    return get_path_prefix() + '/' + pth
 
 
 def get_env_var(var_name):
@@ -110,7 +116,7 @@ def set_env_var(var_name, var_val):
 
 def execute_cmd(cmd):
     cmd_output = subprocess.run(cmd.split(' '), stdout=subprocess.PIPE,
-                                    stderr=subprocess.STDOUT)
+                                stderr=subprocess.STDOUT)
     return cmd_output.stdout.decode('UTF-8')
 
 
@@ -158,17 +164,26 @@ def get_from_setting_dict(*keys):
     return val
 
 
-def get_sde_pkg_name():
+def get_sde_pkg_abs_path():
     sde_pkg = get_path_relative_to_user_home(
         get_from_setting_dict('BF SDE', 'sde_pkg'))
     if not tarfile.is_tarfile(sde_pkg):
         print("Invalid tofino SDE tar file {} can not build.".format(sde_pkg))
-        return 0
+        exit(0)
     return sde_pkg
 
 
+def get_bsp_pkg_abs_path():
+    bsp_pkg = get_path_relative_to_user_home(
+        get_from_setting_dict('BSP', 'bsp_pkg'))
+    if not zipfile.is_zipfile(bsp_pkg):
+        print("Invalid BSP zip file {} can not build.".format(bsp_pkg))
+        exit(0)
+    return bsp_pkg
+
+
 def get_sde_dir_name_in_tar():
-    sde_tar = tarfile.open(get_sde_pkg_name())
+    sde_tar = tarfile.open(get_sde_pkg_abs_path())
     sde_dir_name = sde_tar.getnames()[0]
     sde_tar.close()
     return sde_dir_name
@@ -206,14 +221,18 @@ def get_sde_profile_dict():
         print(
             "Selected profile is not or doesn't have associated SDE profile !")
 
+
 def get_sde_profile_name():
     return get_sde_profile_dict().get(constants.name_node)
+
 
 def get_sde_profile_details():
     return get_sde_profile_dict().get(constants.details_node)
 
+
 def get_sde_version():
     return get_sde_profile_details().get(constants.sde_version_node)
+
 
 def get_selected_profile_dict():
     return settings_dict.get(constants.build_profiles_node).get(
@@ -239,7 +258,10 @@ def get_gb_lib_home_from_config():
 def get_gb_lib_home_absolute():
     return get_path_relative_to_user_home(get_gb_lib_home_from_config())
 
+
 def get_switch_model_from_settings():
     return get_from_setting_dict(constants.switch_model_node)
 
 
+def is_sim_profile_selected():
+    return 'sim' in get_selected_profile_name()

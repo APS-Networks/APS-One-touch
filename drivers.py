@@ -4,8 +4,9 @@ import tarfile
 import zipfile
 
 import common
+import constants
 from common import execute_cmd, get_env_var, dname, create_symlinks, \
-    is_ubuntu
+    is_ubuntu, get_switch_model_from_settings
 
 installation_files = {
     "irq_debug_tgz": "./irq_debug.tgz",
@@ -35,9 +36,11 @@ def load_and_verify_kernel_modules():
         bf_kdrv = False
         print("ERROR:bf_kdrv is not loaded.")
 
-    return bf_kdrv and i2c_i801
-
-
+    # Load switch specific kernel modules
+    if get_switch_model_from_settings() == constants.bf2556x_1t:
+        return bf_kdrv and i2c_i801 and load_and_verify_kernel_modules_bf2556()
+    else:
+        return bf_kdrv and i2c_i801 and load_and_verify_kernel_modules_bf6064()
 
 def load_and_verify_kernel_modules_bf6064():
 

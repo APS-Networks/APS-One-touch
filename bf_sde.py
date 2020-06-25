@@ -6,9 +6,14 @@ import zipfile
 import glob
 
 import constants
-from common import create_symlinks, execute_cmd, get_env_var, get_from_setting_dict, get_path_relative_to_user_home, get_sde_dir_name_in_tar, get_sde_home_absolute, get_sde_pkg_name, get_sde_profile_details, get_sde_profile_name, get_selected_profile_name, read_settings, set_env_var, validate_path_existence,\
-    get_switch_model_from_settings
-from drivers import load_and_verify_kernel_modules, load_and_verify_kernel_modules_bf2556, load_and_verify_kernel_modules_bf6064
+from common import create_symlinks, execute_cmd, get_env_var, \
+    get_from_setting_dict, get_path_relative_to_user_home, \
+    get_sde_dir_name_in_tar, get_sde_home_absolute, get_sde_pkg_abs_path, \
+    get_sde_profile_details, get_sde_profile_name, get_selected_profile_name, \
+    read_settings, set_env_var, validate_path_existence, \
+    get_switch_model_from_settings, get_bsp_pkg_abs_path
+from drivers import load_and_verify_kernel_modules, \
+    load_and_verify_kernel_modules_bf2556, load_and_verify_kernel_modules_bf6064
 
 
 def get_sde_build_flags():
@@ -16,10 +21,10 @@ def get_sde_build_flags():
 
 
 def build_sde():
-    sde_tar = tarfile.open(get_sde_pkg_name())
+    sde_tar = tarfile.open(get_sde_pkg_abs_path())
     sde_home_absolute = get_sde_home_absolute()
     sde_build_flags = get_sde_build_flags()
-    
+
     # Deletion is required otherwise moving the directories
     # in further steps might create issues.
     # And delete only when user have opted for not to resume build
@@ -157,7 +162,7 @@ def load_bf_sde_profile():
 
 
 def prepare_sde_release():
-    #TODO prepare precompiled binaries from SDE, to avoid the need for building SDE.
+    # TODO prepare precompiled binaries from SDE, to avoid the need for building SDE.
     pass
 
 
@@ -173,56 +178,46 @@ def set_sde_env():
                 get_env_var(constants.sde_env_var_name),
                 get_env_var(constants.sde_install_env_var_name)))
     else:
-        return False
+        print('ERROR: SDE directory couldnt be found, exiting .')
+        exit(0)
 
     if get_sde_profile_name() == constants.sde_hw_profile_name:
         print('Loading kernel modules.')
         if not load_and_verify_kernel_modules():
             print("ERROR:Some kernel modules are not loaded.")
-            exit(0)    
-        if get_switch_model_from_settings() == constants.bf2556x_1t and not load_and_verify_kernel_modules_bf2556():
-            print("ERROR:Some kernel modules are not loaded.")
-            exit(0)
-        if get_switch_model_from_settings() == constants.bf6064x_t and not load_and_verify_kernel_modules_bf6064():
-            print("ERROR:Some kernel modules are not loaded.")
             exit(0)
     else:
         print('Running simulation, No need to load kernel modules.')
-           
+
     return True
 
 
 def install_switch_bsp():
     set_sde_env()
-    bsp_installation_file = get_path_relative_to_user_home(
-        get_from_setting_dict('BSP', 'bsp_pkg'))
-
-    if zipfile.is_zipfile(bsp_installation_file):
-        print("Installing {}".format(bsp_installation_file))
-        zip_ref = zipfile.ZipFile(bsp_installation_file)
-        zip_ref.extractall()
-        extracted_dir_name = zip_ref.namelist()[0]
-        zip_ref.close()
-        os.chdir(extracted_dir_name)
-        os.environ['BSP'] = os.getcwd()
-        print("BSP home directory set to {}".format(os.environ['BSP']))
-        os.environ['BSP_INSTALL'] = get_env_var('SDE_INSTALL')
-        print(
-            "BSP_INSTALL directory set to {}".format(
-                os.environ['BSP_INSTALL']))
-        for pltfm in glob.glob('./bf-platforms*'):
-            os.chdir(pltfm)
-        os.system("autoreconf && autoconf")
-        os.system("chmod +x ./autogen.sh")
-        os.system("chmod +x ./configure")
-        os.system(
-            "./configure --prefix={} --enable-thrift --with-tof-brgup-plat".format(
-                os.environ['BSP_INSTALL']))
-        os.system("make")
-        os.system("sudo make install")
-        shutil.rmtree(os.environ['BSP'])
-    else:
-        print("You choose not to install BSP.")
+    bsp_installation_file = get_bsp_pkg_abs_path()
+    print("Installing {}".format(bsp_installation_file))
+    zip_ref = zipfile.ZipFile(bsp_installation_file)
+    zip_ref.extractall()
+    extracted_dir_name = zip_ref.namelist()[0]
+    zip_ref.close()
+    os.chdir(extracted_dir_name)
+    os.environ['BSP'] = os.getcwd()
+    print("BSP home directory set to {}".format(os.environ['BSP']))
+    os.environ['BSP_INSTALL'] = get_env_var('SDE_INSTALL')
+    print(
+        "BSP_INSTALL directory set to {}".format(
+            os.environ['BSP_INSTALL']))
+    for pltfm in glob.glob('./bf-platforms*'):
+        os.chdir(pltfm)
+    os.system("autoreconf && autoconf")
+    os.system("chmod +x ./autogen.sh")
+    os.system("chmod +x ./configure")
+    os.system(
+        "./configure --prefix={} --enable-thrift --with-tof-brgup-plat".format(
+            os.environ['BSP_INSTALL']))
+    os.system("make")
+    os.system("sudo make install")
+    shutil.rmtree(os.environ['BSP'])
 
 
 def just_load_sde():
@@ -231,7 +226,6 @@ def just_load_sde():
     ask_user_for_building_bsp()
     prepare_sde_release()
     ask_user_for_starting_sde()
-    
 
 
 if __name__ == '__main__':
