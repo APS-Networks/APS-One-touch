@@ -48,9 +48,9 @@ def build_sde():
     p4studio_build_profile = get_from_setting_dict('BF SDE',
                                                    'p4studio_build_profile')
 
-    if get_selected_profile_name() in [constants.stratum_hw_profile_name,
-                                       constants.stratum_sim_profile_name]:
-        p4studio_build_profile = 'stratum_profile'
+    # if get_selected_profile_name() in [constants.stratum_hw_profile_name,
+    #                                    constants.stratum_sim_profile_name]:
+    #     p4studio_build_profile = 'stratum_profile'
 
     if p4studio_build_profile == "":
         build_opt = ""

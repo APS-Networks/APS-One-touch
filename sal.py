@@ -172,12 +172,7 @@ def take_user_input():
         if action_char == 'c':
             set_sal_env()
             clean_sal()
-        elif action_char == 'r' and get_selected_profile_name() in [
-                constants.sal_hw_profile_name,
-                constants.sal_sim_profile_name]:
-            # Additional checks are for if user selected stratum profile
-            # Then there is no need to (or can not) run salRefApp, because SAL won't find 
-            # grpc and protobuf deps.
+        elif action_char == 'r':
             run_sal()
         elif action_char == 't':
             test_sal()

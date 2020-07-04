@@ -8,3 +8,5 @@ autom4te.cache/
 .project
 .history/
 .pydevproject
+release
+bf-sde*
