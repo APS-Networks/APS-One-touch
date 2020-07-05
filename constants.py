@@ -21,6 +21,7 @@ pi_install_env_var_name = 'PI_INSTALL'
 bf_sde_install_env_var_name = 'BF_SDE_INSTALL'
 stratum_home_env_var_name = 'STRATUM_HOME'
 stratum_config_env_var_name = 'STRATUM_CONFIG'
+path_env_var_name='PATH'
 
 ##Yaml settings nodes
 switch_model_node='SWITCH Model'

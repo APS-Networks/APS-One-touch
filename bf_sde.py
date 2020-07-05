@@ -11,7 +11,7 @@ from common import create_symlinks, execute_cmd, get_env_var, \
     get_sde_dir_name_in_tar, get_sde_home_absolute, get_sde_pkg_abs_path, \
     get_sde_profile_details, get_sde_profile_name, get_selected_profile_name, \
     read_settings, set_env_var, validate_path_existence, \
-    get_switch_model_from_settings, get_bsp_pkg_abs_path
+    get_switch_model_from_settings, get_bsp_pkg_abs_path, append_to_env_var
 from drivers import load_and_verify_kernel_modules, \
     load_and_verify_kernel_modules_bf2556, load_and_verify_kernel_modules_bf6064
 
@@ -62,7 +62,7 @@ def build_sde():
     for flag in sde_build_flags:
         if flag:
             sde_install_cmd += ' ' + flag
-
+    set_sde_env()
     print('Building sde with command {}'.format(sde_install_cmd))
     os.system(sde_install_cmd)
 
@@ -70,7 +70,7 @@ def build_sde():
 def start_bf_switchd():
     # os.chdir(common.dname)
     print('Starting BF switchd.')
-    set_sde_env()
+    set_sde_env_n_load_drivers()
     profile_name = get_sde_profile_name()
 
     if profile_name == constants.sde_sim_profile_name:
@@ -154,10 +154,7 @@ def load_bf_sde_profile():
     ask_user_for_building_sde()
     ask_user_for_building_bsp()
     prepare_sde_release()
-    # SDE to be started only in case of SDE profiles
-    # Else SDE will be started by SAL or STRATUM
-    if get_selected_profile_name() in [constants.sde_hw_profile_name,
-                                       constants.sde_sim_profile_name]:
+    if get_selected_profile_name():
         ask_user_for_starting_sde()
 
 
@@ -172,15 +169,20 @@ def set_sde_env():
     if validate_path_existence(sde_home_absolute, 'SDE'):
         set_env_var(constants.sde_env_var_name, sde_home_absolute)
         set_env_var(constants.sde_install_env_var_name,
-                    get_env_var(constants.sde_env_var_name) + '/install')
+                    get_env_var(constants.sde_env_var_name) + '/install/')
+        append_to_env_var(constants.path_env_var_name,get_env_var(constants.sde_install_env_var_name)+'/install/bin')
         print(
-            'Environment variables set: \n SDE: {0} \n SDE_INSTALL: {1}'.format(
+            'Environment variables set: \n SDE: {0} \n SDE_INSTALL: {1} \n PATH: {2}'.format(
                 get_env_var(constants.sde_env_var_name),
-                get_env_var(constants.sde_install_env_var_name)))
+                get_env_var(constants.sde_install_env_var_name),
+                get_env_var(constants.path_env_var_name)))
+        return True
     else:
         print('ERROR: SDE directory couldnt be found, exiting .')
         exit(0)
 
+
+def load_drivers():
     if get_sde_profile_name() == constants.sde_hw_profile_name:
         print('Loading kernel modules.')
         if not load_and_verify_kernel_modules():
@@ -189,11 +191,15 @@ def set_sde_env():
     else:
         print('Running simulation, No need to load kernel modules.')
 
+
+def set_sde_env_n_load_drivers():
+    set_sde_env()
+    load_drivers()
     return True
 
 
 def install_switch_bsp():
-    set_sde_env()
+    set_sde_env_n_load_drivers()
     bsp_installation_file = get_bsp_pkg_abs_path()
     print("Installing {}".format(bsp_installation_file))
     zip_ref = zipfile.ZipFile(bsp_installation_file)

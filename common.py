@@ -96,12 +96,12 @@ def get_env_var(var_name):
         print(e)
 
 
-def append_to_env_var(src_env_var_name, new_val):
+def append_to_env_var(src_env_var_name, new_val_to_append):
     if get_env_var(src_env_var_name) is None:
-        os.environ[src_env_var_name] = new_val
+        os.environ[src_env_var_name] = new_val_to_append
     else:
         os.environ[src_env_var_name] = get_env_var(
-            src_env_var_name) + ':' + new_val
+            src_env_var_name) + ':' + new_val_to_append
 
 
 def set_env_var(var_name, var_val):

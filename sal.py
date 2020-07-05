@@ -4,7 +4,7 @@ import shutil
 
 import common
 import constants
-from bf_sde import set_sde_env, load_bf_sde_profile
+from bf_sde import set_sde_env_n_load_drivers, load_bf_sde_profile
 from common import delete_files, get_env_var, get_from_setting_dict, get_gb_lib_home_absolute, get_gb_src_home_absolute, get_path_relative_to_user_home, get_sde_home_absolute, get_selected_profile_dict, get_selected_profile_name, read_settings, set_env_var 
 get_gb_src_home_absolute, get_path_relative_to_user_home, get_sde_home_absolute, get_selected_profile_dict, 
 get_selected_profile_name, read_settings, set_env_var
@@ -13,7 +13,7 @@ from sal_test import execute_sal_tests
 
 def set_sal_env():
     print("Setting environment for SAL.")
-    if not set_sde_env():
+    if not set_sde_env_n_load_drivers():
         return False
         exit()
     #os.environ['TCMALLOC_LARGE_ALLOC_REPORT_THRESHOLD'] = '64077925800531312640'
@@ -42,7 +42,7 @@ def set_sal_env():
 
 def set_sal_runtime_env():
     print("Setting environment for SAL runtime.")
-    if not set_sde_env():
+    if not set_sde_env_n_load_drivers():
         return False
         exit()
     set_env_var(constants.sal_home_env_var_name, sal_rel_dir)
