@@ -170,7 +170,7 @@ def set_sde_env():
         set_env_var(constants.sde_env_var_name, sde_home_absolute)
         set_env_var(constants.sde_install_env_var_name,
                     get_env_var(constants.sde_env_var_name) + '/install/')
-        append_to_env_var(constants.path_env_var_name,get_env_var(constants.sde_install_env_var_name)+'/install/bin')
+        append_to_env_var(constants.path_env_var_name,get_env_var(constants.sde_install_env_var_name)+'/bin/')
         print(
             'Environment variables set: \n SDE: {0} \n SDE_INSTALL: {1} \n PATH: {2}'.format(
                 get_env_var(constants.sde_env_var_name),
