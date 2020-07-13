@@ -28,7 +28,7 @@ def build_sde():
     # Deletion is required otherwise moving the directories
     # in further steps might create issues.
     # And delete only when user have opted for not to resume build
-    if '-rb' not in sde_build_flags:
+    if sde_build_flags is not None and '-rb' not in sde_build_flags:
         try:
             print("Deleting previous installation at {}.".format(
                 sde_home_absolute))
@@ -48,9 +48,9 @@ def build_sde():
     p4studio_build_profile = get_from_setting_dict('BF SDE',
                                                    'p4studio_build_profile')
 
-    # if get_selected_profile_name() in [constants.stratum_hw_profile_name,
-    #                                    constants.stratum_sim_profile_name]:
-    #     p4studio_build_profile = 'stratum_profile'
+    if get_selected_profile_name() in [constants.stratum_hw_profile_name,
+                                       constants.stratum_sim_profile_name]:
+        p4studio_build_profile = 'stratum_profile'
 
     if p4studio_build_profile == "":
         build_opt = ""
@@ -59,10 +59,13 @@ def build_sde():
         build_opt,
         p4studio_build_profile)
 
-    for flag in sde_build_flags:
-        if flag:
-            sde_install_cmd += ' ' + flag
-    set_sde_env()
+    if sde_build_flags is not None:
+        for flag in sde_build_flags:
+            if flag:
+                sde_install_cmd += ' ' + flag
+    else:
+        print('No build flag will be used for BF_SDE build.')
+    os.environ[constants.path_env_var_name] += os.pathsep + sde_home_absolute+'/install/bin/'
     print('Building sde with command {}'.format(sde_install_cmd))
     os.system(sde_install_cmd)
 
@@ -141,7 +144,7 @@ def ask_user_for_building_bsp():
 
 
 def ask_user_for_starting_sde():
-    start_sde = input("Do you want to start SDE y/[n]?")
+    start_sde = input("SDE : start y/[n]?")
     if not start_sde:
         start_sde = "n"
     if start_sde == "y":
@@ -154,7 +157,10 @@ def load_bf_sde_profile():
     ask_user_for_building_sde()
     ask_user_for_building_bsp()
     prepare_sde_release()
-    if get_selected_profile_name():
+    # SDE to be started only in case of SDE profiles
+    # Else SDE will be started by either SAL or STRATUM
+    if get_selected_profile_name() in [constants.sde_hw_profile_name,
+                                       constants.sde_sim_profile_name]:
         ask_user_for_starting_sde()
 
 

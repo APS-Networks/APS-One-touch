@@ -20,14 +20,16 @@ BF SDE: &bf_sde
   sde_version: 9.1.0 #Required for stratum to run
   p4studio_build_profile: p4_runtime_profile #Leave it blank to enter detailed interactive P4 Studio build shell, Value is overriden to stratum_profile in case stratum_hw_profile or stratum_sim_profile is selected
   p4_name: #Leave it blank to start SDE without a P4 program or p4 program name which is already built in SDE.
-  build_flags: #Optional list of P4Studio build flags.
-    - -rb #Stands for resuming BBF SDE build remove this param if want to build SDE from scratch.
+  build_flags: #Optional list of P4Studio build flags. 
+               #Privde more flags with '-' in the beginning its for yaml syntax 
+               #and than flag e.g. '-rb'
+    #- -rb
+    #- -iod
 
 SAL: &sal
   # Following parameters are useful when you have SAL src and building SAL, 
   # otherwise SAL binaries are sufficient to run and can be ignored.
-  sal_pkg: sal.tar
-  sal_home: /sal
+  sal_home: /sal # SAL Source directory, Param is useful for development usage only
   enable_grpc: true #Enables sal's grpc interface, Works only when SDE is built with p4runtime profile and selected APS profile is not stratum_xyz
   enable_tofino: true #Enables Tofino control in SAL, Set it false if external application wants to take over Tofino control,
   #And in case of stratum_xyz profile selected for stratum APS value is overridden to false automatically
@@ -80,4 +82,4 @@ BUILD_PROFILES: &build_profiles
     details: *stratum
     deps: *sal_hw_profile
 
-  selected: *stratum_hw_profile
+  selected: *sde_hw_profile

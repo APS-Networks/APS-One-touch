@@ -113,15 +113,12 @@ def prepare_sal_release():
     shutil.copytree(get_env_var(constants.sal_home_env_var_name)+'/proto',sal_rel_dir+'/proto')
     
     os.mkdir(sal_rel_dir+'/test')
-    shutil.copyfile(get_env_var(constants.sal_home_env_var_name)+'/test/sal_service_test_direct.py',sal_rel_dir+'/test/sal_service_test_direct.py')
-    shutil.copyfile(get_env_var(constants.sal_home_env_var_name)+'/sal_services_direct_pb2.py',sal_rel_dir+'/sal_services_direct_pb2.py')
-    shutil.copyfile(get_env_var(constants.sal_home_env_var_name)+'/sal_services_direct_pb2_grpc.py',sal_rel_dir+'/sal_services_direct_pb2_grpc.py')
-    shutil.copyfile(get_env_var(
-        constants.sal_home_env_var_name) + '/sal_services_pb2.py',
-                    sal_rel_dir + '/sal_services_pb2.py')
-    shutil.copyfile(get_env_var(
-        constants.sal_home_env_var_name) + '/sal_services_pb2_grpc.py',
-                    sal_rel_dir + '/sal_services_pb2_grpc.py')
+    shutil.copyfile(get_env_var(constants.sal_home_env_var_name)+'/README.md',sal_rel_dir+'/README.md')
+    shutil.copyfile(get_env_var(constants.sal_home_env_var_name)+'/test/sal_service_test_BF6064.py',sal_rel_dir+'/test/sal_service_test_BF6064.py')
+    shutil.copyfile(get_env_var(constants.sal_home_env_var_name)+'/test/sal_service_test_BF2556.py',sal_rel_dir+'/test/sal_service_test_BF2556.py')
+    shutil.copyfile(get_env_var(constants.sal_home_env_var_name)+'/sal_services_pb2.py',sal_rel_dir+'/sal_services_pb2.py')
+    shutil.copyfile(get_env_var(constants.sal_home_env_var_name)+'/sal_services_pb2_grpc.py',sal_rel_dir+'/sal_services_pb2_grpc.py')
+    
     print('SAL release is available at {}'.format(sal_rel_dir))
 
 
@@ -185,13 +182,10 @@ def take_user_input():
                 "Invalid action {0} or action doesn't fit with selected profile {1}.".format(
                     action_char, get_selected_profile_name()))
     
-
 def load_sal_profile():
     load_bf_sde_profile()
     take_user_input()
     
-
-
 def just_load_sal():
     """
     When deps of SAL are taken care already, Directly execute this file.

@@ -180,6 +180,9 @@ def take_user_input():
                 "Unrecognised action {} .".format(action_char))
 
 
-if __name__ == '__main__':
+def just_load_stratum():
     read_settings()
-    load_stratum_profile()
+    take_user_input()
+    
+if __name__ == '__main__':
+    just_load_stratum()
