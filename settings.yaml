@@ -18,10 +18,10 @@ BF SDE: &bf_sde
   sde_pkg: /BF/bf-sde-9.1.0.tar
   sde_home: /BF/bf-sde-9.1.0 # SDE path relative to user home. If left blank default is APS-One-touch/<bf-sde-x.y.z>.
   sde_version: 9.1.0 #Required for stratum to run
-  p4studio_build_profile: p4_runtime_profile #Leave it blank to enter detailed interactive P4 Studio build shell, Value is overriden to stratum_profile in case stratum_hw_profile or stratum_sim_profile is selected
+  p4studio_build_profile: stratum_profile #Leave it blank to enter detailed interactive P4 Studio build shell, Value is overriden to stratum_profile in case stratum_hw_profile or stratum_sim_profile is selected
   p4_name: #Leave it blank to start SDE without a P4 program or p4 program name which is already built in SDE.
   build_flags: #Optional list of P4Studio build flags. 
-               #Privde more flags with '-' in the beginning its for yaml syntax 
+               #Provide more flags with '-' in the beginning, its for yaml syntax. 
                #and than flag e.g. '-rb'
     #- -rb
     #- -iod
@@ -29,6 +29,9 @@ BF SDE: &bf_sde
 SAL: &sal
   # Following parameters are useful when you have SAL src and building SAL, 
   # otherwise SAL binaries are sufficient to run and can be ignored.
+  build_third_party: true #Currently gRPC interface of SAL uses protobuf, gRPC and PI packages,
+  # false - Ensure that SDE is built with p4_runtime_profile, and above mentioned deps are installed under $SDE_INSTALL
+  # true - Protobuf, gRPC and PI will be built independently by AOT under $SAL_INSTALL.
   sal_home: /sal # SAL Source directory, Param is useful for development usage only
   enable_grpc: true #Enables sal's grpc interface, Works only when SDE is built with p4runtime profile and selected APS profile is not stratum_xyz
   enable_tofino: true #Enables Tofino control in SAL, Set it false if external application wants to take over Tofino control,
@@ -82,4 +85,4 @@ BUILD_PROFILES: &build_profiles
     details: *stratum
     deps: *sal_hw_profile
 
-  selected: *sde_hw_profile
+  selected: *sal_hw_profile

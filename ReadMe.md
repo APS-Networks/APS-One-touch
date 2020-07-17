@@ -16,7 +16,7 @@ At minimum set following node values in settings.yaml if different than default 
 'BUILD_PROFILES' -> selected
 For other node details see Profiles section below.
 
-All package paths are calculated relative to user home until PATH_PREFIX is empty.
+All package paths are calculated relative to user_home or relative to `PATH_PREFIX` if provided.
 Configure correct path for selected and dependency profile packages.
 
 ## Profiles
@@ -28,7 +28,7 @@ Configure correct path for selected and dependency profile packages.
    Select the profile for using Switch Abstraction Layer (SAL) on the switch.
    Contact STORDIS to get sal.zip, unzip it into APS-One-touch/release/ directory.
    Check 'BF SDE', 'BSP' nodes configuration in settings.yaml.
-   Currently 'SAL' node configuration in settings.yaml is useful for SAL development only for end users it can be ignored. Also on console only valid input for end users for 'SAL' is 'r' or 'run'.
+   Currently 'SAL' node configuration in settings.yaml is useful for SAL development only for end users it can be ignored. Also on console only valid input for end users for 'SAL' is 'r' or 'run' or 'i' for installing thirdparty SWs in case SDE is not built with p4_runtime_profile.
    
 ### stratum_hw_profile
    For Stratum users on the switch.
@@ -49,10 +49,12 @@ Configure correct path for selected and dependency profile packages.
  respective installation script for that profile.
  e.g. You can directly trigger SAL installation by executing 'python3 sal.py', in case dependencies SDE and BSP are already installed, This save user from giving inputs for dependencies.
 
-## Recommendations
 
-- Ubuntu_Server_18.xx
-- Recommended profiles - sal_hw_profile, sde_hw_profile, stratum_hw_profile
+## Recommendations
+This version of AOT currently is tested on :
+* Ubuntu 18.04.4 LTS
+* SDE-9.1.0
+* gcc7.5
 
 ## Upcoming Features
 
