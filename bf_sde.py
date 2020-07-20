@@ -11,7 +11,8 @@ from common import create_symlinks, execute_cmd, get_env_var, \
     get_sde_dir_name_in_tar, get_sde_home_absolute, get_sde_pkg_abs_path, \
     get_sde_profile_details, get_sde_profile_name, get_selected_profile_name, \
     read_settings, set_env_var, validate_path_existence, \
-    get_switch_model_from_settings, get_bsp_pkg_abs_path, append_to_env_var
+    get_switch_model_from_settings, get_bsp_pkg_abs_path, append_to_env_var,\
+    dname
 from drivers import load_and_verify_kernel_modules, \
     load_and_verify_kernel_modules_bf2556, load_and_verify_kernel_modules_bf6064
 
@@ -230,6 +231,7 @@ def install_switch_bsp():
     os.system("make")
     os.system("sudo make install")
     shutil.rmtree(os.environ['BSP'])
+    os.chdir(dname)
 
 
 def just_load_sde():

@@ -190,8 +190,7 @@ def install_sal_thirdparty_deps():
 def installProtobuf():
     print('Installing protobuf.')
     protobuf_ver = 'v3.6.1'
-    #protobuf_dir= '{0}/protobuf{1}/'.format(sal_thirdparty_path,protobuf_ver)
-    protobuf_dir='{}/protobuf'.format(sal_thirdparty_path)
+    protobuf_dir= '{0}/protobuf{1}/'.format(sal_thirdparty_path,protobuf_ver)
     if os.path.exists(protobuf_dir):
         print('{0} already exists, will rebuild.'.format(protobuf_dir))
     else:
@@ -220,8 +219,7 @@ def installProtobuf():
 def installgRPC():
     print('Installing gRPC.')
     gRPC_ver='v1.17.0'
-    #gRPC_dir='{0}/grpc{1}/'.format(sal_thirdparty_path,gRPC_ver)
-    gRPC_dir='{}/grpc'.format(sal_thirdparty_path)
+    gRPC_dir='{0}/grpc{1}/'.format(sal_thirdparty_path,gRPC_ver)
     if os.path.exists(gRPC_dir):
         print('{0} already exists, will rebuild.'.format(gRPC_dir))
     else:
