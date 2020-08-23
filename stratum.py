@@ -4,7 +4,7 @@ import shutil
 from common import append_to_env_var, get_env_var, \
     get_path_relative_to_user_home, get_sde_install_dir_absolute, \
     get_sde_version, get_selected_profile_dict, get_selected_profile_name, \
-    read_settings, set_env_var, get_switch_model_from_settings
+    set_env_var, get_switch_model_from_settings, settings_dict
 import common   
 import constants
 from drivers import load_and_verify_kernel_modules
@@ -132,6 +132,10 @@ def get_stratum_profile_dict():
     if get_selected_profile_name() in [constants.stratum_hw_profile_name,
                                        constants.stratum_sim_profile_name]:
         return get_selected_profile_dict()
+    else :
+        #Currently there is no difference btwn stratum hw or sw profile
+        return settings_dict.get(constants.build_profiles_node).get(
+            constants.stratum_hw_profile)
 
 
 def get_stratum_profile_details_dict():
@@ -181,7 +185,6 @@ def take_user_input():
 
 
 def just_load_stratum():
-    read_settings()
     take_user_input()
     
 if __name__ == '__main__':

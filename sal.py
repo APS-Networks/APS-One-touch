@@ -5,10 +5,10 @@ import shutil
 import common
 import constants
 from bf_sde import set_sde_env_n_load_drivers, load_bf_sde_profile
-from common import delete_files, get_env_var, get_gb_lib_home_absolute, get_gb_src_home_absolute, get_path_relative_to_user_home, get_sde_home_absolute, get_selected_profile_dict, get_selected_profile_name, read_settings, set_env_var,\
+from common import delete_files, get_env_var, get_gb_lib_home_absolute, get_gb_src_home_absolute, get_path_relative_to_user_home, get_sde_home_absolute, get_selected_profile_dict, get_selected_profile_name,set_env_var,\
     append_to_env_var, get_from_setting_dict 
 get_gb_src_home_absolute, get_path_relative_to_user_home, get_sde_home_absolute, get_selected_profile_dict, 
-get_selected_profile_name, read_settings, set_env_var
+get_selected_profile_name,set_env_var
 from drivers import load_and_verify_kernel_modules
 from sal_test import execute_sal_tests
 
@@ -324,7 +324,6 @@ def just_load_sal():
     When deps of SAL are taken care already, Directly execute this file.
     :return:
     """
-    read_settings()
     take_user_input()
 
 

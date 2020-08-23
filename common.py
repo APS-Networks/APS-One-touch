@@ -16,7 +16,16 @@ abspath = os.path.abspath(__file__)
 # Absolute directory name containing this file
 dname = os.path.dirname(abspath)
 
-settings_dict = {}
+def read_settings():
+    with open("{}/settings.yaml".format(dname), 'r') as stream:
+        try:
+            return yaml.safe_load(stream)
+        except yaml.YAMLError as exc:
+            print(exc)
+            print("Error occured while reading settings.yaml")
+            return None
+
+settings_dict = read_settings()
 
 
 def delete_files(file):
@@ -144,15 +153,6 @@ def create_symlinks():
             os.unlink(irq_symlink)
         print('Creating symlink {}'.format(irq_symlink))
         os.symlink(src, irq_symlink)
-
-
-def read_settings():
-    global settings_dict
-    with open("{}/settings.yaml".format(dname), 'r') as stream:
-        try:
-            settings_dict = yaml.safe_load(stream)
-        except yaml.YAMLError as exc:
-            print(exc)
 
 
 def get_from_setting_dict(*keys):

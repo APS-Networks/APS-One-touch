@@ -10,7 +10,7 @@ from common import create_symlinks, execute_cmd, get_env_var, \
     get_from_setting_dict,  \
     get_sde_dir_name_in_tar, get_sde_home_absolute, get_sde_pkg_abs_path, \
     get_sde_profile_details, get_sde_profile_name, get_selected_profile_name, \
-    read_settings, set_env_var, validate_path_existence, \
+    set_env_var, validate_path_existence, \
      get_bsp_pkg_abs_path, append_to_env_var,\
     dname
 from drivers import load_and_verify_kernel_modules
@@ -234,7 +234,6 @@ def install_switch_bsp():
 
 
 def just_load_sde():
-    read_settings()
     ask_user_for_building_sde()
     ask_user_for_building_bsp()
     prepare_sde_release()

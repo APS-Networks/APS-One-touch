@@ -1,6 +1,6 @@
 import constants
 from bf_sde import load_bf_sde_profile
-from common import read_settings, get_selected_profile_name, \
+from common import get_selected_profile_name, \
     get_sde_pkg_abs_path, get_bsp_pkg_abs_path, \
     is_sim_profile_selected, get_switch_model_from_settings, \
     validate_path_existence
@@ -19,7 +19,6 @@ def do_basic_path_validation(profile_name):
         validate_path_existence(get_stratum_home_absolute(),'Stratum')
 
 if __name__ == '__main__':
-    read_settings()
     profile_name = get_selected_profile_name()
     
     do_basic_path_validation(profile_name)

@@ -8,6 +8,9 @@ sde_hw_profile_name = 'sde_hw_profile'
 sde_sim_profile_name = 'sde_sim_profile'
 stratum_hw_profile_name = 'stratum_hw_profile'
 stratum_sim_profile_name = 'stratum_sim_profile'
+stratum_hw_profile = 'stratum_hw'
+stratum_sim_profile = 'stratum_sim'
+
 #Env var names
 sal_home_env_var_name = 'SAL_HOME'
 sal_install_env_var_name = 'SAL_INSTALL'
