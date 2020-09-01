@@ -16,14 +16,22 @@ installation_files = {
 
 def load_and_verify_kernel_modules():
     output = execute_cmd('lsmod')
-    bf_kdrv = True
+    bf_kdrv = False
+    bf_kpkt = True
     i2c_i801 = True
+    BF_KDRV = False
+    BF_KPKT = True
 
     os.system("sudo modprobe -q i2c-i801")
     os.system("sudo modprobe -q i2c-dev")
 
-    if 'bf_kdrv' not in output:
-        load_bf_kdrv()
+    if BF_KDRV:
+        if 'bf_kdrv' not in output:
+            load_bf_kdrv()
+    else:
+        if 'bf_kpkt' not in output:
+            load_bf_kpkt()
+
 
     output = execute_cmd('lsmod')
 
@@ -32,15 +40,26 @@ def load_and_verify_kernel_modules():
         i2c_i801 = False
         print('ERROR:i2c_i801 is not loaded.')
 
-    if 'bf_kdrv' not in output:
-        bf_kdrv = False
-        print("ERROR:bf_kdrv is not loaded.")
+    if BF_KDRV:
+        if 'bf_kdrv' not in output:
+            bf_kdrv = False
+            print("ERROR:bf_kdrv is not loaded.")
+    else:
+        if 'bf_kpkt' not in output:
+            bf_kpkt = False
+            print("ERROR:bf_kpkt is not loaded.")
 
     # Load switch specific kernel modules
     if get_switch_model_from_settings() == constants.bf2556x_1t:
-        return bf_kdrv and i2c_i801 and load_and_verify_kernel_modules_bf2556()
+        if BF_KDRV:
+            return bf_kdrv and i2c_i801 and load_and_verify_kernel_modules_bf2556()
+        else:
+            return bf_kpkt and i2c_i801 and load_and_verify_kernel_modules_bf2556()
     else:
-        return bf_kdrv and i2c_i801 and load_and_verify_kernel_modules_bf6064()
+        if BF_KDRV:
+            return bf_kdrv and i2c_i801 and load_and_verify_kernel_modules_bf6064()
+        else:
+            return bf_kpkt and i2c_i801 and load_and_verify_kernel_modules_bf6064()
 
 def load_and_verify_kernel_modules_bf6064():
 
@@ -64,7 +83,7 @@ def load_and_verify_kernel_modules_bf6064():
     sudo i2cset -y 0 0x35 0xD 0xff')
     return True
 
-    
+
 sde_folder_path = ""
 #sde = installation_files["sde"]
 def load_and_verify_kernel_modules_bf2556():
@@ -127,4 +146,11 @@ def load_bf_kdrv():
     print("Using SDE {} for loading bf_kdrv.".format(get_env_var('SDE')))
     os.system(
         "sudo {0}/bin/bf_kdrv_mod_load {0}".format(
+            get_env_var('SDE_INSTALL')))
+
+def load_bf_kpkt():
+    print("Loading bf_kpkt....")
+    print("Using SDE {} for loading bf_kpkt.".format(get_env_var('SDE')))
+    os.system(
+        "sudo {0}/bin/bf_kpkt_mod_load {0}".format(
             get_env_var('SDE_INSTALL')))
