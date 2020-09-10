@@ -22,13 +22,8 @@ class AOTTests(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_SDE_Build(self):
-        pass
-
-    def test_run_switchd(self):
-        pass
-
     def test_SAL_Build(self):
+        self.assertTrue(sal.execute_user_action('c'))
         self.assertTrue(sal.execute_user_action('b'))
         self.assertTrue(sal.execute_user_action('c'))
 
@@ -48,6 +43,7 @@ class AOTTests(unittest.TestCase):
         os.system("sudo killall -9 {}".format(processName));
 
     def test_SAL_Run(self):
+        self.assertTrue(sal.execute_user_action('c'))
         self.assertTrue(sal.execute_user_action('b'))
         t = Thread(target=sal.execute_user_action, name='Run SAL', args=('r',))
         t.daemon = True
@@ -56,7 +52,7 @@ class AOTTests(unittest.TestCase):
         self.assertTrue(sal.execute_user_action('c'))
         self.killProcess('salRefApp')
 
-    @unittest.skip("Should run only in nightly build.")
+    @unittest.skip("This test runs long, Should run only in nightly build.")
     def test_SDE_build(self):
         self.assertTrue(bf_sde.create_symlinks())
         self.assertTrue(bf_sde.build_sde())
@@ -79,16 +75,21 @@ class AOTTests(unittest.TestCase):
         self.killProcess('bf_switchd')
 
     def test_build_stratum(self):
+        self.assertTrue(stratum.execute_user_action('c'))
         self.assertTrue(stratum.execute_user_action('b'))
 
     def test_run_stratum(self):
+        self.assertTrue(stratum.execute_user_action('c'))
         self.assertTrue(stratum.execute_user_action('b'))
         t = Thread(target=stratum.execute_user_action, name='run_stratum',
                    args=('r',))
         t.daemon = True
         t.start()
         self.assertTrue(
-            self.isPortUp('127.0.0.1', 50001, retrires=10, timeout=2))
+            self.isPortUp('127.0.0.1', 28000, retrires=30, timeout=2))
+        self.assertTrue(
+            self.isPortUp('127.0.0.1', 9999, retrires=30, timeout=2))
+        self.killProcess('stratum_bf')
 
 
 if __name__ == '__main__':

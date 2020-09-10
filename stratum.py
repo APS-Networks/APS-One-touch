@@ -56,6 +56,7 @@ def start_stratum():
         print("Starting Stratum in bsp mode...")
         print("Executing command {}".format(stratum_start_cmd_bsp))
         os.system(stratum_start_cmd_bsp)
+    return True
 
 
 def clone_stratum():
@@ -126,6 +127,7 @@ def clean_stratum():
     os.chdir(get_env_var(constants.stratum_home_env_var_name))
     print('Executing : {}'.format(stratum_clean_cmd))
     os.system(stratum_clean_cmd)
+    return True
 
 
 def get_stratum_mode():
@@ -170,14 +172,15 @@ def execute_user_action(stratum_input):
     set_stratum_env()
     for action_char in stratum_input:
         if action_char == 'c':
-            clean_stratum()
+            return clean_stratum()
         elif action_char == 'r':
-            start_stratum()
+            return start_stratum()
         elif action_char == 'b':
-            build_stratum()
+            return build_stratum()
         else:
             print(
                 "Unrecognised action {} .".format(action_char))
+    return True
 
 
 def take_user_input():
