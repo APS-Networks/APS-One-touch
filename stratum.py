@@ -5,10 +5,10 @@ from common import append_to_env_var, get_env_var, \
     get_path_relative_to_user_home, get_sde_install_dir_absolute, \
     get_sde_version, get_selected_profile_dict, get_selected_profile_name, \
     set_env_var, get_switch_model_from_settings, settings_dict
-import common   
+import common
 import constants
 from drivers import load_and_verify_kernel_modules
-from sal import load_sal_profile,  set_sal_runtime_env
+from sal import load_sal_profile, set_sal_runtime_env
 
 
 def start_stratum():
@@ -27,7 +27,8 @@ def start_stratum():
         get_env_var(constants.stratum_config_env_var_name)
     )
 
-    append_to_env_var(constants.ld_lib_path_env_var_name,common.get_gb_lib_home_absolute())
+    append_to_env_var(constants.ld_lib_path_env_var_name,
+                      common.get_gb_lib_home_absolute())
 
     stratum_start_cmd_bsp = 'export PLATFORM=x86-64-stordis-bf2556x-1t-r0 && \
     sudo -E start-stratum.sh --bf_sim '
@@ -47,9 +48,9 @@ def start_stratum():
         print("Starting Stratum in bsp-less mode...")
         print("Executing command {}".format(stratum_start_cmd_bsp_less))
         shutil.copyfile(get_env_var(
-        constants.stratum_home_env_var_name) + '/stratum/hal/config/x86-64-stordis-bf2556x-1t-r0/port_map.json',
-        get_env_var(
-        constants.bf_sde_install_env_var_name) + '/share/port_map.json')
+            constants.stratum_home_env_var_name) + '/stratum/hal/config/x86-64-stordis-bf2556x-1t-r0/port_map.json',
+                        get_env_var(
+                            constants.bf_sde_install_env_var_name) + '/share/port_map.json')
         os.system(stratum_start_cmd_bsp_less)
     else:
         print("Starting Stratum in bsp mode...")
@@ -98,22 +99,25 @@ def set_stratum_env():
 
 def build_stratum():
     print('Building stratum...')
-    stratum_build_command = 'bazel build //stratum/hal/bin/barefoot:stratum_bf_deb --define sde_ver={} '.format(get_sde_version())
-                            #':stratum_bf --define phal_with_gb=true '
+    stratum_build_command = 'bazel build //stratum/hal/bin/barefoot:stratum_bf_deb --define sde_ver={} '.format(
+        get_sde_version())
+    # ':stratum_bf --define phal_with_gb=true '
     if get_stratum_mode() == 'bsp':
         stratum_build_command += ' --define phal_with_onlp=false  '
     os.chdir(get_stratum_home_absolute())
     print('Executing stratum build cmd : {}'.format(stratum_build_command))
     os.system(stratum_build_command)
     install_stratum()
+    return True
 
 
 def install_stratum():
-    stratum_install_cmd='sudo apt-get update && \
+    stratum_install_cmd = 'sudo apt-get update && \
         sudo apt-get install -y --reinstall ./bazel-bin/stratum/hal/bin/barefoot/stratum_bf_deb.deb'
     print('Executing stratum install cmd : {}'.format(stratum_install_cmd))
     os.system(stratum_install_cmd)
-    print('Some warnings can be safely ignored, for more details refer - https://github.com/stratum/stratum/blob/master/stratum/hal/bin/barefoot/README.md')
+    print(
+        'Some warnings can be safely ignored, for more details refer - https://github.com/stratum/stratum/blob/master/stratum/hal/bin/barefoot/README.md')
 
 
 def clean_stratum():
@@ -122,7 +126,7 @@ def clean_stratum():
     os.chdir(get_env_var(constants.stratum_home_env_var_name))
     print('Executing : {}'.format(stratum_clean_cmd))
     os.system(stratum_clean_cmd)
-    
+
 
 def get_stratum_mode():
     return get_stratum_profile_details_dict().get('mode')
@@ -132,8 +136,8 @@ def get_stratum_profile_dict():
     if get_selected_profile_name() in [constants.stratum_hw_profile_name,
                                        constants.stratum_sim_profile_name]:
         return get_selected_profile_dict()
-    else :
-        #Currently there is no difference btwn stratum hw or sw profile
+    else:
+        # Currently there is no difference btwn stratum hw or sw profile
         return settings_dict.get(constants.build_profiles_node).get(
             constants.stratum_hw_profile)
 
@@ -148,9 +152,10 @@ def get_stratum_home_absolute():
 
 
 def get_stratum_config_dir_absolute():
-    stratum_config_dir=get_stratum_profile_details_dict().get('stratum_config')
+    stratum_config_dir = get_stratum_profile_details_dict().get(
+        'stratum_config')
     if stratum_config_dir is None:
-        return common.dname+'/stratum_config/'
+        return common.dname + '/stratum_config/'
     else:
         return get_path_relative_to_user_home(
             get_stratum_profile_details_dict().get('stratum_config'))
@@ -161,18 +166,9 @@ def load_stratum_profile():
     take_user_input()
 
 
-def take_user_input():
-    stratum_input = input(
-        "STRATUM : build(b),clean(c),run(r),[do_nothing(n)],  "
-        "Enter one or more action chars in appropriate order i.e. cbr?")
-
-    if 'n' in stratum_input or not stratum_input:
-        # In case user give nasty input like cbrn
-        # User meant do nothing in such cases
-        return
-    
+def execute_user_action(stratum_input):
     set_stratum_env()
-    for action_char in stratum_input:      
+    for action_char in stratum_input:
         if action_char == 'c':
             clean_stratum()
         elif action_char == 'r':
@@ -184,8 +180,21 @@ def take_user_input():
                 "Unrecognised action {} .".format(action_char))
 
 
+def take_user_input():
+    stratum_input = input(
+        "STRATUM : build(b),clean(c),run(r),[do_nothing(n)],  "
+        "Enter one or more action chars in appropriate order i.e. cbr?")
+
+    if 'n' in stratum_input or not stratum_input:
+        # In case user give nasty input like cbrn
+        # User meant do nothing in such cases
+        return
+    execute_user_action(stratum_input)
+
+
 def just_load_stratum():
     take_user_input()
-    
+
+
 if __name__ == '__main__':
     just_load_stratum()

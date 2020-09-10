@@ -1,21 +1,29 @@
 pipeline {
-    agent any
-
+    agent { label 'BF2556' }
     stages {
-        stage('Build') {
+        stage('Clone AOT') {
             steps {
-                echo 'Building..'
+                git credentialsId: 'Jenkins_priv_ssh', url: 'https://github.com/stordis/APS-One-touch.git'
             }
         }
-        stage('Test') {
+        stage('Clone SAL') {
             steps {
-                echo 'Testing..'
+                git credentialsId: 'Jenkins_priv_ssh', url: 'git@github.com:stordis/sal.git'
             }
         }
-        stage('Deploy') {
+        
+        stage('Build SAL') {
             steps {
-                echo 'Deploying....'
+                echo 'Building SAL.'
             }
         }
+        
+        stage('Test SAL') {
+            steps {
+                echo 'Testing SAL.'
+            }
+        }
+        
     }
+   
 }

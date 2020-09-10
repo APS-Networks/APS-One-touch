@@ -10,3 +10,7 @@ autom4te.cache/
 .pydevproject
 release
 bf-sde*
+test/BF2556X-1T_BSP_9.0.0-master
+test/*.log
+test/sal_logs
+test/zlog-cfg-cur

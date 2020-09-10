@@ -6,13 +6,13 @@ import zipfile
 import glob
 
 import constants
-from common import create_symlinks, execute_cmd, get_env_var, \
-    get_from_setting_dict,  \
+from common import create_symlinks, execute_cmd_n_get_output, get_env_var, \
+    get_from_setting_dict, \
     get_sde_dir_name_in_tar, get_sde_home_absolute, get_sde_pkg_abs_path, \
     get_sde_profile_details, get_sde_profile_name, get_selected_profile_name, \
     set_env_var, validate_path_existence, \
-     get_bsp_pkg_abs_path, append_to_env_var,\
-    dname, get_switch_model_from_settings
+    get_bsp_pkg_abs_path, append_to_env_var, \
+    dname, get_switch_model_from_settings, execute_cmd
 from drivers import load_and_verify_kernel_modules
 
 
@@ -65,9 +65,11 @@ def build_sde():
                 sde_install_cmd += ' ' + flag
     else:
         print('No build flag will be used for BF_SDE build.')
-    os.environ[constants.path_env_var_name] += os.pathsep + sde_home_absolute+'/install/bin/'
+    os.environ[
+        constants.path_env_var_name] += os.pathsep + sde_home_absolute + '/install/bin/'
     print('Building sde with command {}'.format(sde_install_cmd))
     os.system(sde_install_cmd)
+    return True
 
 
 def start_bf_switchd():
@@ -96,7 +98,8 @@ def start_bf_switchd():
                             "0}/pkgsrc/p4-examples/tofino/tofino_skip_p4.conf" \
                             ".in --skip-p4".format(get_env_var('SDE'))
         if profile_name == constants.sde_hw_profile_name:
-            start_switchd_cmd = "sudo -E {0}/run_switchd.sh -c {0}/pkgsrc/p4-examples/tofino/tofino_skip_p4.conf.in --skip-p4".format(
+            start_switchd_cmd = "sudo -E {0}/run_switchd.sh -c {" \
+                                "0}/pkgsrc/p4-examples/tofino/tofino_skip_p4.conf.in --skip-p4".format(
                 get_env_var('SDE'))
     else:
         print("Starting switchd with P4 prog:{}".format(p4_prog_name))
@@ -113,7 +116,7 @@ def start_bf_switchd():
 
 
 def alloc_dma():
-    output = execute_cmd('cat /etc/sysctl.conf')
+    output = execute_cmd_n_get_output('cat /etc/sysctl.conf')
     if 'vm.nr_hugepages = 128' not in output:
         print('Setting up huge pages...')
         dma_alloc_cmd = 'sudo /{}/pkgsrc/ptf-modules/ptf-utils/dma_setup.sh'.format(
@@ -165,7 +168,8 @@ def load_bf_sde_profile():
 
 
 def prepare_sde_release():
-    # TODO prepare precompiled binaries from SDE, to avoid the need for building SDE.
+    # TODO prepare precompiled binaries from SDE, to avoid the need for
+    #  building SDE.
     pass
 
 
@@ -176,7 +180,8 @@ def set_sde_env():
         set_env_var(constants.sde_env_var_name, sde_home_absolute)
         set_env_var(constants.sde_install_env_var_name,
                     get_env_var(constants.sde_env_var_name) + '/install/')
-        append_to_env_var(constants.path_env_var_name,get_env_var(constants.sde_install_env_var_name)+'/bin/')
+        append_to_env_var(constants.path_env_var_name, get_env_var(
+            constants.sde_install_env_var_name) + '/bin/')
         print(
             'Environment variables set: \n SDE: {0} \n SDE_INSTALL: {1} \n PATH: {2}'.format(
                 get_env_var(constants.sde_env_var_name),
@@ -225,17 +230,18 @@ def install_switch_bsp():
     os.system("chmod +x ./autogen.sh")
     os.system("chmod +x ./configure")
     if get_switch_model_from_settings() == constants.bf2556x_1t:
-        os.system(
+        execute_cmd(
             "CFLAGS=-Wno-error ./configure --prefix={} --enable-thrift --with-tof-brgup-plat".format(
                 os.environ['BSP_INSTALL']))
     else:
-        os.system(
+        execute_cmd(
             "CFLAGS=-Wno-error ./configure --prefix={} --enable-thrift".format(
                 os.environ['BSP_INSTALL']))
     os.system("make")
     os.system("sudo make install")
     shutil.rmtree(os.environ['BSP'])
     os.chdir(dname)
+    return True
 
 
 def just_load_sde():

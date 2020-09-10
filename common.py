@@ -16,6 +16,7 @@ abspath = os.path.abspath(__file__)
 # Absolute directory name containing this file
 dname = os.path.dirname(abspath)
 
+
 def read_settings():
     with open("{}/settings.yaml".format(dname), 'r') as stream:
         try:
@@ -24,6 +25,7 @@ def read_settings():
             print(exc)
             print("Error occured while reading settings.yaml")
             return None
+
 
 settings_dict = read_settings()
 
@@ -122,19 +124,32 @@ def set_env_var(var_name, var_val):
     return False
 
 
-def execute_cmd(cmd):
+def execute_cmd_n_get_output(cmd):
+    """
+    Returns console output of the command
+    """
+    print('Executing sys cmd : {}'.format(cmd))
+
     cmd_output = subprocess.run(cmd.split(' '), stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT)
     return cmd_output.stdout.decode('UTF-8')
 
 
-def install_deps():
-    print("Installing dependencies...")
-    # os.system("sudo apt install python python3 patch")
+def execute_cmd(cmd):
+    """
+    Returns console output of the command
+    """
+    print('Executing cmd : {}'.format(cmd))
+    os.system(cmd)
+
+
+#     output = subprocess.check_output(cmd, shell=True).decode('UTF-8')
+#     print(output)
+#     return output
 
 
 def create_symlinks():
-    ##currently following symlinks are necessary only in case of ONL.
+    # #currently following symlinks are necessary only in case of ONL.
     if is_onl():
         src = '/usr/share/onl/packages/amd64/onl-kernel-{}-lts-x86-64-all/mbuilds/'.format(
             get_kernel_major_version())
@@ -153,10 +168,11 @@ def create_symlinks():
             os.unlink(irq_symlink)
         print('Creating symlink {}'.format(irq_symlink))
         os.symlink(src, irq_symlink)
+    return True
 
 
 def get_from_setting_dict(*keys):
-    ## keys to be in lexographic order
+    # keys to be in lexographic order
     val = settings_dict.copy()
     for key in keys:
         val = val.get(key)
