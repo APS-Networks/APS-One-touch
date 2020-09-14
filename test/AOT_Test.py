@@ -40,7 +40,7 @@ class AOTTests(unittest.TestCase):
         return not bool(result)
 
     def killProcess(self, processName):
-        os.system("sudo killall -9 {}".format(processName));
+        os.system("sudo killall -9 {}".format(processName))
 
     def test_SAL_Run(self):
         self.assertTrue(sal.execute_user_action('c'))
