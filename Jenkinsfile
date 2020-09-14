@@ -1,29 +1,27 @@
 pipeline {
     agent { label 'BF2556' }
     stages {
+
         stage('Clone AOT') {
             steps {
-                git credentialsId: 'Jenkins_priv_ssh', url: 'https://github.com/stordis/APS-One-touch.git'
+                dir('AOT'){
+                    git credentialsId: 'Jenkins_priv_ssh', url: 'https://github.com/stordis/APS-One-touch.git'
+                }
             }
         }
+
         stage('Clone SAL') {
             steps {
-                git credentialsId: 'Jenkins_priv_ssh', url: 'git@github.com:stordis/sal.git'
+                dir('sal'){
+                    git branch: 'SAL_Light', credentialsId: 'BF2556_ssh_key', url: "${sal_src}"
+                }
             }
         }
-        
-        stage('Build SAL') {
-            steps {
-                echo 'Building SAL.'
+
+        stage('Test AOT'){
+            steps{
+                sh 'PYTHONPATH=$PYTHONPATH:AOT python3 AOT/test/AOT_Test.py'
             }
         }
-        
-        stage('Test SAL') {
-            steps {
-                echo 'Testing SAL.'
-            }
-        }
-        
     }
-   
 }
