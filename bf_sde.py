@@ -103,7 +103,7 @@ def start_bf_switchd():
                 get_env_var('SDE'))
     else:
         print("Starting switchd with P4 prog:{}".format(p4_prog_name))
-        start_switchd_cmd = 'sudo -E {0} /run_switchd.sh -p {1}'.format(
+        start_switchd_cmd = 'sudo -E {0}/run_switchd.sh -p {1}'.format(
             get_env_var('SDE'),
             p4_prog_name.replace(".p4", ""))
     username = getpass.getuser()
