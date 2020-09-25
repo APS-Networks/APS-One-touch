@@ -7,13 +7,15 @@ import common
 import constants
 from common import execute_cmd_n_get_output, get_env_var, dname, \
     create_symlinks, \
-    is_ubuntu, get_switch_model_from_settings
+    is_ubuntu, get_switch_model_from_settings, get_sde_profile_details
 
 installation_files = {
     "irq_debug_tgz": "./irq_debug.tgz",
     "mv_pipe_config_zip": "./mv_pipe_config.zip"
 }
 
+def get_sde_modules():
+    return get_sde_profile_details().get(constants.sde_modules_node)
 
 def load_and_verify_kernel_modules():
     output = execute_cmd_n_get_output('lsmod')
@@ -23,8 +25,30 @@ def load_and_verify_kernel_modules():
     os.system("sudo modprobe -q i2c-i801")
     os.system("sudo modprobe -q i2c-dev")
 
-    if 'bf_kdrv' not in output:
-        load_bf_kdrv()
+    sde_module_names = get_sde_modules()
+    if sde_module_names is not None:
+        for module_name in sde_module_names:
+            if module_name == 'bf_kdrv':
+                if module_name not in output:
+                    load_bf_kdrv()
+                else:
+                    print('Module {} already loaded'.format(module_name))
+            elif module_name == 'bf_knet':
+                if module_name not in output:
+                    load_bf_knet()
+                else:
+                    print('Module {} already loaded'.format(module_name))
+            elif module_name == 'bf_kpkt':
+                if module_name not in output:
+                    load_bf_kpkt()
+                else:
+                    print('Module {} already loaded'.format(module_name))
+            else:
+                print('Invalid module to load - {}.'.format(module_name))
+                exit(0)
+    else:
+        print('Select at-least one SDE driver to load in settings.xml')
+        exit(0)
 
     output = execute_cmd_n_get_output('lsmod')
 
@@ -132,4 +156,20 @@ def load_bf_kdrv():
     print("Using SDE {} for loading bf_kdrv.".format(get_env_var('SDE')))
     os.system(
         "sudo {0}/bin/bf_kdrv_mod_load {0}".format(
+            get_env_var('SDE_INSTALL')))
+
+
+def load_bf_knet():
+    print("Loading bf_knet....")
+    print("Using SDE {} for loading bf_knet.".format(get_env_var('SDE')))
+    os.system(
+        "sudo {0}/bin/bf_knet_mod_load {0}".format(
+            get_env_var('SDE_INSTALL')))
+
+
+def load_bf_kpkt():
+    print("Loading bf_kpkt....")
+    print("Using SDE {} for loading bf_kpkt.".format(get_env_var('SDE')))
+    os.system(
+        "sudo {0}/bin/bf_kpkt_mod_load {0}".format(
             get_env_var('SDE_INSTALL')))

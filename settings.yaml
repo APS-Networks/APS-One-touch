@@ -20,6 +20,10 @@ BF SDE: &bf_sde
   sde_version: 9.1.0 #Required for stratum to run
   p4studio_build_profile: stratum_profile #Leave it blank to enter detailed interactive P4 Studio build shell, Value is overriden to stratum_profile in case stratum_hw_profile or stratum_sim_profile is selected
   p4_name: #Leave it blank to start SDE without a P4 program or p4 program name which is already built in SDE.
+  modules: #Following barefoot SDE modules will be loaded before starting SDE.
+    - bf_kdrv
+    #- bf_knet
+    #- bf_kpkt
   build_flags: #Optional list of P4Studio build flags. 
                #Provide more flags with '-' in the beginning, its for yaml syntax. 
                #and than flag e.g. '-rb'
