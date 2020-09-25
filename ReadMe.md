@@ -1,4 +1,4 @@
-# APS One Touch
+# APS One Touch (AOT)
 
 One touch is a tool to install all required software and tools for setting up STORDIS Advances Programmable Switches (APS) series.
 This tools configures BF2556X_1T and BF6064X_T with BF_SDE, BSP, SAL(Switch Abstraction Layer) and Stratum
@@ -9,11 +9,16 @@ Default input while execution i.e. when user just presses enter without any inpu
 ## settings.yaml
 
 This is an input file for the tool so as to minimize user inputs. settings.yaml should be the first file to be modified while preparing APS.
-At minimum set following node values in settings.yaml if different than default :
-'SWITCH Model'
-'BF SDE'
-'BSP'
-'BUILD_PROFILES' -> selected
+
+By default settings.yaml is read from project directory, But user can also give absolute path to other setting file as a CLI argument while executing python scripts. 
+Just that every other settings file should have format same as settings.yaml in project path.
+This way user can save different settings in different files with relevant names and need not to modify same file while launching AOT with different settings.
+
+At minimum user should check for following node values in settings.yaml if different than default:
+- 'SWITCH Model'
+- 'BF SDE'
+- 'BSP'
+- 'BUILD_PROFILES' -> selected
 For other node details see Profiles section below.
 
 All package paths are calculated relative to user_home or relative to `PATH_PREFIX` if provided.
@@ -44,10 +49,10 @@ Configure correct path for selected and dependency profile packages.
   - sudo apt-get install libusb-1.0-0-dev (required for BSP compilation)
   - apt-get install libcurl4-openssl-dev (required for BSP compilation)
 - Start installation :
-  - python3 InstallAPS.py
+  - python3 InstallAPS.py <optional - abs path to settings file>
 - Also, if dependencies for a specific profile are already installed you can directly run the
  respective installation script for that profile.
- e.g. You can directly trigger SAL installation by executing 'python3 sal.py', in case dependencies SDE and BSP are already installed, This save user from giving inputs for dependencies.
+ e.g. You can directly trigger SAL installation by executing 'python3 sal.py <optional - abs path to settings file>', in case dependencies SDE and BSP are already installed, This save user from giving inputs for dependencies.
 
 
 ## Recommendations

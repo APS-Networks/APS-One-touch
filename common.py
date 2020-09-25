@@ -1,5 +1,6 @@
 import os
 import platform
+import sys
 import tarfile
 import zipfile
 from pathlib import Path
@@ -18,13 +19,27 @@ dname = os.path.dirname(abspath)
 
 
 def read_settings():
-    with open("{}/settings.yaml".format(dname), 'r') as stream:
-        try:
-            return yaml.safe_load(stream)
-        except yaml.YAMLError as exc:
-            print(exc)
-            print("Error occured while reading settings.yaml")
-            return None
+    settings_file = None
+    try:
+        # Custom path for settings file can be given as CLI arg.
+        settings_file = sys.argv[1]
+    except IndexError:
+        # If no settings file provided as CLI arg default one from the
+        # project path will be picked.
+        settings_file = "{}/settings.yaml".format(dname)
+
+    if settings_file is None:
+        print('Invalid settings file for AOT {}'.format(settings_file))
+        exit(0)
+    else:
+        print('Reading settings from file {}'.format(settings_file))
+        with open(settings_file, 'r') as stream:
+            try:
+                return yaml.safe_load(stream)
+            except yaml.YAMLError as exc:
+                print(exc)
+                print("Error occurred while reading settings file {}".format(settings_file))
+                exit(0)
 
 
 settings_dict = read_settings()
