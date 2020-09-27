@@ -8,6 +8,8 @@ import constants
 from common import execute_cmd_n_get_output, get_env_var, dname, \
     create_symlinks, \
     is_ubuntu, get_switch_model_from_settings, get_sde_profile_details
+from constants import sde_module_bf_kdrv_string_value, \
+     sde_module_bf_kpkt_string_value
 
 installation_files = {
     "irq_debug_tgz": "./irq_debug.tgz",
@@ -19,7 +21,7 @@ def get_sde_modules():
 
 def load_and_verify_kernel_modules():
     output = execute_cmd_n_get_output('lsmod')
-    bf_kdrv = True
+    bf_mod = True
     i2c_i801 = True
 
     os.system("sudo modprobe -q i2c-i801")
@@ -28,17 +30,12 @@ def load_and_verify_kernel_modules():
     sde_module_names = get_sde_modules()
     if sde_module_names is not None:
         for module_name in sde_module_names:
-            if module_name == 'bf_kdrv':
+            if module_name == sde_module_bf_kdrv_string_value:
                 if module_name not in output:
                     load_bf_kdrv()
                 else:
                     print('Module {} already loaded'.format(module_name))
-            elif module_name == 'bf_knet':
-                if module_name not in output:
-                    load_bf_knet()
-                else:
-                    print('Module {} already loaded'.format(module_name))
-            elif module_name == 'bf_kpkt':
+            elif module_name == sde_module_bf_kpkt_string_value:
                 if module_name not in output:
                     load_bf_kpkt()
                 else:
@@ -47,25 +44,29 @@ def load_and_verify_kernel_modules():
                 print('Invalid module to load - {}.'.format(module_name))
                 exit(0)
     else:
-        print('Select at-least one SDE driver to load in settings.xml')
+        print('Select at-least one SDE module to load in settings.xml')
         exit(0)
 
     output = execute_cmd_n_get_output('lsmod')
 
     if 'i2c_i801' not in output and is_ubuntu():
-        # Ubuntu check is there because i2c_i801 appears only in output of lsmod in Ubuntu
+        # Ubuntu check is there because i2c_i801 appears only in output of
+        # lsmod in Ubuntu
         i2c_i801 = False
         print('ERROR:i2c_i801 is not loaded.')
 
-    if 'bf_kdrv' not in output:
-        bf_kdrv = False
-        print("ERROR:bf_kdrv is not loaded.")
+    if not any(mod in output for mod in [sde_module_bf_kdrv_string_value,
+                                         sde_module_bf_kpkt_string_value]):
+        bf_mod = False
+        print("ERROR: Neither of {0}/{1} module loaded.".
+              format(sde_module_bf_kdrv_string_value,
+                     sde_module_bf_kpkt_string_value))
 
     # Load switch specific kernel modules
     if get_switch_model_from_settings() == constants.bf2556x_1t:
-        return bf_kdrv and i2c_i801 and load_and_verify_kernel_modules_bf2556()
+        return bf_mod and i2c_i801 and load_and_verify_kernel_modules_bf2556()
     else:
-        return bf_kdrv and i2c_i801 and load_and_verify_kernel_modules_bf6064()
+        return bf_mod and i2c_i801 and load_and_verify_kernel_modules_bf6064()
 
 
 def load_and_verify_kernel_modules_bf6064():
@@ -156,14 +157,6 @@ def load_bf_kdrv():
     print("Using SDE {} for loading bf_kdrv.".format(get_env_var('SDE')))
     os.system(
         "sudo {0}/bin/bf_kdrv_mod_load {0}".format(
-            get_env_var('SDE_INSTALL')))
-
-
-def load_bf_knet():
-    print("Loading bf_knet....")
-    print("Using SDE {} for loading bf_knet.".format(get_env_var('SDE')))
-    os.system(
-        "sudo {0}/bin/bf_knet_mod_load {0}".format(
             get_env_var('SDE_INSTALL')))
 
 

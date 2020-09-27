@@ -22,7 +22,6 @@ BF SDE: &bf_sde
   p4_name: #Leave it blank to start SDE without a P4 program or p4 program name which is already built in SDE.
   modules: #Following barefoot SDE modules will be loaded before starting SDE.
     - bf_kdrv
-    #- bf_knet
     #- bf_kpkt
   build_flags: #Optional list of P4Studio build flags. 
                #Provide more flags with '-' in the beginning, its for yaml syntax. 

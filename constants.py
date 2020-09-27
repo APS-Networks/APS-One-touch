@@ -49,3 +49,6 @@ sde_hw_profile_node='sde_hw'
 sde_build_flags_node='build_flags'
 sde_version_node='sde_version'
 sde_modules_node='modules'
+#Node value strings
+sde_module_bf_kdrv_string_value='bf_kdrv'
+sde_module_bf_kpkt_string_value='bf_kpkt'
