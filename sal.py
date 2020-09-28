@@ -38,14 +38,15 @@ def set_sal_env():
     #                   get_sal_home_absolute() + '/install/')
     if get_from_setting_dict(constants.sal_sw_attr_node,
                              constants.build_third_party_node):
-        if get_from_setting_dict(constants.sde_details_node,
+        if get_from_setting_dict(constants.sal_sw_attr_node,
                                  constants.tp_install_node_name) is None:
             rc &= set_env_var(constants.tp_install_env_var_name,
                               get_sal_home_absolute() + '/install/')
         else:
             rc &= set_env_var(constants.tp_install_env_var_name,
-                              get_from_setting_dict(constants.sde_details_node,
-                                                    get_tp_install_path_absolute()))
+                                        get_tp_install_path_absolute())
+        print('TP_INSTALL set to {}'.format(
+            get_env_var(constants.tp_install_env_var_name)))
     else:
         rc &= set_env_var(constants.tp_install_env_var_name,
                           get_env_var(constants.sde_install_env_var_name))
@@ -88,7 +89,7 @@ def get_sal_home_absolute():
 
 
 def get_tp_install_path_absolute():
-    return get_path_relative_to_user_home(get_from_setting_dict(constants.sde_details_node,
+    return get_path_relative_to_user_home(get_from_setting_dict(constants.sal_sw_attr_node,
                                                     constants.tp_install_node_name))
 
 def get_sal_home_from_config():
