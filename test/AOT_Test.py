@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import sys
 import unittest
 
 import HtmlTestRunner
@@ -93,4 +94,5 @@ class AOTTests(unittest.TestCase):
 
 
 if __name__ == '__main__':
+    del sys.argv[1:]
     unittest.main(testRunner=HtmlTestRunner.HTMLTestRunner(output='report'))
