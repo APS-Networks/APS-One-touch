@@ -3,7 +3,7 @@ pipeline {
     stages {
         stage('Clone AOT') {
             steps {
-               git credentialsId: 'Jenkins_priv_ssh', url: 'https://github.com/stordis/APS-One-touch.git'
+               git branch: 'CI_Test' credentialsId: 'Jenkins_priv_ssh', url: 'https://github.com/stordis/APS-One-touch.git'
             }
         }
         stage('Clone SAL') {
