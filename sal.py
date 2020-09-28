@@ -34,13 +34,13 @@ def set_sal_env():
                       get_gb_src_home_absolute())
     rc &= set_env_var(constants.gb_lib_home_env_var_name,
                       get_gb_lib_home_absolute())
-    rc &= set_env_var(constants.sal_install_env_var_name,
-                      get_sal_home_absolute() + '/install/')
+    # rc &= set_env_var(constants.sal_install_env_var_name,
+    #                   get_sal_home_absolute() + '/install/')
     if get_from_setting_dict(constants.sal_sw_attr_node,
                              constants.build_third_party_node):
         if get_from_setting_dict(constants.sde_details_node,constants.tp_install_node_name) is None:
             rc &= set_env_var(constants.tp_install_env_var_name,
-                              get_env_var(constants.sal_install_env_var_name))
+                              get_sal_home_absolute() + '/install/')
         else:
             rc &= set_env_var(constants.tp_install_env_var_name,
                               get_from_setting_dict(constants.sde_details_node,
