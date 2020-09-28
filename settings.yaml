@@ -37,6 +37,7 @@ SAL: &sal
   # true - Protobuf, gRPC and PI will be built independently by AOT under $SAL_INSTALL.
   sal_home: /sal # SAL Source directory, Param is useful for development usage only
   enable_grpc: true #Enables sal's grpc interface, Works only when SDE is built with p4runtime profile and selected APS profile is not stratum_xyz
+  tp_install: #Path where third party SWs are installed default is SAL_HOME/install
   enable_tofino: true #Enables Tofino control in SAL, Set it false if external application wants to take over Tofino control,
   #And in case of stratum_xyz profile selected for stratum APS value is overridden to false automatically
 

@@ -38,8 +38,13 @@ def set_sal_env():
                       get_sal_home_absolute() + '/install/')
     if get_from_setting_dict(constants.sal_sw_attr_node,
                              constants.build_third_party_node):
-        rc &= set_env_var(constants.tp_install_env_var_name,
-                          get_env_var(constants.sal_install_env_var_name))
+        if get_from_setting_dict(constants.sde_details_node,constants.tp_install_node_name) is None:
+            rc &= set_env_var(constants.tp_install_env_var_name,
+                              get_env_var(constants.sal_install_env_var_name))
+        else:
+            rc &= set_env_var(constants.tp_install_env_var_name,
+                              get_from_setting_dict(constants.sde_details_node,
+                                                    constants.tp_install_node_name))
     else:
         rc &= set_env_var(constants.tp_install_env_var_name,
                           get_env_var(constants.sde_install_env_var_name))

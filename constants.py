@@ -1,7 +1,7 @@
-#Switch Types
-bf2556x_1t= 'BF2556X_1T'
-bf6064x_t='BF6064X_T'
-#APS profile names
+# Switch Types
+bf2556x_1t = 'BF2556X_1T'
+bf6064x_t = 'BF6064X_T'
+# APS profile names
 sal_hw_profile_name = 'sal_hw_profile'
 sal_sim_profile_name = 'sal_sim_profile'
 sde_hw_profile_name = 'sde_hw_profile'
@@ -11,7 +11,7 @@ stratum_sim_profile_name = 'stratum_sim_profile'
 stratum_hw_profile = 'stratum_hw'
 stratum_sim_profile = 'stratum_sim'
 
-#Env var names
+# Env var names
 sal_home_env_var_name = 'SAL_HOME'
 sal_install_env_var_name = 'SAL_INSTALL'
 tp_install_env_var_name = 'TP_INSTALL'
@@ -26,29 +26,31 @@ pi_install_env_var_name = 'PI_INSTALL'
 bf_sde_install_env_var_name = 'BF_SDE_INSTALL'
 stratum_home_env_var_name = 'STRATUM_HOME'
 stratum_config_env_var_name = 'STRATUM_CONFIG'
-path_env_var_name='PATH'
+path_env_var_name = 'PATH'
 
 ##Yaml settings nodes
-switch_model_node='SWITCH Model'
-build_profiles_node='BUILD_PROFILES'
-sal_home_node='sal_home'
-sal_sw_attr_node= 'SAL'
-name_node='name'
-selected_node='selected'
-path_prefix_node='PATH_PREFIX'
-#SAL related nodes
-sal_sim_profile_node= 'sal_sim'
-sal_hw_profile_node='sal_hw'
-details_node='details'
-enable_grpc_node='enable_grpc'
-enable_tofino_node='enable_tofino'
-build_third_party_node='build_third_party'
-#SDE related nodes
-sde_sim_profile_node='sde_sim'
-sde_hw_profile_node='sde_hw'
-sde_build_flags_node='build_flags'
-sde_version_node='sde_version'
-sde_modules_node='modules'
-#Node value strings
-sde_module_bf_kdrv_string_value='bf_kdrv'
-sde_module_bf_kpkt_string_value='bf_kpkt'
+switch_model_node = 'SWITCH Model'
+build_profiles_node = 'BUILD_PROFILES'
+sal_home_node = 'sal_home'
+sal_sw_attr_node = 'SAL'
+name_node = 'name'
+selected_node = 'selected'
+path_prefix_node = 'PATH_PREFIX'
+# SAL related nodes
+sal_sim_profile_node = 'sal_sim'
+sal_hw_profile_node = 'sal_hw'
+details_node = 'details'
+enable_grpc_node = 'enable_grpc'
+enable_tofino_node = 'enable_tofino'
+build_third_party_node = 'build_third_party'
+tp_install_node_name = 'tp_install'
+# SDE related nodes
+sde_sim_profile_node = 'sde_sim'
+sde_hw_profile_node = 'sde_hw'
+sde_build_flags_node = 'build_flags'
+sde_version_node = 'sde_version'
+sde_modules_node = 'modules'
+sde_details_node = 'BF SDE'
+# Node value strings
+sde_module_bf_kdrv_string_value = 'bf_kdrv'
+sde_module_bf_kpkt_string_value = 'bf_kpkt'
