@@ -8,12 +8,14 @@ pipeline {
         }
         stage('Clone SAL') {
             steps {
-               git branch: 'SAL_Light', credentialsId: 'BF2556_ssh_key', url: "${sal_src}"
+                dir('sal'){
+                    git branch: 'SAL_Light', credentialsId: 'BF2556_ssh_key', url: "${sal_src}"
+                }
             }
         }
         stage('Test AOT'){
             steps{
-                sh 'PYTHONPATH=$PYTHONPATH:AOT python3 AOT/test/AOT_Test.py ~/jenkins_ci/settings.yaml'
+                sh 'PYTHONPATH=$PYTHONPATH:AOT python3 test/AOT_Test.py ~/jenkins_ci/settings.yaml'
             }
         }
     }
