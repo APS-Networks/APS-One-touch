@@ -13,6 +13,7 @@ pipeline {
                 }
             }
         }
+
         stage('Test AOT'){
             steps{
                 sh 'PYTHONPATH=$PYTHONPATH:AOT python3 test/AOT_Test.py ~/jenkins_ci/settings.yaml'
