@@ -38,13 +38,14 @@ def set_sal_env():
     #                   get_sal_home_absolute() + '/install/')
     if get_from_setting_dict(constants.sal_sw_attr_node,
                              constants.build_third_party_node):
-        if get_from_setting_dict(constants.sde_details_node,constants.tp_install_node_name) is None:
+        if get_from_setting_dict(constants.sde_details_node,
+                                 constants.tp_install_node_name) is None:
             rc &= set_env_var(constants.tp_install_env_var_name,
                               get_sal_home_absolute() + '/install/')
         else:
             rc &= set_env_var(constants.tp_install_env_var_name,
                               get_from_setting_dict(constants.sde_details_node,
-                                                    constants.tp_install_node_name))
+                                                    get_tp_install_path_absolute()))
     else:
         rc &= set_env_var(constants.tp_install_env_var_name,
                           get_env_var(constants.sde_install_env_var_name))
@@ -85,6 +86,10 @@ def set_sal_runtime_env():
 def get_sal_home_absolute():
     return get_path_relative_to_user_home(get_sal_home_from_config())
 
+
+def get_tp_install_path_absolute():
+    return get_path_relative_to_user_home(get_from_setting_dict(constants.sde_details_node,
+                                                    constants.tp_install_node_name))
 
 def get_sal_home_from_config():
     return common.settings_dict. \
@@ -158,16 +163,16 @@ def prepare_sal_release():
     if get_from_setting_dict(constants.sal_sw_attr_node,
                              constants.build_third_party_node):
         shutil.copytree(
-            get_env_var(constants.sal_home_env_var_name) + '/install/lib',
+            get_env_var(constants.tp_install_env_var_name) + '/lib',
             sal_rel_dir + '/install/lib')
         shutil.copytree(
-            get_env_var(constants.sal_home_env_var_name) + '/install/include',
+            get_env_var(constants.tp_install_env_var_name) + '/include',
             sal_rel_dir + '/install/include')
         shutil.copytree(
-            get_env_var(constants.sal_home_env_var_name) + '/install/bin',
+            get_env_var(constants.tp_install_env_var_name) + '/bin',
             sal_rel_dir + '/install/bin')
         shutil.copytree(
-            get_env_var(constants.sal_home_env_var_name) + '/install/share',
+            get_env_var(constants.tp_install_env_var_name) + '/share',
             sal_rel_dir + '/install/share')
 
     os.mkdir(sal_rel_dir + '/test')
