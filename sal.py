@@ -207,7 +207,13 @@ def prepare_sal_release():
         constants.sal_home_env_var_name) + '/sal_services_pb2_grpc.py',
                     sal_rel_dir + '/sal_services.pb.h')
 
-    print('SAL release is available at {}'.format(sal_rel_dir))
+    os.system('git --git-dir {0}/.git log -1 > {0}/git_hash.txt'.format(get_env_var(constants.sal_home_env_var_name)))
+    shutil.copyfile(get_env_var(
+        constants.sal_home_env_var_name) + '/git_hash.txt',
+                    sal_rel_dir + '/git_hash.txt')
+
+    shutil.make_archive(common.release_dir + '/sal', 'zip', sal_rel_dir)
+    print('SAL release is available at {}'.format(common.release_dir))
     return True
 
 
