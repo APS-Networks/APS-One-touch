@@ -1,6 +1,7 @@
 import logging
 import os
 import shutil
+import subprocess
 
 import common
 import constants
@@ -211,14 +212,21 @@ def prepare_sal_release():
 
     #Simple release notes, Contains commit messages since last release.
     rel_notes_file = 'ReleaseNotes.txt'
+    rel_tag = subprocess.check_output('git --git-dir {0}/.git tag | sort -V | tail -1'.
+                            format(get_env_var(constants.sal_home_env_var_name)),
+                                      shell=True).decode('UTF-8').strip()
     os.system(
-        'git --git-dir {0}/.git log --pretty=format:%s `git tag | sort -V | tail -1`..HEAD > {0}/{1}'.
-        format(get_env_var(constants.sal_home_env_var_name), rel_notes_file))
+        'git --git-dir {0}/.git log --pretty=format:%s {2}..HEAD > {0}/{1}'.
+        format(get_env_var(constants.sal_home_env_var_name), rel_notes_file, rel_tag))
+
     shutil.copyfile(get_env_var(
         constants.sal_home_env_var_name) + '/' + rel_notes_file,
                     sal_rel_dir + '/' + rel_notes_file)
 
-    shutil.make_archive(common.release_dir + '/sal', 'zip', sal_rel_dir)
+    #Add release tag to SAL package with latest release tag created in repository.
+    shutil.make_archive(common.release_dir + '/sal_{}'.
+                        format(rel_tag), 'zip', sal_rel_dir)
+
     print('SAL release is available at {}'.format(common.release_dir))
     return True
 
