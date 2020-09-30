@@ -44,7 +44,7 @@ def set_sal_env():
                               get_sal_home_absolute() + '/install/')
         else:
             rc &= set_env_var(constants.tp_install_env_var_name,
-                                        get_tp_install_path_absolute())
+                              get_tp_install_path_absolute())
         print('TP_INSTALL set to {}'.format(
             get_env_var(constants.tp_install_env_var_name)))
     else:
@@ -89,8 +89,10 @@ def get_sal_home_absolute():
 
 
 def get_tp_install_path_absolute():
-    return get_path_relative_to_user_home(get_from_setting_dict(constants.sal_sw_attr_node,
-                                                    constants.tp_install_node_name))
+    return get_path_relative_to_user_home(
+        get_from_setting_dict(constants.sal_sw_attr_node,
+                              constants.tp_install_node_name))
+
 
 def get_sal_home_from_config():
     return common.settings_dict. \
@@ -207,10 +209,14 @@ def prepare_sal_release():
         constants.sal_home_env_var_name) + '/sal_services_pb2_grpc.py',
                     sal_rel_dir + '/sal_services.pb.h')
 
-    os.system('git --git-dir {0}/.git log -1 > {0}/git_hash.txt'.format(get_env_var(constants.sal_home_env_var_name)))
+    #Simple release notes, Contains commit messages since last release.
+    rel_notes_file = 'ReleaseNotes.txt'
+    os.system(
+        'git --git-dir {0}/.git log --pretty=format:%s `git tag | sort -V | tail -1`..HEAD > {0}/{1}'.
+        format(get_env_var(constants.sal_home_env_var_name), rel_notes_file))
     shutil.copyfile(get_env_var(
-        constants.sal_home_env_var_name) + '/git_hash.txt',
-                    sal_rel_dir + '/git_hash.txt')
+        constants.sal_home_env_var_name) + '/' + rel_notes_file,
+                    sal_rel_dir + '/' + rel_notes_file)
 
     shutil.make_archive(common.release_dir + '/sal', 'zip', sal_rel_dir)
     print('SAL release is available at {}'.format(common.release_dir))
@@ -249,6 +255,7 @@ def run_sal():
     print('Running SAL with command: {}'.format(sal_run_cmd))
     execute_cmd(sal_run_cmd)
     return True
+
 
 # Currently SAL has to be tested from within SAL package package
 # def test_sal():
@@ -422,7 +429,7 @@ def execute_user_action(sal_input):
         elif action_char == 't':
             print('Running SAL tests from AOT are currently not supported, '
                   'Should run from within SAL package only')
-            #rc &= test_sal()
+            # rc &= test_sal()
         elif action_char == 'b':
             rc &= set_sal_env()
             rc &= build_sal()
