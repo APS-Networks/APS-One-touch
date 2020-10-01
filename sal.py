@@ -223,13 +223,13 @@ def prepare_sal_pkg():
         'git --git-dir {0}/.git describe --tags'.
         format(get_env_var(constants.sal_home_env_var_name))).strip()
 
-    #TODO Handle the case when there is no secondlast rel tag,
-    # Although this case will never happen in current repo.
+    # If only one tag exists then second last release tag refers to previous
+    # commit hash to latest release tag.
     release_tag_secondlast = execute_cmd_n_get_output_2(
         'git --git-dir {0}/.git '
         'describe --abbrev=0 '
         '--tags `git rev-list '
-        '--tags --skip=1 --max-count=1`'.
+        '--tags --skip=1 --max-count=1` --always'.
         format(get_env_var(constants.sal_home_env_var_name))).strip()
 
     hash_rel_tag_latest = execute_cmd_n_get_output_2(
