@@ -150,17 +150,13 @@ def execute_cmd_n_get_output(cmd):
     return cmd_output.stdout.decode('UTF-8')
 
 
+def execute_cmd_n_get_output_2(cmd):
+    return subprocess.check_output(cmd, shell=True).decode('UTF-8').strip()
+
+
 def execute_cmd(cmd):
-    """
-    Returns console output of the command
-    """
     print('Executing cmd : {}'.format(cmd))
     os.system(cmd)
-
-
-#     output = subprocess.check_output(cmd, shell=True).decode('UTF-8')
-#     print(output)
-#     return output
 
 
 def create_symlinks():

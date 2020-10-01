@@ -8,10 +8,10 @@ import constants
 from bf_sde import set_sde_env_n_load_drivers, load_bf_sde_profile
 from common import delete_files, get_env_var, get_gb_lib_home_absolute, \
     get_gb_src_home_absolute, get_path_relative_to_user_home, \
-    get_sde_home_absolute, get_selected_profile_dict, get_selected_profile_name,\
+    get_sde_home_absolute, get_selected_profile_dict, get_selected_profile_name, \
     set_env_var, \
     append_to_env_var, get_from_setting_dict, \
-    execute_cmd
+    execute_cmd, execute_cmd_n_get_output_2
 
 get_gb_src_home_absolute, get_path_relative_to_user_home, get_sde_home_absolute, get_selected_profile_dict,
 get_selected_profile_name, set_env_var
@@ -210,25 +210,63 @@ def prepare_sal_release():
         constants.sal_home_env_var_name) + '/sal_services_pb2_grpc.py',
                     sal_rel_dir + '/sal_services.pb.h')
 
-    #Simple release notes, Contains commit messages since last release.
-    rel_notes_file = 'ReleaseNotes.txt'
-    rel_tag = subprocess.check_output('git --git-dir {0}/.git tag | sort -V | tail -1'.
-                            format(get_env_var(constants.sal_home_env_var_name)),
-                                      shell=True).decode('UTF-8').strip()
-    os.system(
-        'git --git-dir {0}/.git log --pretty=format:%s {2}..HEAD > {0}/{1}'.
-        format(get_env_var(constants.sal_home_env_var_name), rel_notes_file, rel_tag))
+    prepare_sal_pkg()
 
+    return True
+
+
+def prepare_sal_pkg():
+    # TODO - Should clone the code first then prepare release (dev and main)
+    #  Build is prepared based on what is present on build machine currently.
+    rel_notes_file = 'ReleaseNotes.txt'
+    rel_tag_latest = execute_cmd_n_get_output_2(
+        'git --git-dir {0}/.git describe --tags'.
+        format(get_env_var(constants.sal_home_env_var_name))).strip()
+
+    #TODO Handle the case when there is no secondlast rel tag,
+    # Although this case will never happen in current repo.
+    release_tag_secondlast = execute_cmd_n_get_output_2(
+        'git --git-dir {0}/.git '
+        'describe --abbrev=0 '
+        '--tags `git rev-list '
+        '--tags --skip=1 --max-count=1`'.
+        format(get_env_var(constants.sal_home_env_var_name))).strip()
+
+    hash_rel_tag_latest = execute_cmd_n_get_output_2(
+        'git --git-dir {0}/.git rev-list -n 1 {1}'.
+            format(get_env_var(constants.sal_home_env_var_name),
+        rel_tag_latest))
+
+    hash_latest = execute_cmd_n_get_output_2(
+        'git --git-dir {0}/.git rev-parse HEAD'.
+            format(get_env_var(constants.sal_home_env_var_name)))
+
+    arch_name=None
+    start_hash_for_RN=None
+    end_hash_for_RN = None
+
+    if hash_latest == hash_rel_tag_latest:
+        print('Preparing main release {}'.format(rel_tag_latest))
+        print('Preparing release notes since release tag {}'.format(
+            release_tag_secondlast))
+        start_hash_for_RN = release_tag_secondlast
+        end_hash_for_RN = rel_tag_latest
+        arch_name = common.release_dir + '/sal_{}'.format(rel_tag_latest)
+    else:
+        print('Preparing development release.')
+        start_hash_for_RN = rel_tag_latest
+        end_hash_for_RN = hash_latest
+        arch_name = common.release_dir + '/sal_{}_{}'.format(rel_tag_latest,hash_latest)
+
+    os.system(
+        'git --git-dir {0}/.git log --pretty=format:%s {2}..{3} > {0}/{1}'.
+            format(get_env_var(constants.sal_home_env_var_name),
+                   rel_notes_file, start_hash_for_RN, end_hash_for_RN))
     shutil.copyfile(get_env_var(
         constants.sal_home_env_var_name) + '/' + rel_notes_file,
                     sal_rel_dir + '/' + rel_notes_file)
-
-    #Add release tag to SAL package with latest release tag created in repository.
-    shutil.make_archive(common.release_dir + '/sal_{}'.
-                        format(rel_tag), 'zip', sal_rel_dir)
-
+    shutil.make_archive(arch_name, 'zip', sal_rel_dir)
     print('SAL release is available at {}'.format(common.release_dir))
-    return True
 
 
 def clean_sal():
