@@ -220,7 +220,7 @@ def prepare_sal_pkg():
     #  Build is prepared based on what is present on build machine currently.
     rel_notes_file = 'ReleaseNotes.txt'
     rel_tag_latest = execute_cmd_n_get_output_2(
-        'git --git-dir {0}/.git describe --tags'.
+        'git --git-dir {0}/.git describe --abbrev=0 --tags'.
         format(get_env_var(constants.sal_home_env_var_name))).strip()
 
     # If only one tag exists then second last release tag refers to previous
@@ -256,7 +256,10 @@ def prepare_sal_pkg():
         print('Preparing development release.')
         start_hash_for_RN = rel_tag_latest
         end_hash_for_RN = hash_latest
-        arch_name = common.release_dir + '/sal_{}_{}'.format(rel_tag_latest,hash_latest)
+        suffix = execute_cmd_n_get_output_2(
+            'git --git-dir {0}/.git describe --tags'.
+                format(get_env_var(constants.sal_home_env_var_name))).strip()
+        arch_name = common.release_dir + '/sal_{}'.format(suffix)
 
     os.system(
         'git --git-dir {0}/.git log --pretty=format:%s {2}..{3} > {0}/{1}'.
