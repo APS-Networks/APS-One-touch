@@ -170,17 +170,18 @@ def load_stratum_profile():
 
 def execute_user_action(stratum_input):
     set_stratum_env()
+    rc = True
     for action_char in stratum_input:
         if action_char == 'c':
-            return clean_stratum()
+            rc &= clean_stratum()
         elif action_char == 'r':
-            return start_stratum()
+            rc &= start_stratum()
         elif action_char == 'b':
-            return build_stratum()
+            rc &= build_stratum()
         else:
             print(
                 "Unrecognised action {} .".format(action_char))
-    return True
+    return rc
 
 
 def take_user_input():
