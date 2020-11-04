@@ -47,7 +47,7 @@ Configure correct path for selected and dependency profile packages.
   - sudo apt install python3 (if not already installed)
   - sudo apt install python (python2.7 if not already installed, used by p4studio_build.py)
   - sudo apt-get install libusb-1.0-0-dev (required for BSP compilation)
-  - apt-get install libcurl4-openssl-dev (required for BSP compilation)
+  - sudo apt-get install libcurl4-openssl-dev (required for BSP compilation)
 - Start installation :
   - python3 InstallAPS.py <optional - abs path to settings file>
 - Also, if dependencies for a specific profile are already installed you can directly run the
@@ -59,7 +59,7 @@ Configure correct path for selected and dependency profile packages.
 This version of AOT currently is tested on :
 * Ubuntu 18.04.4 LTS
 * SDE-9.1.0
-* gcc7.5
+* gcc-8/g++-8
 
 ## Upcoming Features
 
