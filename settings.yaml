@@ -10,13 +10,14 @@ SWITCH Model: BF2556X_1T
 PATH_PREFIX: #Various paths used in this setting file are evaluated relative to this, Default is user home diretory
 
 BSP: &bsp
-  bsp_pkg: /bsp/BF2556X-1T_BSP_9.0.0-master.zip
+  ref_bsp: /bsp/bf-reference-bsp-9.2.0.tar
+  aps_bsp_pkg: /bsp/BSP_BF2556X_1T.zip
   #OR
   #bsp_pkg: /bsp/BF6064X_BSP_9.0.0-master.zip
 
 BF SDE: &bf_sde
-  sde_pkg: /BF/bf-sde-9.1.0.tar
-  sde_home: /BF/bf-sde-9.1.0 # SDE path relative to user home. If left blank default is APS-One-touch/<bf-sde-x.y.z>.
+  sde_pkg: /BF/bf-sde-9.2.0.tar
+  sde_home: /BF/bf-sde-9.2.0 # SDE path relative to user home. If left blank default is APS-One-touch/<bf-sde-x.y.z>.
   sde_version: 9.1.0 #Required for stratum to run
   p4studio_build_profile: stratum_profile #Leave it blank to enter detailed interactive P4 Studio build shell, Value is overriden to stratum_profile in case stratum_hw_profile or stratum_sim_profile is selected
   p4_name: #Applicable when sde_*_profile is selected, Leave it blank to start SDE without a P4 program or p4 program name which is already built in SDE.

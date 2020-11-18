@@ -4,6 +4,7 @@ import shutil
 import tarfile
 import zipfile
 import glob
+from pathlib import Path
 
 import constants
 from common import create_symlinks, execute_cmd_n_get_output, get_env_var, \
@@ -11,8 +12,9 @@ from common import create_symlinks, execute_cmd_n_get_output, get_env_var, \
     get_sde_dir_name_in_tar, get_sde_home_absolute, get_sde_pkg_abs_path, \
     get_sde_profile_details, get_sde_profile_name, get_selected_profile_name, \
     set_env_var, validate_path_existence, \
-    get_bsp_pkg_abs_path, append_to_env_var, \
-    dname, get_switch_model_from_settings, execute_cmd
+    append_to_env_var, \
+    dname, get_switch_model_from_settings, execute_cmd, get_ref_bsp_abs_path, \
+    get_aps_bsp_pkg_abs_path
 from drivers import load_and_verify_kernel_modules
 
 
@@ -211,21 +213,45 @@ def set_sde_env_n_load_drivers():
 
 def install_switch_bsp():
     set_sde_env_n_load_drivers()
-    bsp_installation_file = get_bsp_pkg_abs_path()
-    print("Installing {}".format(bsp_installation_file))
-    zip_ref = zipfile.ZipFile(bsp_installation_file)
-    zip_ref.extractall()
-    extracted_dir_name = zip_ref.namelist()[0]
-    zip_ref.close()
-    os.chdir(extracted_dir_name)
-    os.environ['BSP'] = os.getcwd()
-    print("BSP home directory set to {}".format(os.environ['BSP']))
+    aps_bsp_installation_file = get_aps_bsp_pkg_abs_path()
+    print("Installing {}".format(aps_bsp_installation_file))
+    aps_zip = zipfile.ZipFile(aps_bsp_installation_file)
+    aps_zip.extractall(Path(aps_bsp_installation_file).parent)
+    aps_bsp_dir = aps_zip.namelist()[0]
+    aps_bsp_dir_absolute=str(Path(aps_bsp_installation_file).parent)+'/'+aps_bsp_dir
+    aps_zip.close()
+
+    ref_bsp_tar = tarfile.open(get_ref_bsp_abs_path())
+    ref_bsp_tar.extractall(Path(get_ref_bsp_abs_path()).parent)
+    ref_bsp_dir = ref_bsp_tar.getnames()[0]
+    os.chdir(str(Path(get_ref_bsp_abs_path()).parent)+'/'+ref_bsp_dir+'/packages')
+    pltfm_tar_name=''
+    for f in os.listdir('./'):
+        if f.endswith('.tgz'):
+            pltfm_tar_name=f
+    pltfm_tar = tarfile.open(pltfm_tar_name)
+    pltfm_tar.extractall()
+    bf_pltfm_dir=str(Path(get_ref_bsp_abs_path()).parent)+'/'+ref_bsp_dir+'/packages/'+\
+                 pltfm_tar.getnames()[0]
+
+    aps_pltfm_dir=bf_pltfm_dir + '/platforms/delta-bf/'
+    if os.path.exists(aps_pltfm_dir):
+        shutil.rmtree(aps_pltfm_dir)
+
+    shutil.copytree(aps_bsp_dir_absolute+'/delta-bf',aps_pltfm_dir)
+
+    pltfm_tar.close()
+    ref_bsp_tar.close()
+    os.chdir(bf_pltfm_dir)
+    os.system('patch -p1 < {}/bf_ref_bsp.diff'.format(aps_bsp_dir_absolute))
+    #os.environ['BSP'] = os.getcwd()
+    #print("BSP home directory set to {}".format(os.environ['BSP']))
     os.environ['BSP_INSTALL'] = get_env_var('SDE_INSTALL')
     print(
         "BSP_INSTALL directory set to {}".format(
             os.environ['BSP_INSTALL']))
-    for pltfm in glob.glob('./bf-platforms*'):
-        os.chdir(pltfm)
+    #for pltfm in glob.glob('./bf-platforms*'):
+    #    os.chdir(pltfm)
     os.system("autoreconf && autoconf")
     os.system("chmod +x ./autogen.sh")
     os.system("chmod +x ./configure")
@@ -239,7 +265,7 @@ def install_switch_bsp():
                 os.environ['BSP_INSTALL']))
     os.system("make")
     os.system("sudo make install")
-    shutil.rmtree(os.environ['BSP'])
+    #shutil.rmtree(os.environ['BSP'])
     os.chdir(dname)
     return True
 

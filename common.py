@@ -10,7 +10,7 @@ import yaml
 import constants
 from constants import sal_hw_profile_name, sal_sim_profile_name, \
     sde_hw_profile_name, sde_sim_profile_name, stratum_hw_profile_name, \
-    stratum_sim_profile_name
+    stratum_sim_profile_name, BSP_node, aps_bsp_pkg_node, ref_bsp_node
 import shutil
 
 abspath = os.path.abspath(__file__)
@@ -199,11 +199,20 @@ def get_sde_pkg_abs_path():
     return sde_pkg
 
 
-def get_bsp_pkg_abs_path():
+def get_aps_bsp_pkg_abs_path():
     bsp_pkg = get_path_relative_to_user_home(
-        get_from_setting_dict('BSP', 'bsp_pkg'))
+        get_from_setting_dict(BSP_node, aps_bsp_pkg_node))
     if not zipfile.is_zipfile(bsp_pkg):
-        print("Invalid BSP zip file {} can not build.".format(bsp_pkg))
+        print("Invalid APS BSP zip file {} can not build.".format(bsp_pkg))
+        exit(0)
+    return bsp_pkg
+
+
+def get_ref_bsp_abs_path():
+    bsp_pkg = get_path_relative_to_user_home(
+        get_from_setting_dict(BSP_node, ref_bsp_node))
+    if not tarfile.is_tarfile(bsp_pkg):
+        print("Invalid Reference BSP tar file {} can not build.".format(bsp_pkg))
         exit(0)
     return bsp_pkg
 

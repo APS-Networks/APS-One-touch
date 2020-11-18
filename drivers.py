@@ -132,6 +132,7 @@ def install_irq_debug():
     tar.close()
     print(irq_folder_name)
     os.chdir(irq_folder_name)
+    os.system("make clean")
     os.system("make")
 
     print("Installing module irq_debug.")

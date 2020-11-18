@@ -29,6 +29,9 @@ stratum_config_env_var_name = 'STRATUM_CONFIG'
 path_env_var_name = 'PATH'
 
 ##Yaml settings nodes
+BSP_node='BSP'
+ref_bsp_node='ref_bsp'
+aps_bsp_pkg_node='aps_bsp_pkg'
 switch_model_node = 'SWITCH Model'
 build_profiles_node = 'BUILD_PROFILES'
 sal_home_node = 'sal_home'
