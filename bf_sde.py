@@ -14,7 +14,8 @@ from common import create_symlinks, execute_cmd_n_get_output, get_env_var, \
     set_env_var, validate_path_existence, \
     append_to_env_var, \
     dname, get_switch_model_from_settings, execute_cmd, get_ref_bsp_abs_path, \
-    get_aps_bsp_pkg_abs_path
+    get_aps_bsp_pkg_abs_path, get_bsp_dev_abs_path, release_dir, \
+    execute_cmd_n_get_output_2, delete_files
 from drivers import load_and_verify_kernel_modules
 
 
@@ -137,6 +138,42 @@ def ask_user_for_building_sde():
         print("You selected not to build SDE.")
 
 
+diff_file = 'bf2556x_1t.diff'
+
+
+def prepare_bsp_pkg():
+    bsp_dev_abs = get_bsp_dev_abs_path()
+    earliest_commit_hash = execute_cmd_n_get_output_2(
+        'git --git-dir {0}/.git rev-list --max-parents=0 HEAD'.format(
+            bsp_dev_abs))
+    latest_commit_hash = execute_cmd_n_get_output_2(
+        'git --git-dir {0}/.git rev-parse HEAD'.format(bsp_dev_abs))
+    os.chdir(bsp_dev_abs)
+    execute_cmd_n_get_output_2(
+        'git --git-dir {0}/.git diff {1} {2} \':!./platforms/apsn/\' \':!.idea/\' > {3}'.
+            format(bsp_dev_abs, earliest_commit_hash, latest_commit_hash,
+                   bsp_dev_abs+'/'+diff_file))
+
+    latest_commit_hash_short = execute_cmd_n_get_output_2(
+        'git --git-dir {0}/.git rev-parse --short HEAD'.format(bsp_dev_abs))
+    bsp_name = '/'+os.path.basename(bsp_dev_abs) \
+               + '_' + latest_commit_hash_short
+    bsp_rel_dir = release_dir + bsp_name
+
+    try:
+        os.mkdir(bsp_rel_dir)
+        print('SAL release directory {} created.'.format(bsp_rel_dir))
+    except FileExistsError:
+        print('BSP Release directory {} already exists, recreated.'.format(
+            bsp_rel_dir))
+        delete_files(bsp_rel_dir)
+        os.mkdir(bsp_rel_dir)
+
+    shutil.move(bsp_dev_abs+'/'+diff_file, bsp_rel_dir + '/' + diff_file)
+    shutil.copytree(bsp_dev_abs+'/platforms/apsn/',bsp_rel_dir+'/apsn')
+    shutil.make_archive(bsp_rel_dir, 'zip', bsp_rel_dir)
+
+
 def ask_user_for_building_bsp():
     if get_sde_profile_name() == constants.sde_hw_profile_name:
         install_bsp = input("BSP : build y/[n]?")
@@ -144,8 +181,8 @@ def ask_user_for_building_bsp():
             install_bsp = "n"
         if install_bsp == "y":
             install_switch_bsp()
-        else:
-            print("You selected not to build BSP.")
+        if install_bsp == "p":
+            prepare_bsp_pkg()
 
 
 def ask_user_for_starting_sde():
@@ -218,40 +255,43 @@ def install_switch_bsp():
     aps_zip = zipfile.ZipFile(aps_bsp_installation_file)
     aps_zip.extractall(Path(aps_bsp_installation_file).parent)
     aps_bsp_dir = aps_zip.namelist()[0]
-    aps_bsp_dir_absolute=str(Path(aps_bsp_installation_file).parent)+'/'+aps_bsp_dir
+    aps_bsp_dir_absolute = str(
+        Path(aps_bsp_installation_file).parent) + '/' + aps_bsp_dir
     aps_zip.close()
 
     ref_bsp_tar = tarfile.open(get_ref_bsp_abs_path())
     ref_bsp_tar.extractall(Path(get_ref_bsp_abs_path()).parent)
     ref_bsp_dir = ref_bsp_tar.getnames()[0]
-    os.chdir(str(Path(get_ref_bsp_abs_path()).parent)+'/'+ref_bsp_dir+'/packages')
-    pltfm_tar_name=''
+    os.chdir(str(
+        Path(get_ref_bsp_abs_path()).parent) + '/' + ref_bsp_dir + '/packages')
+    pltfm_tar_name = ''
     for f in os.listdir('./'):
         if f.endswith('.tgz'):
-            pltfm_tar_name=f
+            pltfm_tar_name = f
     pltfm_tar = tarfile.open(pltfm_tar_name)
     pltfm_tar.extractall()
-    bf_pltfm_dir=str(Path(get_ref_bsp_abs_path()).parent)+'/'+ref_bsp_dir+'/packages/'+\
-                 pltfm_tar.getnames()[0]
+    bf_pltfm_dir = str(Path(
+        get_ref_bsp_abs_path()).parent) + '/' + ref_bsp_dir + '/packages/' + \
+                   pltfm_tar.getnames()[0]
 
-    aps_pltfm_dir=bf_pltfm_dir + '/platforms/delta-bf/'
+    aps_pltfm_dir = bf_pltfm_dir + '/platforms/apsn/'
     if os.path.exists(aps_pltfm_dir):
         shutil.rmtree(aps_pltfm_dir)
 
-    shutil.copytree(aps_bsp_dir_absolute+'/delta-bf',aps_pltfm_dir)
+    shutil.copytree(aps_bsp_dir_absolute, aps_pltfm_dir)
 
     pltfm_tar.close()
     ref_bsp_tar.close()
     os.chdir(bf_pltfm_dir)
-    os.system('patch -p1 < {}/bf_ref_bsp.diff'.format(aps_bsp_dir_absolute))
-    #os.environ['BSP'] = os.getcwd()
-    #print("BSP home directory set to {}".format(os.environ['BSP']))
+    os.system('patch -p1 < {0}/{1}'.format(str(
+        Path(aps_bsp_installation_file).parent),diff_file))
+    # os.environ['BSP'] = os.getcwd()
+    # print("BSP home directory set to {}".format(os.environ['BSP']))
     os.environ['BSP_INSTALL'] = get_env_var('SDE_INSTALL')
     print(
         "BSP_INSTALL directory set to {}".format(
             os.environ['BSP_INSTALL']))
-    #for pltfm in glob.glob('./bf-platforms*'):
-    #    os.chdir(pltfm)
+
     os.system("autoreconf && autoconf")
     os.system("chmod +x ./autogen.sh")
     os.system("chmod +x ./configure")
@@ -265,7 +305,6 @@ def install_switch_bsp():
                 os.environ['BSP_INSTALL']))
     os.system("make")
     os.system("sudo make install")
-    #shutil.rmtree(os.environ['BSP'])
     os.chdir(dname)
     return True
 

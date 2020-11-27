@@ -268,7 +268,7 @@ def prepare_sal_pkg():
     shutil.copyfile(get_env_var(
         constants.sal_home_env_var_name) + '/' + rel_notes_file,
                     sal_rel_dir + '/' + rel_notes_file)
-    #shutil.make_archive(arch_name, 'zip', sal_rel_dir)
+    shutil.make_archive(arch_name, 'zip', sal_rel_dir)
     print('SAL release is available at {}'.format(common.release_dir))
 
 

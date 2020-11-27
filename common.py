@@ -45,6 +45,36 @@ def read_settings():
 settings_dict = read_settings()
 
 
+def read_advance_settings():
+    """
+    Settings used for development.
+    """
+    advance_settings_file = "{}/advance_settings.yaml".format(dname)
+
+    if advance_settings_file is None:
+        print('Invalid settings file for AOT {}'.format(advance_settings_file))
+        exit(0)
+    else:
+        print('Reading settings from file {}'.format(advance_settings_file))
+        with open(advance_settings_file, 'r') as stream:
+            try:
+                return yaml.safe_load(stream)
+            except yaml.YAMLError as exc:
+                print(exc)
+                print("Error occurred while reading settings file {}".
+                      format(advance_settings_file))
+                exit(0)
+
+
+advance_settings_dict = read_advance_settings()
+
+
+def get_bsp_dev_abs_path():
+    return get_path_relative_to_user_home(
+        get_from_advance_setting_dict(constants.BSP_node,
+                                      constants.bsp_dev_node_name))
+
+
 def delete_files(file):
     try:
         shutil.rmtree(file)
@@ -185,6 +215,14 @@ def create_symlinks():
 def get_from_setting_dict(*keys):
     # keys to be in lexographic order
     val = settings_dict.copy()
+    for key in keys:
+        val = val.get(key)
+    return val
+
+
+def get_from_advance_setting_dict(*keys):
+    # keys to be in lexographic order
+    val = advance_settings_dict.copy()
     for key in keys:
         val = val.get(key)
     return val

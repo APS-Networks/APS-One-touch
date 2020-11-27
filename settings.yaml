@@ -11,9 +11,7 @@ PATH_PREFIX: #Various paths used in this setting file are evaluated relative to 
 
 BSP: &bsp
   ref_bsp: /bsp/bf-reference-bsp-9.2.0.tar
-  aps_bsp_pkg: /bsp/BSP_BF2556X_1T.zip
-  #OR
-  #bsp_pkg: /bsp/BF6064X_BSP_9.0.0-master.zip
+  aps_bsp_pkg: /APS-One-touch/release/bf-reference-bsp-9.2.0-BF2556_b5c5aab.zip
 
 BF SDE: &bf_sde
   sde_pkg: /BF/bf-sde-9.2.0.tar
