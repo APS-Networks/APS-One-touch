@@ -317,7 +317,7 @@ def get_selected_profile_name():
 
 
 def get_gb_src_home_from_config():
-    return settings_dict.get('GB').get('gb_src')
+    return advance_settings_dict.get('GB').get('gb_src')
 
 
 def get_gb_src_home_absolute():
@@ -325,7 +325,7 @@ def get_gb_src_home_absolute():
 
 
 def get_gb_lib_home_from_config():
-    return settings_dict.get('GB').get('gb_lib')
+    return advance_settings_dict.get('GB').get('gb_lib')
 
 
 def get_gb_lib_home_absolute():

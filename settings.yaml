@@ -16,9 +16,9 @@ BSP: &bsp
 BF SDE: &bf_sde
   sde_pkg: /BF/bf-sde-9.2.0.tar
   sde_home: /BF/bf-sde-9.2.0 # SDE path relative to user home. If left blank default is APS-One-touch/<bf-sde-x.y.z>.
-  sde_version: 9.1.0 #Required for stratum to run
+  sde_version: 9.1.0 #Required only for running stratum, will be ignored otherwise.
   p4studio_build_profile: stratum_profile #Leave it blank to enter detailed interactive P4 Studio build shell, Value is overriden to stratum_profile in case stratum_hw_profile or stratum_sim_profile is selected
-  p4_name: #Applicable when sde_*_profile is selected, Leave it blank to start SDE without a P4 program or p4 program name which is already built in SDE.
+  p4_name: #Leave it blank to start SDE without a P4 program or give p4 program name which is already built in SDE. Applicable when sde_*_profile is selected from below.
   modules: #Following barefoot SDE modules will be loaded before starting SDE.
     - bf_kdrv
     #- bf_kpkt
@@ -29,26 +29,12 @@ BF SDE: &bf_sde
     #- -iod
 
 SAL: &sal
-  # Following parameters are useful when you have SAL src and building it, 
-  # otherwise SAL binaries are sufficient to run and following config can be ignored.
-  build_third_party: true #Currently gRPC interface of SAL uses protobuf, gRPC and PI packages,
-  # false - Ensure that SDE is built with p4_runtime_profile, and above mentioned deps are installed under $SDE_INSTALL
-  # true - Protobuf, gRPC and PI will be built independently by AOT under $SAL_INSTALL.
   sal_home: /sal # SAL Source directory, Param is useful for development usage only
-  enable_grpc: true #Enables sal's grpc interface, Works only when SDE is built with p4runtime profile and selected APS profile is not stratum_xyz
-  tp_install: #Path where third party SWs are installed default is SAL_HOME/install
-  enable_tofino: true #Enables Tofino control in SAL, Set it false if external application wants to take over Tofino control,
-  #And in case of stratum_xyz profile selected for stratum APS value is overridden to false automatically
-
-GB: &gb #Following parameters are useful when you have SAL src and building it, Otherwise can be ignored.
-  gb_pkg: gb.tar
-  gb_src: /Gearbox/Px-4.2_2020_03_018/work/cpss/
-  gb_lib: /Gearbox/Px-4.2_2020_03_018/work/cpss/compilation_root/cpss_4.2/ia64_PX/
 
 STRATUM: &stratum
   stratum_home: /stratum
   stratum_config: #default is APS-One-touch/stratum_config
-  mode: bsp #bsp mode is recommended or bsp-less
+  mode: bsp #bsp or bsp-less ('bsp' mode is recommended)
 
 #To quick start just type in the profile name in 'selected' with * in the beginning.
 #All files and directory path are relative to user's home.
