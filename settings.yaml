@@ -28,9 +28,6 @@ BF SDE: &bf_sde
     #- -rb
     #- -iod
 
-SAL: &sal
-  sal_home: /sal # SAL Source directory, Param is useful for development usage only
-
 STRATUM: &stratum
   stratum_home: /stratum
   stratum_config: #default is APS-One-touch/stratum_config
@@ -38,10 +35,10 @@ STRATUM: &stratum
 
 #To quick start just type in the profile name in 'selected' with * in the beginning.
 #All files and directory path are relative to user's home.
-# Profile which have 'sim' in their names are meant to work on PCs in simulation mode, 
+# Profile which have 'sim' in their names are meant to work on PCs in simulation mode,
 # Rest are suitable for actual switches.
 BUILD_PROFILES: &build_profiles
-  
+
   sde_sim: &sde_sim_profile #If selected, Configure 'BF SDE' and 'BSP' node above in the file.
     name: sde_sim_profile
     details: *bf_sde
@@ -54,12 +51,10 @@ BUILD_PROFILES: &build_profiles
 
   sal_hw: &sal_hw_profile
     name: sal_hw_profile
-    details: *sal
     deps: *sde_hw_profile
 
-  sal_sim: &sal_sim_profile 
+  sal_sim: &sal_sim_profile
     name: sal_sim_profile
-    details: *sal
     deps: *sde_sim_profile
 
   stratum_sim: &stratum_sim_profile #If selected, Configure STRATUM node above.

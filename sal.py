@@ -91,7 +91,7 @@ def get_tp_install_path_absolute():
 
 
 def get_sal_home_from_config():
-    return common.settings_dict. \
+    return common.advance_settings_dict. \
         get(constants.sal_sw_attr_node).get(constants.sal_home_node)
 
 
@@ -109,10 +109,6 @@ def get_sal_profile_dict():
             constants.sal_hw_profile_node)
     else:
         logging.error('There is no selected or associated SAL profile')
-
-
-def get_sal_profile_details():
-    return get_sal_profile_dict().get(constants.details_node)
 
 
 def build_sal():
@@ -159,7 +155,7 @@ def prepare_sal_release():
                     sal_rel_dir + '/config')
     shutil.copytree(get_env_var(constants.sal_home_env_var_name) + '/proto',
                     sal_rel_dir + '/proto')
-    if get_from_setting_dict(constants.sal_sw_attr_node,
+    if get_from_advance_setting_dict(constants.sal_sw_attr_node,
                              constants.build_third_party_node):
         shutil.copytree(
             get_env_var(constants.tp_install_env_var_name) + '/lib',
@@ -479,8 +475,8 @@ def execute_user_action(sal_input):
             rc &= build_sal()
             rc &= prepare_sal_release()
         elif action_char == 'i':
-            if get_from_setting_dict(constants.sal_sw_attr_node,
-                                     constants.build_third_party_node):
+            if get_from_advance_setting_dict(constants.sal_sw_attr_node,
+                                             constants.build_third_party_node):
                 rc &= install_sal_thirdparty_deps()
             else:
                 print(

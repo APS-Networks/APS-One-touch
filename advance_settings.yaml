@@ -10,7 +10,8 @@ BSP: &bsp
   #OR
   #bsp_pkg: /bsp/bf-reference-bsp-9.2.0-BF2556
 
-SAL:
+SAL: &sal
+  sal_home: /sal # SAL Source directory, Param is useful for development usage only
   # Following parameters are useful when you have SAL src and building it,
   # otherwise SAL binaries are sufficient to run and following config can be ignored.
   build_third_party: true #Currently gRPC interface of SAL uses protobuf, gRPC and PI packages,
