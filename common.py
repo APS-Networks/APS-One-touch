@@ -10,7 +10,8 @@ import yaml
 import constants
 from constants import sal_hw_profile_name, sal_sim_profile_name, \
     sde_hw_profile_name, sde_sim_profile_name, stratum_hw_profile_name, \
-    stratum_sim_profile_name, BSP_node, aps_bsp_pkg_node, ref_bsp_node
+    stratum_sim_profile_name, BSP_node, aps_bsp_pkg_node, ref_bsp_node, \
+    switch_model_env_var_name, bf2556x_1t, bf6064x_t
 import shutil
 
 abspath = os.path.abspath(__file__)
@@ -332,8 +333,13 @@ def get_gb_lib_home_absolute():
     return get_path_relative_to_user_home(get_gb_lib_home_from_config())
 
 
-def get_switch_model_from_settings():
-    return get_from_setting_dict(constants.switch_model_node)
+def get_switch_model():
+    model_name=get_env_var(switch_model_env_var_name)
+    if model_name is None or model_name not in [bf2556x_1t,bf6064x_t]:
+        print('Please set env_var SWITCH_MODEL with values either {0} or {1}'.
+              format(bf2556x_1t, bf6064x_t))
+        exit(0)
+    return model_name
 
 
 def is_sim_profile_selected():

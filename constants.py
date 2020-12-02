@@ -12,6 +12,7 @@ stratum_hw_profile = 'stratum_hw'
 stratum_sim_profile = 'stratum_sim'
 
 # Env var names
+switch_model_env_var_name='SWITCH_MODEL'
 sal_home_env_var_name = 'SAL_HOME'
 #sal_install_env_var_name = 'SAL_INSTALL'
 tp_install_env_var_name = 'TP_INSTALL'

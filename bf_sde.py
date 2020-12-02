@@ -13,7 +13,7 @@ from common import create_symlinks, execute_cmd_n_get_output, get_env_var, \
     get_sde_profile_details, get_sde_profile_name, get_selected_profile_name, \
     set_env_var, validate_path_existence, \
     append_to_env_var, \
-    dname, get_switch_model_from_settings, execute_cmd, get_ref_bsp_abs_path, \
+    dname, get_switch_model, execute_cmd, get_ref_bsp_abs_path, \
     get_aps_bsp_pkg_abs_path, get_bsp_dev_abs_path, release_dir, \
     execute_cmd_n_get_output_2, delete_files
 from drivers import load_and_verify_kernel_modules
@@ -295,7 +295,7 @@ def install_switch_bsp():
     os.system("autoreconf && autoconf")
     os.system("chmod +x ./autogen.sh")
     os.system("chmod +x ./configure")
-    if get_switch_model_from_settings() == constants.bf2556x_1t:
+    if get_switch_model() == constants.bf2556x_1t:
         execute_cmd(
             "CFLAGS=-Wno-error ./configure --prefix={} --enable-thrift --with-tof-brgup-plat".format(
                 os.environ['BSP_INSTALL']))

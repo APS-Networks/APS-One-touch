@@ -4,7 +4,7 @@ import shutil
 from common import append_to_env_var, get_env_var, \
     get_path_relative_to_user_home, get_sde_install_dir_absolute, \
     get_sde_version, get_selected_profile_dict, get_selected_profile_name, \
-    set_env_var, get_switch_model_from_settings, settings_dict
+    set_env_var, get_switch_model, settings_dict
 import common
 import constants
 from drivers import load_and_verify_kernel_modules
@@ -33,7 +33,7 @@ def start_stratum():
     stratum_start_cmd_bsp = 'export PLATFORM=x86-64-stordis-bf2556x-1t-r0 && \
     sudo -E start-stratum.sh --bf_sim '
 
-    if get_switch_model_from_settings() == constants.bf6064x_t:
+    if get_switch_model() == constants.bf6064x_t:
         stratum_start_cmd_bsp = 'export PLATFORM=x86-64-stordis-bf6064x-t-r0 && \
             sudo -E start-stratum.sh --bf_sim '
 

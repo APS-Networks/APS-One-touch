@@ -336,17 +336,17 @@ def install_sal_thirdparty_deps():
     if not os.path.exists(sal_thirdparty_path):
         os.makedirs(sal_thirdparty_path)
 
-    res = installProtobuf()
-    append_to_env_var(constants.path_env_var_name,
-                      get_sal_home_absolute() + '/install/bin/')
-    res &= installgRPC()
-    res &= installPI()
+    #res = installProtobuf()
+    #append_to_env_var(constants.path_env_var_name,
+    #                  get_sal_home_absolute() + '/install/bin/')
+    res = installgRPC()
+    #res &= installPI()
     return res
 
 
 def installProtobuf():
     print('Installing protobuf.')
-    protobuf_ver = 'v3.6.1'
+    protobuf_ver = 'v3.6.1' #This is required version to build PI, check PI's github.
     protobuf_dir = '{0}/protobuf{1}/'.format(sal_thirdparty_path, protobuf_ver)
     if os.path.exists(protobuf_dir):
         print('{0} already exists, will rebuild.'.format(protobuf_dir))
@@ -379,7 +379,7 @@ def installProtobuf():
 
 def installgRPC():
     print('Installing gRPC.')
-    gRPC_ver = 'v1.17.0'
+    gRPC_ver = 'v1.17.0'#This is required version to build PI, check PI's github.
     gRPC_dir = '{0}/grpc{1}/'.format(sal_thirdparty_path, gRPC_ver)
     if os.path.exists(gRPC_dir):
         print('{0} already exists, will rebuild.'.format(gRPC_dir))

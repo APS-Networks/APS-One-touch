@@ -7,7 +7,7 @@ import common
 import constants
 from common import execute_cmd_n_get_output, get_env_var, dname, \
     create_symlinks, \
-    is_ubuntu, get_switch_model_from_settings, get_sde_profile_details
+    is_ubuntu, get_switch_model, get_sde_profile_details
 from constants import sde_module_bf_kdrv_string_value, \
      sde_module_bf_kpkt_string_value
 
@@ -63,7 +63,7 @@ def load_and_verify_kernel_modules():
                      sde_module_bf_kpkt_string_value))
 
     # Load switch specific kernel modules
-    if get_switch_model_from_settings() == constants.bf2556x_1t:
+    if get_switch_model() == constants.bf2556x_1t:
         return bf_mod and i2c_i801 and load_and_verify_kernel_modules_bf2556()
     else:
         return bf_mod and i2c_i801 and load_and_verify_kernel_modules_bf6064()

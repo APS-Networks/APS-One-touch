@@ -2,7 +2,7 @@ import constants
 from bf_sde import load_bf_sde_profile
 from common import get_selected_profile_name, \
     get_sde_pkg_abs_path, \
-    is_sim_profile_selected, get_switch_model_from_settings, \
+    is_sim_profile_selected, get_switch_model, \
     validate_path_existence, get_ref_bsp_abs_path, get_aps_bsp_pkg_abs_path
 from sal import load_sal_profile
 from stratum import load_stratum_profile, get_stratum_home_absolute
@@ -11,7 +11,7 @@ from stratum import load_stratum_profile, get_stratum_home_absolute
 def do_basic_path_validation(prof_name):
     # Do basic path verification.
     print('Selected build profile is {}.'.format(prof_name))
-    print('Switch model : {}'.format(get_switch_model_from_settings()))
+    print('Switch model : {}'.format(get_switch_model()))
     validate_path_existence(get_sde_pkg_abs_path(), 'Barefoot SDE')
     if not is_sim_profile_selected():
         validate_path_existence(get_ref_bsp_abs_path(), 'BF BSP')
