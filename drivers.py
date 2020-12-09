@@ -19,6 +19,7 @@ installation_files = {
 def get_sde_modules():
     return get_sde_profile_details().get(constants.sde_modules_node)
 
+
 def load_and_verify_kernel_modules():
     output = execute_cmd_n_get_output('lsmod')
     bf_mod = True

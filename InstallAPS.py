@@ -18,12 +18,12 @@ def do_basic_path_validation(prof_name):
         validate_path_existence(get_aps_bsp_pkg_abs_path(), 'APS BSP')
     if get_selected_profile_name() in [constants.stratum_sim_profile_name,
                                        constants.stratum_hw_profile_name]:
-        validate_path_existence(get_stratum_home_absolute(),'Stratum')
+        validate_path_existence(get_stratum_home_absolute(), 'Stratum')
 
 
 if __name__ == '__main__':
     profile_name = get_selected_profile_name()
-    
+
     do_basic_path_validation(profile_name)
 
     if profile_name in [constants.stratum_hw_profile_name,

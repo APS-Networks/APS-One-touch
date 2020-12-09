@@ -3,7 +3,6 @@ import os
 import shutil
 import tarfile
 import zipfile
-import glob
 from pathlib import Path
 
 import constants
@@ -69,7 +68,8 @@ def build_sde():
     else:
         print('No build flag will be used for BF_SDE build.')
     os.environ[
-        constants.path_env_var_name] += os.pathsep + sde_home_absolute + '/install/bin/'
+        constants.path_env_var_name] += os.pathsep + sde_home_absolute +\
+        '/install/bin/'
     print('Building sde with command {}'.format(sde_install_cmd))
     os.system(sde_install_cmd)
     return True
@@ -176,12 +176,12 @@ def prepare_bsp_pkg():
 
 def ask_user_for_building_bsp():
     if get_sde_profile_name() == constants.sde_hw_profile_name:
-        install_bsp = input("BSP : build y/[n]?")
-        if not install_bsp:
-            install_bsp = "n"
-        if install_bsp == "y":
+        in_put = input("BSP : build y/[n]?")
+        if not in_put:
+            in_put = "n"
+        if in_put == "y":
             install_switch_bsp()
-        if install_bsp == "p":
+        if in_put == "p":
             prepare_bsp_pkg()
 
 

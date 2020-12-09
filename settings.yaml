@@ -7,17 +7,17 @@ SWITCH Model: BF2556X_1T
 #OR
 #SWITCH Model: BF6064X_T
 
-PATH_PREFIX: #Various paths used in this setting file are evaluated relative to this, Default is user home diretory
+PATH_PREFIX: #Various paths used in this setting file are evaluated relative to this, Default is user home directory
 
 BSP: &bsp
-  ref_bsp: /bsp/bf-reference-bsp-9.2.0.tar
-  aps_bsp_pkg: /APS-One-touch/release/bf-reference-bsp-9.2.0-BF2556_b5c5aab.zip
+  ref_bsp: /bsp/bf-reference-bsp-9.2.0.tar #Reference BSP to be downloaded from Intel's support portal.
+  aps_bsp_pkg: /bsp/bf-reference-bsp-9.2.0-BF2556_767a4de.zip #Porting code for APS switch.
 
 BF SDE: &bf_sde
   sde_pkg: /BF/bf-sde-9.2.0.tar
-  sde_home: /BF/bf-sde-9.2.0 # SDE path relative to user home. If left blank default is APS-One-touch/<bf-sde-x.y.z>.
-  sde_version: 9.1.0 #Required only for running stratum, will be ignored otherwise.
-  p4studio_build_profile: stratum_profile #Leave it blank to enter detailed interactive P4 Studio build shell, Value is overriden to stratum_profile in case stratum_hw_profile or stratum_sim_profile is selected
+  sde_home: /BF/bf-sde-9.2.0 # SDE path relative to PATH_PREFIX for installing SDE. If left blank default is APS-One-touch/<bf-sde-x.y.z>.
+  sde_version: 9.2.0 #Required only for running stratum, will be ignored otherwise.
+  p4studio_build_profile: stratum_profile #Leave it blank to enter detailed interactive P4 Studio build shell, Value is overridden to stratum_profile in case stratum_hw_profile or stratum_sim_profile is selected
   p4_name: #Leave it blank to start SDE without a P4 program or give p4 program name which is already built in SDE. Applicable when sde_*_profile is selected from below.
   modules: #Following barefoot SDE modules will be loaded before starting SDE.
     - bf_kdrv
@@ -25,7 +25,7 @@ BF SDE: &bf_sde
   build_flags: #Optional list of P4Studio build flags. 
                #Provide more flags with '-' in the beginning, its for yaml syntax. 
                #and than flag e.g. '-rb'
-    #- -rb
+    - -rb
     #- -iod
 
 STRATUM: &stratum

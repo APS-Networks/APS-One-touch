@@ -1,12 +1,12 @@
 import logging
 import os
 import shutil
+from os import stat
 
 import common
 import constants
 from bf_sde import set_sde_env_n_load_drivers, load_bf_sde_profile
 from common import delete_files, get_env_var, get_gb_lib_home_absolute, \
-    append_to_env_var, get_from_setting_dict, \
     execute_cmd, execute_cmd_n_get_output_2, get_from_advance_setting_dict, \
     get_selected_profile_name, set_env_var, get_gb_src_home_absolute, \
     get_path_relative_to_user_home, get_selected_profile_dict, \
@@ -73,10 +73,6 @@ def set_sal_runtime_env():
         return False
     set_env_var(constants.sal_home_env_var_name, sal_rel_dir)
     print('SAL_HOME: {}'.format(get_env_var(constants.sal_home_env_var_name)))
-    # set_env_var(constants.gb_src_home_env_var_name, sal_rel_dir)
-    # set_env_var(constants.gb_lib_home_env_var_name, sal_rel_dir+'/lib')
-    # print('SAL_SRC_HOME: {}'.format(get_env_var(constants.sal_src_home_env_var_name)))
-    # print('SAL_LIB_HOME: {}'.format(get_env_var(constants.sal_lib_home_env_var_name)))
     return True
 
 
@@ -120,9 +116,10 @@ def build_sal():
     print('Executing cmake command {}.'.format(cmake_cmd))
 
     execute_cmd(cmake_cmd)
-    execute_cmd('LD_LIBRARY_PATH={0}/lib:$LD_LIBRARY_PATH make -C {1}'.format(
-        get_env_var(constants.tp_install_env_var_name),
-        get_env_var(constants.sal_home_env_var_name)))
+    execute_cmd(
+        'LD_LIBRARY_PATH={0}/lib:$LD_LIBRARY_PATH make -j -C {1}'.format(
+            get_env_var(constants.tp_install_env_var_name),
+            get_env_var(constants.sal_home_env_var_name)))
 
     return True
 
@@ -156,7 +153,7 @@ def prepare_sal_release():
     shutil.copytree(get_env_var(constants.sal_home_env_var_name) + '/proto',
                     sal_rel_dir + '/proto')
     if get_from_advance_setting_dict(constants.sal_sw_attr_node,
-                             constants.build_third_party_node):
+                                     constants.build_third_party_node):
         shutil.copytree(
             get_env_var(constants.tp_install_env_var_name) + '/lib',
             sal_rel_dir + '/install/lib')
@@ -171,8 +168,8 @@ def prepare_sal_release():
             sal_rel_dir + '/install/share')
 
     os.mkdir(sal_rel_dir + '/test')
-    shutil.copyfile(get_env_var(constants.sal_home_env_var_name) + '/README.md',
-                    sal_rel_dir + '/README.md')
+    shutil.copyfile(get_env_var(constants.sal_home_env_var_name) + '/README.md'
+                    , sal_rel_dir + '/README.md')
     shutil.copyfile(get_env_var(
         constants.sal_home_env_var_name) + '/test/sal_service_test_BF6064.py',
                     sal_rel_dir + '/test/sal_service_test_BF6064.py')
@@ -335,51 +332,16 @@ def install_sal_thirdparty_deps():
 
     if not os.path.exists(sal_thirdparty_path):
         os.makedirs(sal_thirdparty_path)
-
-    #res = installProtobuf()
-    #append_to_env_var(constants.path_env_var_name,
-    #                  get_sal_home_absolute() + '/install/bin/')
     res = installgRPC()
-    #res &= installPI()
     return res
 
 
-def installProtobuf():
-    print('Installing protobuf.')
-    protobuf_ver = 'v3.6.1' #This is required version to build PI, check PI's github.
-    protobuf_dir = '{0}/protobuf{1}/'.format(sal_thirdparty_path, protobuf_ver)
-    if os.path.exists(protobuf_dir):
-        print('{0} already exists, will rebuild.'.format(protobuf_dir))
-    else:
-        os.system(
-            'git clone https://github.com/protocolbuffers/protobuf.git {}'.format(
-                protobuf_dir))
-        os.chdir(protobuf_dir)
-        os.system('git checkout tags/{}'.format(protobuf_ver))
 
-    os.chdir(protobuf_dir)
-    os.system('./autogen.sh')
-    rc = os.system('./configure -q --prefix={}'.format(
-        get_sal_home_absolute() + '/install/'))
-    if rc != 0:
-        return False
-    rc = os.system('make -s')
-    if rc != 0:
-        return False
-    # os.system('make check')
-    rc = os.system('make -s install')
-    if rc != 0:
-        return False
-    rc = os.system('sudo ldconfig')
-    if rc != 0:
-        return False
-    return True
-    # os.system('sudo pip install protobuf=={}'.format(protobuf_ver))
 
 
 def installgRPC():
     print('Installing gRPC.')
-    gRPC_ver = 'v1.17.0'#This is required version to build PI, check PI's github.
+    gRPC_ver = 'v1.17.0'  # This is required version to build PI, check PI's github.
     gRPC_dir = '{0}/grpc{1}/'.format(sal_thirdparty_path, gRPC_ver)
     if os.path.exists(gRPC_dir):
         print('{0} already exists, will rebuild.'.format(gRPC_dir))
@@ -392,28 +354,31 @@ def installgRPC():
 
     os.chdir(gRPC_dir)
 
-    #         os.makedirs(gRPC_dir+'/cmake/build')
-    #         cmake_cmd='cmake ../.. -DgRPC_INSTALL=ON \
-    #                   -DgRPC_BUILD_TESTS=OFF \
-    #                   -DCMAKE_INSTALL_PREFIX={}'.format(get_sal_home_absolute()+'/install/')
-    #         print('Executing gRPC cmake command : '.format(cmake_cmd))
-    #         rc=os.system(cmake_cmd)
-
-    make_cmd = 'LD_LIBRARY_PATH={0}/lib/ PKG_CONFIG_PATH={0}/lib/pkgconfig/:$PKG_CONFIG_PATH \
-    make -s LDFLAGS=-L{0}/lib prefix={0}'.format(
+    try:
+        os.makedirs(gRPC_dir + '/cmake/build')
+    except FileExistsError:
+        print('cmake directory already exists.')
+    os.chdir('./cmake/build')
+    cmake_cmd = 'cmake ../.. \
+              -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX={}'.format(
         get_sal_home_absolute() + '/install/')
-    print('Executing CMD: {}'.format(make_cmd))
-    rc = os.system(make_cmd)
+    print('Executing gRPC cmake command : {}'.format(cmake_cmd))
+
+    rc = os.system(cmake_cmd)
+    rc = os.system('make -j')
     if rc != 0:
-        print('{} Failed with return code {}'.format(make_cmd, rc))
         return False
 
-    make_install_cmd = 'make -s install prefix={0}'.format(
-        get_sal_home_absolute() + '/install/')
-    rc = os.system(make_install_cmd)
+    rc = os.system('make install')
     if rc != 0:
-        print('{} Failed with return code {}'.format(make_install_cmd, rc))
         return False
+
+    # Need to copy grpc_cpp_plugin manually,
+    # Perhaps a bug in grpc_1.17.0 works fine with grpc_1.34.0 .
+    grpc_cpp_plug = get_sal_home_absolute() + \
+                     '/install/bin/grpc_cpp_plugin'
+    shutil.copyfile('grpc_cpp_plugin', grpc_cpp_plug)
+    make_executable(grpc_cpp_plug)
 
     ld_cmd = 'sudo ldconfig'
     rc = os.system(ld_cmd)
@@ -423,39 +388,10 @@ def installgRPC():
     return True
 
 
-def installPI():
-    print('Installing PI.')
-    pi_dir = '{0}/PI/'.format(sal_thirdparty_path)
-    if os.path.exists(pi_dir):
-        print('{0} already exists, will rebuild.'.format(pi_dir))
-    else:
-        os.system(
-            'git clone https://github.com/p4lang/PI.git {}'.format(pi_dir))
-        # os.system('git checkout 41358da0ff32c94fa13179b9cee0ab597c9ccbcc')
-        os.chdir(pi_dir)
-        os.system('git submodule update --init --recursive')
-
-    os.chdir(pi_dir)
-
-    os.system('./autogen.sh')
-    config_cmd = 'PKG_CONFIG_PATH={0}/lib/pkgconfig:$PKG_CONFIG_PATH \
-    ./configure -q CFLAGS=-Wno-error CPPFLAGS=-I{0}/include LDFLAGS=-L{0}/lib \
-     --prefix={0} --with-proto=yes'.format(
-        get_sal_home_absolute() + '/install/')
-    print('Executing PI config command : {}'.format(config_cmd))
-    rc = os.system(config_cmd)
-    if rc != 0:
-        print('{} Failed with return code {}'.format(config_cmd, rc))
-        return False
-    rc = os.system('LD_LIBRARY_PATH={0}/lib/ make -s LDFLAGS=-L{0}/lib'.
-                   format(get_sal_home_absolute() + '/install/'))
-    if rc != 0:
-        return False
-    # rc=os.system('make -s install prefix={}'.format(get_sal_home_absolute()+'/install/'))
-    rc = os.system('make -s install')
-    if rc != 0:
-        return False
-    return True
+def make_executable(path):
+    mode = os.stat(path).st_mode
+    mode |= (mode & 0o444) >> 2    # copy R bits to X
+    os.chmod(path, mode)
 
 
 def execute_user_action(sal_input):
@@ -483,8 +419,8 @@ def execute_user_action(sal_input):
                     'But choose not to build thirdparty SW. Check settings.yaml')
         else:
             print(
-                "Invalid action {0} or action doesn't fit with selected profile {1}.".format(
-                    action_char, get_selected_profile_name()))
+                "Invalid action {0} or action doesn't fit with selected profile {1}."
+                    .format(action_char, get_selected_profile_name()))
             return False
     return rc
 
