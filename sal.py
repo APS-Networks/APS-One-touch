@@ -1,7 +1,6 @@
 import logging
 import os
 import shutil
-from os import stat
 
 import common
 import constants
@@ -10,7 +9,7 @@ from common import delete_files, get_env_var, get_gb_lib_home_absolute, \
     execute_cmd, execute_cmd_n_get_output_2, get_from_advance_setting_dict, \
     get_selected_profile_name, set_env_var, get_gb_src_home_absolute, \
     get_path_relative_to_user_home, get_selected_profile_dict, \
-    get_sde_home_absolute
+    get_sde_home_absolute, append_to_env_var
 from drivers import load_and_verify_kernel_modules
 
 sal_thirdparty_path = ''
@@ -332,16 +331,50 @@ def install_sal_thirdparty_deps():
 
     if not os.path.exists(sal_thirdparty_path):
         os.makedirs(sal_thirdparty_path)
-    res = installgRPC()
+
+    res = installProtobuf()
+    append_to_env_var(constants.path_env_var_name,
+                      get_sal_home_absolute() + '/install/bin/')
+    res &= installgRPC()
     return res
 
 
+def installProtobuf():
+    print('Installing protobuf.')
+    protobuf_ver = 'v3.6.1'
+    protobuf_dir = '{0}/protobuf{1}/'.format(sal_thirdparty_path, protobuf_ver)
+    if os.path.exists(protobuf_dir):
+        print('{0} already exists, will rebuild.'.format(protobuf_dir))
+    else:
+        os.system(
+            'git clone https://github.com/protocolbuffers/protobuf.git {}'.format(
+                protobuf_dir))
+        os.chdir(protobuf_dir)
+        os.system('git checkout tags/{}'.format(protobuf_ver))
 
+    os.chdir(protobuf_dir)
+    os.system('./autogen.sh')
+    rc = os.system('./configure -q --prefix={}'.format(
+        get_sal_home_absolute() + '/install/'))
+    if rc != 0:
+        return False
+    rc = os.system('make -j -s')
+    if rc != 0:
+        return False
+    # os.system('make check')
+    rc = os.system('make -j -s install')
+    if rc != 0:
+        return False
+    rc = os.system('sudo ldconfig')
+    if rc != 0:
+        return False
+    return True
+    # os.system('sudo pip install protobuf=={}'.format(protobuf_ver))
 
 
 def installgRPC():
     print('Installing gRPC.')
-    gRPC_ver = 'v1.17.0'  # This is required version to build PI, check PI's github.
+    gRPC_ver = 'v1.17.0'
     gRPC_dir = '{0}/grpc{1}/'.format(sal_thirdparty_path, gRPC_ver)
     if os.path.exists(gRPC_dir):
         print('{0} already exists, will rebuild.'.format(gRPC_dir))
@@ -354,31 +387,28 @@ def installgRPC():
 
     os.chdir(gRPC_dir)
 
-    try:
-        os.makedirs(gRPC_dir + '/cmake/build')
-    except FileExistsError:
-        print('cmake directory already exists.')
-    os.chdir('./cmake/build')
-    cmake_cmd = 'cmake ../.. \
-              -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX={}'.format(
+    #         os.makedirs(gRPC_dir+'/cmake/build')
+    #         cmake_cmd='cmake ../.. -DgRPC_INSTALL=ON \
+    #                   -DgRPC_BUILD_TESTS=OFF \
+    #                   -DCMAKE_INSTALL_PREFIX={}'.format(get_sal_home_absolute()+'/install/')
+    #         print('Executing gRPC cmake command : '.format(cmake_cmd))
+    #         rc=os.system(cmake_cmd)
+
+    make_cmd = 'LD_LIBRARY_PATH={0}/lib/ PKG_CONFIG_PATH={0}/lib/pkgconfig/:$PKG_CONFIG_PATH \
+    make -j -s LDFLAGS=-L{0}/lib prefix={0}'.format(
         get_sal_home_absolute() + '/install/')
-    print('Executing gRPC cmake command : {}'.format(cmake_cmd))
-
-    rc = os.system(cmake_cmd)
-    rc = os.system('make -j')
+    print('Executing CMD: {}'.format(make_cmd))
+    rc = os.system(make_cmd)
     if rc != 0:
+        print('{} Failed with return code {}'.format(make_cmd, rc))
         return False
 
-    rc = os.system('make install')
+    make_install_cmd = 'make -s install prefix={0}'.format(
+        get_sal_home_absolute() + '/install/')
+    rc = os.system(make_install_cmd)
     if rc != 0:
+        print('{} Failed with return code {}'.format(make_install_cmd, rc))
         return False
-
-    # Need to copy grpc_cpp_plugin manually,
-    # Perhaps a bug in grpc_1.17.0 works fine with grpc_1.34.0 .
-    grpc_cpp_plug = get_sal_home_absolute() + \
-                     '/install/bin/grpc_cpp_plugin'
-    shutil.copyfile('grpc_cpp_plugin', grpc_cpp_plug)
-    make_executable(grpc_cpp_plug)
 
     ld_cmd = 'sudo ldconfig'
     rc = os.system(ld_cmd)
@@ -386,6 +416,58 @@ def installgRPC():
         print('{} Failed with return code {}'.format(ld_cmd, rc))
         return False
     return True
+
+# def installgRPC():
+#     print('Installing gRPC.')
+#     gRPC_ver = 'v1.17.0'  # This is required version to build PI, check PI's github.
+#     gRPC_dir = '{0}/grpc{1}/'.format(sal_thirdparty_path, gRPC_ver)
+#     if os.path.exists(gRPC_dir):
+#         print('{0} already exists, will rebuild.'.format(gRPC_dir))
+#     else:
+#         os.system(
+#             'git clone https://github.com/google/grpc.git {}'.format(gRPC_dir))
+#         os.chdir(gRPC_dir)
+#         os.system('git checkout tags/{}'.format(gRPC_ver))
+#         os.system('git submodule update --init --recursive')
+#
+#     os.chdir(gRPC_dir)
+#
+#     try:
+#         os.makedirs(gRPC_dir + '/cmake/build')
+#     except FileExistsError:
+#         print('cmake directory already exists.')
+#     os.chdir('./cmake/build')
+#     cmake_cmd = 'cmake ../.. \
+#               -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX={}'.format(
+#         get_sal_home_absolute() + '/install/')
+#     print('Executing gRPC cmake command : {}'.format(cmake_cmd))
+#
+#     rc = os.system(cmake_cmd)
+#     rc = os.system('make -j prefix={}'.format(get_sal_home_absolute() + '/install/'))
+#     if rc != 0:
+#         return False
+#
+#     rc = os.system('make prefix={} install'.format(get_sal_home_absolute() + '/install/'))
+#     if rc != 0:
+#         return False
+#
+#     # Need to copy grpc_cpp_plugin and libgrpc++.so manually,
+#     # Perhaps a bug in grpc_1.17.0 works fine with grpc_1.34.0 .
+#     grpc_cpp_plug = get_sal_home_absolute() + \
+#                      '/install/bin/grpc_cpp_plugin'
+#     lib_grpcpp = get_sal_home_absolute() + \
+#                     '/install/lib/libgrpc++.so'
+#     shutil.copyfile('grpc_cpp_plugin', grpc_cpp_plug)
+#     shutil.copyfile('libgrpc++.so', lib_grpcpp)
+#     make_executable(grpc_cpp_plug)
+#
+#     #ld_cmd = 'sudo ldconfig'
+#     #rc = os.system(ld_cmd)
+#     # if rc != 0:
+#     #     print('{} Failed with return code {}'.format(ld_cmd, rc))
+#     #     return False
+#     # return True
+#     return rc
 
 
 def make_executable(path):

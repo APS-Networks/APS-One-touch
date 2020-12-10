@@ -68,8 +68,8 @@ def build_sde():
     else:
         print('No build flag will be used for BF_SDE build.')
     os.environ[
-        constants.path_env_var_name] += os.pathsep + sde_home_absolute +\
-        '/install/bin/'
+        constants.path_env_var_name] += os.pathsep + sde_home_absolute + \
+                                        '/install/bin/'
     print('Building sde with command {}'.format(sde_install_cmd))
     os.system(sde_install_cmd)
     return True
@@ -152,11 +152,11 @@ def prepare_bsp_pkg():
     execute_cmd_n_get_output_2(
         'git --git-dir {0}/.git diff {1} {2} \':!./platforms/apsn/\' \':!.idea/\' > {3}'.
             format(bsp_dev_abs, earliest_commit_hash, latest_commit_hash,
-                   bsp_dev_abs+'/'+diff_file))
+                   bsp_dev_abs + '/' + diff_file))
 
     latest_commit_hash_short = execute_cmd_n_get_output_2(
         'git --git-dir {0}/.git rev-parse --short HEAD'.format(bsp_dev_abs))
-    bsp_name = '/'+os.path.basename(bsp_dev_abs) \
+    bsp_name = '/' + os.path.basename(bsp_dev_abs) \
                + '_' + latest_commit_hash_short
     bsp_rel_dir = release_dir + bsp_name
 
@@ -169,8 +169,8 @@ def prepare_bsp_pkg():
         delete_files(bsp_rel_dir)
         os.mkdir(bsp_rel_dir)
 
-    shutil.move(bsp_dev_abs+'/'+diff_file, bsp_rel_dir + '/' + diff_file)
-    shutil.copytree(bsp_dev_abs+'/platforms/apsn/',bsp_rel_dir+'/apsn')
+    shutil.move(bsp_dev_abs + '/' + diff_file, bsp_rel_dir + '/' + diff_file)
+    shutil.copytree(bsp_dev_abs + '/platforms/apsn/', bsp_rel_dir + '/apsn')
     shutil.make_archive(bsp_rel_dir, 'zip', bsp_rel_dir)
 
 
@@ -284,7 +284,7 @@ def install_switch_bsp():
     ref_bsp_tar.close()
     os.chdir(bf_pltfm_dir)
     os.system('patch -p1 < {0}/{1}'.format(str(
-        Path(aps_bsp_installation_file).parent),diff_file))
+        Path(aps_bsp_installation_file).parent), diff_file))
     # os.environ['BSP'] = os.getcwd()
     # print("BSP home directory set to {}".format(os.environ['BSP']))
     os.environ['BSP_INSTALL'] = get_env_var('SDE_INSTALL')

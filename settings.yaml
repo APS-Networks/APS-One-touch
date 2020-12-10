@@ -25,7 +25,7 @@ BF SDE: &bf_sde
   build_flags: #Optional list of P4Studio build flags. 
                #Provide more flags with '-' in the beginning, its for yaml syntax. 
                #and than flag e.g. '-rb'
-    - -rb
+    #- -rb
     #- -iod
 
 STRATUM: &stratum
