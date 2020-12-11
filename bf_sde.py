@@ -53,9 +53,10 @@ def build_sde():
     if get_selected_profile_name() in [constants.stratum_hw_profile_name,
                                        constants.stratum_sim_profile_name]:
         p4studio_build_profile = 'stratum_profile'
-
-    if p4studio_build_profile == "":
+    
+    if p4studio_build_profile == "" or p4studio_build_profile is None:
         build_opt = ""
+        p4studio_build_profile = ""
 
     sde_install_cmd = "./p4studio_build/p4studio_build.py {} {}".format(
         build_opt,
