@@ -13,8 +13,9 @@ from common import create_symlinks, execute_cmd_n_get_output, get_env_var, \
     set_env_var, validate_path_existence, \
     append_to_env_var, \
     dname, get_switch_model, execute_cmd, get_ref_bsp_abs_path, \
-    get_aps_bsp_pkg_abs_path, get_bsp_dev_abs_path, release_dir, \
-    execute_cmd_n_get_output_2, delete_files
+    get_aps_bsp_pkg_abs_path, release_dir, \
+    execute_cmd_n_get_output_2, delete_files, get_path_relative_to_user_home, \
+    get_from_advance_setting_dict
 from drivers import load_and_verify_kernel_modules
 
 
@@ -53,7 +54,7 @@ def build_sde():
     if get_selected_profile_name() in [constants.stratum_hw_profile_name,
                                        constants.stratum_sim_profile_name]:
         p4studio_build_profile = 'stratum_profile'
-    
+
     if p4studio_build_profile == "" or p4studio_build_profile is None:
         build_opt = ""
         p4studio_build_profile = ""
@@ -319,3 +320,24 @@ def just_load_sde():
 
 if __name__ == '__main__':
     just_load_sde()
+
+
+def get_default_bsp_dev_path():
+    if get_switch_model() == constants.bf2556x_1t:
+        return get_path_relative_to_user_home(
+            '/bsp/bf-reference-bsp-9.2.0-BF2556')
+    elif get_switch_model() == constants.bf6064x_t:
+        return get_path_relative_to_user_home(
+            '/bsp/bf-reference-bsp-9.2.0-BF6064')
+    else:
+        print('Development BSp can\'t be retrieved for switch model'.
+              format(get_switch_model()))
+
+
+def get_bsp_dev_abs_path():
+    path_from_adv_setting = get_from_advance_setting_dict(constants.BSP_node,
+                                                          constants.bsp_dev_node_name)
+    if path_from_adv_setting is None:
+        return get_default_bsp_dev_path()
+    else:
+        return get_path_relative_to_user_home(path_from_adv_setting)

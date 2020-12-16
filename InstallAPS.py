@@ -15,7 +15,6 @@ def do_basic_path_validation(prof_name):
     validate_path_existence(get_sde_pkg_abs_path(), 'Barefoot SDE')
     if not is_sim_profile_selected():
         validate_path_existence(get_ref_bsp_abs_path(), 'BF BSP')
-        validate_path_existence(get_aps_bsp_pkg_abs_path(), 'APS BSP')
     if get_selected_profile_name() in [constants.stratum_sim_profile_name,
                                        constants.stratum_hw_profile_name]:
         validate_path_existence(get_stratum_home_absolute(), 'Stratum')

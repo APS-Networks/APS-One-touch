@@ -70,12 +70,6 @@ def read_advance_settings():
 advance_settings_dict = read_advance_settings()
 
 
-def get_bsp_dev_abs_path():
-    return get_path_relative_to_user_home(
-        get_from_advance_setting_dict(constants.BSP_node,
-                                      constants.bsp_dev_node_name))
-
-
 def delete_files(file):
     try:
         shutil.rmtree(file)

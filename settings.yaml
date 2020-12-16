@@ -11,7 +11,7 @@ PATH_PREFIX: #Various paths used in this setting file are evaluated relative to 
 
 BSP: &bsp
   ref_bsp: /bsp/bf-reference-bsp-9.2.0.tar #Reference BSP to be downloaded from Intel's support portal.
-  aps_bsp_pkg: /bsp/bf-reference-bsp-9.2.0-BF2556_767a4de.zip #Porting code for APS switch.
+  aps_bsp_pkg: /APS-One-touch/release/bf-reference-bsp-9.2.0-BF6064_0ee36ac.zip #Porting code for APS switch.
 
 BF SDE: &bf_sde
   sde_pkg: /BF/bf-sde-9.2.0.tar
