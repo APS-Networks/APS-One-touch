@@ -50,7 +50,15 @@ def read_advance_settings():
     """
     Settings used for development.
     """
-    advance_settings_file = "{}/advance_settings.yaml".format(dname)
+    advance_settings_file = None
+
+    try:
+        # Custom path for settings file can be given as CLI arg.
+        advance_settings_file = sys.argv[2]
+    except IndexError:
+        # If no settings file provided as CLI arg default one from the
+        # project path will be picked.
+        advance_settings_file = "{}/advance_settings.yaml".format(dname)
 
     if advance_settings_file is None:
         print('Invalid settings file for AOT {}'.format(advance_settings_file))
