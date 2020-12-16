@@ -10,7 +10,8 @@ import yaml
 import constants
 from constants import sal_hw_profile_name, sal_sim_profile_name, \
     sde_hw_profile_name, sde_sim_profile_name, stratum_hw_profile_name, \
-    stratum_sim_profile_name
+    stratum_sim_profile_name, BSP_node, aps_bsp_pkg_node, ref_bsp_node, \
+    switch_model_env_var_name, bf2556x_1t, bf6064x_t
 import shutil
 
 abspath = os.path.abspath(__file__)
@@ -43,6 +44,30 @@ def read_settings():
 
 
 settings_dict = read_settings()
+
+
+def read_advance_settings():
+    """
+    Settings used for development.
+    """
+    advance_settings_file = "{}/advance_settings.yaml".format(dname)
+
+    if advance_settings_file is None:
+        print('Invalid settings file for AOT {}'.format(advance_settings_file))
+        exit(0)
+    else:
+        print('Reading settings from file {}'.format(advance_settings_file))
+        with open(advance_settings_file, 'r') as stream:
+            try:
+                return yaml.safe_load(stream)
+            except yaml.YAMLError as exc:
+                print(exc)
+                print("Error occurred while reading settings file {}".
+                      format(advance_settings_file))
+                exit(0)
+
+
+advance_settings_dict = read_advance_settings()
 
 
 def delete_files(file):
@@ -190,6 +215,14 @@ def get_from_setting_dict(*keys):
     return val
 
 
+def get_from_advance_setting_dict(*keys):
+    # keys to be in lexographic order
+    val = advance_settings_dict.copy()
+    for key in keys:
+        val = val.get(key)
+    return val
+
+
 def get_sde_pkg_abs_path():
     sde_pkg = get_path_relative_to_user_home(
         get_from_setting_dict('BF SDE', 'sde_pkg'))
@@ -199,11 +232,20 @@ def get_sde_pkg_abs_path():
     return sde_pkg
 
 
-def get_bsp_pkg_abs_path():
+def get_aps_bsp_pkg_abs_path():
     bsp_pkg = get_path_relative_to_user_home(
-        get_from_setting_dict('BSP', 'bsp_pkg'))
+        get_from_setting_dict(BSP_node, aps_bsp_pkg_node))
     if not zipfile.is_zipfile(bsp_pkg):
-        print("Invalid BSP zip file {} can not build.".format(bsp_pkg))
+        print("Invalid APS BSP zip file {} can not build.".format(bsp_pkg))
+        exit(0)
+    return bsp_pkg
+
+
+def get_ref_bsp_abs_path():
+    bsp_pkg = get_path_relative_to_user_home(
+        get_from_setting_dict(BSP_node, ref_bsp_node))
+    if not tarfile.is_tarfile(bsp_pkg):
+        print("Invalid Reference BSP tar file {} can not build.".format(bsp_pkg))
         exit(0)
     return bsp_pkg
 
@@ -270,7 +312,7 @@ def get_selected_profile_name():
 
 
 def get_gb_src_home_from_config():
-    return settings_dict.get('GB').get('gb_src')
+    return advance_settings_dict.get('GB').get('gb_src')
 
 
 def get_gb_src_home_absolute():
@@ -278,15 +320,24 @@ def get_gb_src_home_absolute():
 
 
 def get_gb_lib_home_from_config():
-    return settings_dict.get('GB').get('gb_lib')
+    return advance_settings_dict.get('GB').get('gb_lib')
 
 
 def get_gb_lib_home_absolute():
     return get_path_relative_to_user_home(get_gb_lib_home_from_config())
 
 
-def get_switch_model_from_settings():
+def get_switch_model():
     return get_from_setting_dict(constants.switch_model_node)
+
+
+def get_switch_model_from_env():
+    model_name = get_env_var(switch_model_env_var_name)
+    if model_name is None or model_name not in [bf2556x_1t,bf6064x_t]:
+        print('Please set env_var SWITCH_MODEL with values either {0} or {1}'.
+              format(bf2556x_1t, bf6064x_t))
+        exit(0)
+    return model_name
 
 
 def is_sim_profile_selected():
