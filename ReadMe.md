@@ -6,23 +6,38 @@ To get the files required by installer contact STORDIS.
 
 Default input while execution i.e. when user just presses enter without any input appears in square braces i.e. '[n]' or '[do_nothing]'
 
+## Release Compatibility 
+|Device|AOT|SAL|APSN BSP|SDE|
+|---|---|---|---|---|
+|BF2556X_1T<br>BF6064X_T|v1.2.0|sal_1.1.0|BF2556X-1T_BSP_9.0.0(master HEAD)<br>BF6064X_BSP_9.0.0|BF_SDE_9.1<br>BF_SDE_9.2|
+
+
+
 ## settings.yaml
 
 This is an input file for the tool so as to minimize user inputs. settings.yaml should be the first file to be modified while preparing APS.
 
-By default settings.yaml is read from project directory, But user can also give absolute path to other setting file as a CLI argument while executing python scripts. 
+By default, settings.yaml is picked up from project directory, But user can also give an absolute path to other setting file as a CLI argument while executing python scripts. 
 Just that every other settings file should have format same as settings.yaml in project path.
 This way user can save different settings in different files with relevant names and need not to modify same file while launching AOT with different settings.
 
-At minimum user should check for following node values in settings.yaml if different than default:
-- 'SWITCH Model'
-- 'BF SDE'
-- 'BSP'
-- 'BUILD_PROFILES' -> selected
-For other node details see Profiles section below.
 
-All package paths are calculated relative to user_home or relative to `PATH_PREFIX` if provided.
-Configure correct path for selected and dependency profile packages.
+## Quick start
+For a quick start user should check for following node values in settings.yaml if different than default:
+- SWITCH Model
+- BF SDE
+  - sde_pkg 
+  - sde_home
+- BSP 
+  - ref_bsp
+  - aps_bsp_pkg 
+- BUILD_PROFILES -> selected -> '*sde_hw_profile'
+- python3 InstallAPS.py
+
+If you errors related to absent dependencies Refer section [How to run](#how-to-run) below.
+
+By default, all the package paths are calculated relative to user_home or relative to `PATH_PREFIX` if provided.
+For further node details see Profiles section below.
 
 ## Profiles
 
@@ -58,13 +73,9 @@ Configure correct path for selected and dependency profile packages.
 ## Recommendations
 This version of AOT currently is tested on :
 * Ubuntu 18.04.4 LTS
-* SDE-9.1.0
 * gcc-8/g++-8
 
-## Upcoming Features
-
-- Docker containerization.
 
 ## Support
 
-Raise issues or raise issue in GitHub repo : <https://github.com/stordis/APS-One-touch/issues>
+Raise issues or raise issue in GitHub repo : <https://github.com/apsnw/APS-One-touch/issues>
