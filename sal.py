@@ -81,8 +81,8 @@ def get_sal_home_absolute():
 
 def get_tp_install_path_absolute():
     return get_path_relative_to_user_home(
-        get_from_advance_setting_dict()(constants.sal_sw_attr_node,
-                                        constants.tp_install_node_name))
+        get_from_advance_setting_dict(constants.sal_sw_attr_node,
+                                      constants.tp_install_node_name))
 
 
 def get_sal_home_from_config():
@@ -417,6 +417,7 @@ def installgRPC():
         return False
     return True
 
+
 # def installgRPC():
 #     print('Installing gRPC.')
 #     gRPC_ver = 'v1.17.0'  # This is required version to build PI, check PI's github.
@@ -472,7 +473,7 @@ def installgRPC():
 
 def make_executable(path):
     mode = os.stat(path).st_mode
-    mode |= (mode & 0o444) >> 2    # copy R bits to X
+    mode |= (mode & 0o444) >> 2  # copy R bits to X
     os.chmod(path, mode)
 
 
