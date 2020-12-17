@@ -152,7 +152,7 @@ def prepare_bsp_pkg():
         'git --git-dir {0}/.git rev-parse HEAD'.format(bsp_dev_abs))
     os.chdir(bsp_dev_abs)
     execute_cmd_n_get_output_2(
-        'git --git-dir {0}/.git diff {1} {2} \':!./platforms/apsn/\' \':!.idea/\' > {3}'.
+        'git --git-dir {0}/.git diff {1} {2} \':!./platforms/apsn/\' \':!.idea/\' \':!.gitignore\' > {3}'.
             format(bsp_dev_abs, earliest_commit_hash, latest_commit_hash,
                    bsp_dev_abs + '/' + diff_file))
 
