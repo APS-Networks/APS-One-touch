@@ -152,7 +152,7 @@ def prepare_bsp_pkg():
         'git --git-dir {0}/.git rev-parse HEAD'.format(bsp_dev_abs))
     os.chdir(bsp_dev_abs)
     execute_cmd_n_get_output_2(
-        'git --git-dir {0}/.git diff {1} {2} \':!./platforms/apsn/\' \':!.idea/\' \':!.gitignore\' > {3}'.
+        'git --git-dir {0}/.git diff {1} {2} -- \':!./platforms/apsn/\' \':!.idea/\' \':!.gitignore\' > {3}'.
             format(bsp_dev_abs, earliest_commit_hash, latest_commit_hash,
                    bsp_dev_abs + '/' + diff_file))
 
@@ -296,7 +296,7 @@ def install_switch_bsp():
 
     os.system("autoreconf && autoconf")
     os.system("chmod +x ./autogen.sh")
-    os.system("chmod +x ./configure")
+    #os.system("chmod +x ./configure")
     if get_switch_model() == constants.bf2556x_1t:
         execute_cmd(
             "CFLAGS=-Wno-error ./configure --prefix={} --enable-thrift --with-tof-brgup-plat".format(

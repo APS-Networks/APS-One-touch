@@ -3,9 +3,9 @@
 
 #For quick start goto bottom and type in profile of choice under slected.
 
-SWITCH Model: BF2556X_1T
+#SWITCH Model: BF2556X_1T
 #OR
-#SWITCH Model: BF6064X_T
+SWITCH Model: BF6064X_T
 
 PATH_PREFIX: #Various paths used in this setting file are evaluated relative to this, Default is user home directory
 
