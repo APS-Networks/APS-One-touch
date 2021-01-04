@@ -64,6 +64,7 @@ For further node details see Profiles section below.
   - sudo apt install python (python2.7 if not already installed, used by p4studio_build.py)
   - sudo apt-get install libusb-1.0-0-dev (required for BSP compilation)
   - sudo apt-get install libcurl4-openssl-dev (required for BSP compilation)
+  - sudo apt install i2c-tools  
 - Start installation :
   - python3 InstallAPS.py <optional - abs path to settings file>
 - Also, if dependencies for a specific profile are already installed you can directly run the

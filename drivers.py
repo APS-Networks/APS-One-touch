@@ -96,6 +96,14 @@ def load_and_verify_kernel_modules_bf2556():
     output = execute_cmd_n_get_output('lsmod')
     irq_debug = True
 
+    i2cbuses = execute_cmd_n_get_output('i2cdetect -l')
+    print(i2cbuses)
+    if 'i2c-0' not in i2cbuses or\
+            'i2c-1' not in i2cbuses or \
+            'i2c-2' not in i2cbuses:
+        print('Required I2C buses are not available in your device')
+        exit(0)
+
     if 'irq_debug' not in output:
         install_irq_debug()
 
