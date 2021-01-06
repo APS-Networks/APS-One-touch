@@ -6,6 +6,15 @@ To get the files required by installer contact STORDIS.
 
 Default input while execution i.e. when user just presses enter without any input appears in square braces i.e. '[n]' or '[do_nothing]'
 
+## Required Software
+|SW|Details|Where to get it|
+|---|---|---|
+|bf-reference-bsp-&lt;Release>-&lt;APSN switch model>_&lt;APSN ver>.zip|APSN Switches Platform package & Patch|APSN Support Portal|
+|sal_&lt;Release>|Switch Abstraction Layer for APSN Switches|APSN Support Portal|
+|bf-sde-&lt;Release>|Intel Tofino SDE|Intel's Support Portal|
+|bf-reference-bsp-&lt;Release>|Intel Tofino SDE|Intel's Support Portal|
+ 
+
 ## Release Compatibility 
 |Device|AOT|SAL|APSN BSP|SDE|
 |---|---|---|---|---|
@@ -60,16 +69,16 @@ For further node details see Profiles section below.
 ## How to run
 
 - Install dependency packages :
-  - sudo apt install python3 (if not already installed)
-  - sudo apt install python (python2.7 if not already installed, used by p4studio_build.py)
-  - sudo apt-get install libusb-1.0-0-dev (required for BSP compilation)
-  - sudo apt-get install libcurl4-openssl-dev (required for BSP compilation)
-  - sudo apt install i2c-tools  
+  - `sudo apt install python3` (if not already installed)
+  - `sudo apt install python` (python2.7 if not already installed, used by p4studio_build.py)
+  - `sudo apt-get install libusb-1.0-0-dev` (required for BSP compilation)
+  - `sudo apt-get install libcurl4-openssl-dev` (required for BSP compilation)
+  - `sudo apt install i2c-tools`
 - Start installation :
-  - python3 InstallAPS.py <optional - abs path to settings file>
+  - `python3 InstallAPS.py <optional - abs path to settings file>`
 - Also, if dependencies for a specific profile are already installed you can directly run the
  respective installation script for that profile.
- e.g. You can directly trigger SAL installation by executing 'python3 sal.py <optional - abs path to settings file>', in case dependencies SDE and BSP are already installed, This save user from giving inputs for dependencies.
+ e.g. You can directly trigger SAL installation by executing `python3 sal.py <optional - abs path to settings file>`, in case dependencies SDE and BSP are already installed, This save user from giving inputs for dependencies.
 
 
 ## Recommendations
