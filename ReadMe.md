@@ -1,8 +1,7 @@
 # APS One Touch (AOT)
 
-One touch is a tool to install all required software and tools for setting up STORDIS Advances Programmable Switches (APS) series.
-This tools configures BF2556X_1T and BF6064X_T with BF_SDE, BSP, SAL(Switch Abstraction Layer) and Stratum
-To get the files required by installer contact STORDIS.
+AOT is an easy tool to setup APSN's switches. AOT configures BF2556X_1T and BF6064X_T with BF_SDE, BSP, SAL(Switch Abstraction Layer) and Stratum.
+To get the files required by installer refer [Required Software](#required-software) section below.
 
 Default input while execution i.e. when user just presses enter without any input appears in square braces i.e. '[n]' or '[do_nothing]'
 
@@ -16,10 +15,10 @@ Default input while execution i.e. when user just presses enter without any inpu
  
 
 ## Release Compatibility 
-|Device|AOT|SAL|APSN BSP|SDE|
-|---|---|---|---|---|
-|BF2556X_1T<br>BF6064X_T|v1.3.0|sal_1.1.0|bf-reference-bsp-9.2.0-BF2556_5189449.zip<br>bf-reference-bsp-9.2.0-BF6064_0ee36ac.zip|BF_SDE_9.2|
-|BF2556X_1T<br>BF6064X_T|v1.2.0|sal_1.1.0|BF2556X-1T_BSP_9.0.0(master HEAD)<br>BF6064X_BSP_9.0.0(master HEAD)|BF_SDE_9.1<br>BF_SDE_9.2|
+|Device|AOT|SAL|APSN BSP|SDE|OS (Recommended)|
+|---|---|---|---|---|---|
+|BF2556X_1T<br>BF6064X_T|v1.3.0|sal_1.1.0|bf-reference-bsp-9.2.0-BF2556_5189449.zip<br>bf-reference-bsp-9.2.0-BF6064_0ee36ac.zip|BF_SDE_9.2|Ubuntu Server 18.04.4 LTS|
+|BF2556X_1T<br>BF6064X_T|v1.2.0|sal_1.1.0|BF2556X-1T_BSP_9.0.0(master HEAD)<br>BF6064X_BSP_9.0.0(master HEAD)|BF_SDE_9.1<br>BF_SDE_9.2|Ubuntu Server 18.04.4 LTS|
 
 
 
@@ -74,6 +73,7 @@ For further node details see Profiles section below.
   - `sudo apt-get install libusb-1.0-0-dev` (required for BSP compilation)
   - `sudo apt-get install libcurl4-openssl-dev` (required for BSP compilation)
   - `sudo apt install i2c-tools`
+  - `sudo apt install gcc-8 g++-8` (SAL is compiled using version 8 compiler)
 - Start installation :
   - `python3 InstallAPS.py <optional - abs path to settings file>`
 - Also, if dependencies for a specific profile are already installed you can directly run the
@@ -81,12 +81,5 @@ For further node details see Profiles section below.
  e.g. You can directly trigger SAL installation by executing `python3 sal.py <optional - abs path to settings file>`, in case dependencies SDE and BSP are already installed, This save user from giving inputs for dependencies.
 
 
-## Recommendations
-This version of AOT currently is tested on :
-* Ubuntu 18.04.4 LTS
-* gcc-8/g++-8
-
-
 ## Support
-
-Raise issues or raise issue in GitHub repo : <https://github.com/apsnw/APS-One-touch/issues>
+Raise issues in GitHub repo : <https://github.com/apsnw/APS-One-touch/issues> or in APSN support portal.
