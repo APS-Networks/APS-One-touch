@@ -255,14 +255,14 @@ def install_switch_bsp():
     aps_bsp_installation_file = get_aps_bsp_pkg_abs_path()
     print("Installing {}".format(aps_bsp_installation_file))
     aps_zip = zipfile.ZipFile(aps_bsp_installation_file)
-    aps_zip.extractall(Path(aps_bsp_installation_file).parent)
+    aps_zip.extractall(str(Path(aps_bsp_installation_file).parent))
     aps_bsp_dir = aps_zip.namelist()[0]
     aps_bsp_dir_absolute = str(
         Path(aps_bsp_installation_file).parent) + '/' + aps_bsp_dir
     aps_zip.close()
 
     ref_bsp_tar = tarfile.open(get_ref_bsp_abs_path())
-    ref_bsp_tar.extractall(Path(get_ref_bsp_abs_path()).parent)
+    ref_bsp_tar.extractall(str(Path(get_ref_bsp_abs_path()).parent))
     ref_bsp_dir = ref_bsp_tar.getnames()[0]
     os.chdir(str(
         Path(get_ref_bsp_abs_path()).parent) + '/' + ref_bsp_dir + '/packages')
