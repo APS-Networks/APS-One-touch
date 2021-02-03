@@ -59,7 +59,8 @@ def build_sde():
         build_opt = ""
         p4studio_build_profile = ""
 
-    sde_install_cmd = "./p4studio_build/p4studio_build.py {} {}".format(
+    sde_install_cmd = "{0}/p4studio_build/p4studio_build.py {1} {2}".format(
+        sde_home_absolute,
         build_opt,
         p4studio_build_profile)
 
