@@ -300,11 +300,11 @@ def install_switch_bsp():
     #os.system("chmod +x ./configure")
     if get_switch_model() == constants.bf2556x_1t:
         execute_cmd(
-            "CFLAGS=-Wno-error ./configure --prefix={} --enable-thrift --with-tof-brgup-plat".format(
+            "CFLAGS=-Wno-error ./configure --prefix={} --with-tof-brgup-plat".format(
                 os.environ['BSP_INSTALL']))
     else:
         execute_cmd(
-            "CFLAGS=-Wno-error ./configure --prefix={} --enable-thrift".format(
+            "CFLAGS=-Wno-error ./configure --prefix={}".format(
                 os.environ['BSP_INSTALL']))
     os.system("make")
     os.system("sudo make install")
