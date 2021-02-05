@@ -141,7 +141,17 @@ def ask_user_for_building_sde():
         print("You selected not to build SDE.")
 
 
-diff_file = 'bf2556x_1t.diff'
+def get_diff_file_name():
+    return '{}.diff'.format(get_switch_model())
+
+
+def get_bsp_dev_abs_path():
+    path_from_adv_setting = get_from_advance_setting_dict(
+        constants.BSP_node, constants.bsp_dev_node_name)
+    if path_from_adv_setting is None:
+        return get_default_bsp_dev_path()
+    else:
+        return get_path_relative_to_user_home(path_from_adv_setting)
 
 
 def prepare_bsp_pkg():
@@ -155,7 +165,7 @@ def prepare_bsp_pkg():
     execute_cmd_n_get_output_2(
         'git --git-dir {0}/.git diff {1} {2} -- \':!./platforms/apsn/\' \':!.idea/\' \':!.gitignore\' > {3}'.
             format(bsp_dev_abs, earliest_commit_hash, latest_commit_hash,
-                   bsp_dev_abs + '/' + diff_file))
+                   bsp_dev_abs + '/' + get_diff_file_name()))
 
     latest_commit_hash_short = execute_cmd_n_get_output_2(
         'git --git-dir {0}/.git rev-parse --short HEAD'.format(bsp_dev_abs))
@@ -172,14 +182,16 @@ def prepare_bsp_pkg():
         delete_files(bsp_rel_dir)
         os.mkdir(bsp_rel_dir)
 
-    shutil.move(bsp_dev_abs + '/' + diff_file, bsp_rel_dir + '/' + diff_file)
+    shutil.move(bsp_dev_abs + '/' + get_diff_file_name(), bsp_rel_dir + '/' +
+                get_diff_file_name())
     shutil.copytree(bsp_dev_abs + '/platforms/apsn/', bsp_rel_dir + '/apsn')
     shutil.make_archive(bsp_rel_dir, 'zip', bsp_rel_dir)
 
 
 def ask_user_for_building_bsp():
     if get_sde_profile_name() == constants.sde_hw_profile_name:
-        in_put = input("BSP : build y/[n]?")
+        in_put = input("BSP : build y/[n]  "
+                       "OR developer's option- packaging(p)?")
         if not in_put:
             in_put = "n"
         if in_put == "y":
@@ -334,11 +346,3 @@ def get_default_bsp_dev_path():
         print('Development BSp can\'t be retrieved for switch model'.
               format(get_switch_model()))
 
-
-def get_bsp_dev_abs_path():
-    path_from_adv_setting = get_from_advance_setting_dict(constants.BSP_node,
-                                                          constants.bsp_dev_node_name)
-    if path_from_adv_setting is None:
-        return get_default_bsp_dev_path()
-    else:
-        return get_path_relative_to_user_home(path_from_adv_setting)
