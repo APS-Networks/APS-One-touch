@@ -515,7 +515,9 @@ def execute_user_action(sal_input):
 
 def take_user_input():
     sal_input = input(
-        "SAL : run(r), [do_nothing(n)] ? ")
+        "SAL : run(r), [do_nothing(n)], "
+        "OR developer's options - "
+        "build(b), clean(c), install 3rdParty SWs(i) ? ")
 
     if 'n' in sal_input or not sal_input:
         # In case user give nasty input like cbrn
