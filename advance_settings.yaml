@@ -5,8 +5,9 @@
 
 PATH_PREFIX: #Various paths used in this setting file are evaluated relative to this, Default is user home diretory
 
-BSP: &bsp
-  bsp_dev: # Repository path to complete BSP code.
+BSP:
+  bsp_dev: /bsp/bf-reference-bsp-9.3.0-BF2556
+  # Repository path to complete BSP code.
            # Defaults to /bsp/bf-reference-bsp-<ref_bsp_version>-BF2556
            # OR /bsp/bf-reference-bsp-<ref_bsp_version>-BF6064
            # depending upon switch model selected in settings.yaml .
