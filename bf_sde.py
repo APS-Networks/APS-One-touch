@@ -299,7 +299,7 @@ def install_switch_bsp():
     ref_bsp_tar.close()
     os.chdir(bf_pltfm_dir)
     os.system('patch -p1 < {0}/{1}'.format(str(
-        Path(aps_bsp_installation_file).parent), diff_file))
+        Path(aps_bsp_installation_file).parent), get_diff_file_name()))
     # os.environ['BSP'] = os.getcwd()
     # print("BSP home directory set to {}".format(os.environ['BSP']))
     os.environ['BSP_INSTALL'] = get_env_var('SDE_INSTALL')
