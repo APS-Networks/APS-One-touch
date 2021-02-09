@@ -3,9 +3,9 @@
 
 #For quick start goto bottom and type in profile of choice under slected.
 
-#SWITCH Model: BF2556X_1T
+SWITCH Model: BF2556X_1T
 #OR
-SWITCH Model: BF6064X_T
+#SWITCH Model: BF6064X_T
 
 PATH_PREFIX: #Various paths used in this setting file are evaluated relative to this, Default is user home directory
 
@@ -23,8 +23,9 @@ BF SDE: &bf_sde
     - bf_kdrv
     #- bf_kpkt
   build_flags: #Optional list of P4Studio build flags. 
-               #Provide more flags with '-' in the beginning, its for yaml syntax. 
-               #and than flag e.g. '-rb'
+               #Provide more flags with an extra '-' in the beginning,
+               #extra '-' is for yaml syntax.
+               #e.g. for p4studio flag '-rb' write '- -rb'
     #- -rb
     #- -iod
 
