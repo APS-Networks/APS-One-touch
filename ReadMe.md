@@ -59,7 +59,10 @@ For most of the users settings.yaml is enough to be configured and advance_setti
 - Start installation :
   - Direct trigger
     - To install and run SDE - `python3 bf_sde.py <optional - abs path to settings file>`
-    - To run SAL (prerequisite - SDE must be installed beforehand) - `python3 sal.py <optional - abs path to settings file>`
+    - To run SAL - `python3 sal.py <optional - abs path to settings file>`
+      and please note prerequisite to run SAL - SDE must be installed beforehand and 
+      get SAL from APSN support unzip to APS-One-touch/release/sal dir 
+      like: `unzip sal_<version>.zip -d APS-One-touch/release/sal`
     - To run stratum (prerequisite - SDE must be installed beforehand) - `python3 stratum.py <optional - abs path to settings file>`
   - Using AOT BUILD_PROFILES  
   Another method for installation is using `BUILD_PROFILES` in settings.yaml, 
@@ -77,7 +80,7 @@ For most of the users settings.yaml is enough to be configured and advance_setti
    
 ### sal_hw_profile
    Select the profile for using Switch Abstraction Layer (SAL) on the switch.
-   Get SAL release from APSN support portal, unzip it into APS-One-touch/release/sal directory. 
+   Get SAL release from APSN support portal, unzip it into APS-One-touch/release/sal directory. like: `unzip sal_<version>.zip -d APS-One-touch/release/sal`
    There is no other config to be done in settings.yaml by end user, SAL settings in advance_settings.yaml are for development usage.
    Check 'BF SDE', 'BSP' nodes configuration in settings.yaml.
    
