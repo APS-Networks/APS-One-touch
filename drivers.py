@@ -96,7 +96,7 @@ def load_and_verify_kernel_modules_bf2556():
     output = execute_cmd_n_get_output('lsmod')
     irq_debug = True
 
-    i2cbuses = execute_cmd_n_get_output('i2cdetect -l')
+    i2cbuses = execute_cmd_n_get_output('sudo -E i2cdetect -l')
     print(i2cbuses)
     if 'i2c-0' not in i2cbuses or\
             'i2c-1' not in i2cbuses or \
