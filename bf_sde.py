@@ -16,12 +16,16 @@ from common import create_symlinks, execute_cmd_n_get_output, get_env_var, \
     get_aps_bsp_pkg_abs_path, release_dir, \
     execute_cmd_n_get_output_2, delete_files, get_path_relative_to_user_home, \
     get_from_advance_setting_dict
+from constants import stratum_profile
 from drivers import load_and_verify_kernel_modules
 
 
 def get_sde_build_flags():
     return get_sde_profile_details().get(constants.sde_build_flags_node)
 
+
+def get_p4_studio_build_profile_name():
+    return get_from_setting_dict('BF SDE', 'p4studio_build_profile')
 
 def build_sde():
     sde_tar = tarfile.open(get_sde_pkg_abs_path())
@@ -48,12 +52,11 @@ def build_sde():
     sde_tar.close()
     os.chdir(sde_home_absolute)
     build_opt = "-up"
-    p4studio_build_profile = get_from_setting_dict('BF SDE',
-                                                   'p4studio_build_profile')
+    p4studio_build_profile = get_p4_studio_build_profile_name()
 
     if get_selected_profile_name() in [constants.stratum_hw_profile_name,
                                        constants.stratum_sim_profile_name]:
-        p4studio_build_profile = 'stratum_profile'
+        p4studio_build_profile = stratum_profile
 
     if p4studio_build_profile == "" or p4studio_build_profile is None:
         build_opt = ""
@@ -142,7 +145,7 @@ def ask_user_for_building_sde():
 
 
 def get_diff_file_name():
-    return '{}.diff'.format(get_switch_model())
+    return '{}.diff'.format(get_switch_model()).lower()
 
 
 def get_bsp_dev_abs_path():
@@ -309,15 +312,18 @@ def install_switch_bsp():
 
     os.system("autoreconf && autoconf")
     os.system("chmod +x ./autogen.sh")
-    #os.system("chmod +x ./configure")
+    thrift_flag = ''
+    if get_p4_studio_build_profile_name() != stratum_profile:
+        thrift_flag = '--enable-thrift'
     if get_switch_model() == constants.bf2556x_1t:
         execute_cmd(
-            "CFLAGS=-Wno-error ./configure --prefix={} --with-tof-brgup-plat".format(
-                os.environ['BSP_INSTALL']))
+            "CFLAGS=-Wno-error ./configure --prefix={0} {1} "
+            "--with-tof-brgup-plat".format(
+                os.environ['BSP_INSTALL'], thrift_flag))
     else:
         execute_cmd(
-            "CFLAGS=-Wno-error ./configure --prefix={}".format(
-                os.environ['BSP_INSTALL']))
+            "CFLAGS=-Wno-error ./configure --prefix={0} {1}".format(
+                os.environ['BSP_INSTALL'], thrift_flag))
     os.system("make")
     os.system("sudo make install")
     os.chdir(dname)

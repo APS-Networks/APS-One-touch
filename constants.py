@@ -10,6 +10,8 @@ stratum_hw_profile_name = 'stratum_hw_profile'
 stratum_sim_profile_name = 'stratum_sim_profile'
 stratum_hw_profile = 'stratum_hw'
 stratum_sim_profile = 'stratum_sim'
+#p4 studio profile names
+stratum_profile = 'stratum_profile'
 
 # Env var names
 switch_model_env_var_name= 'SWITCH_MODEL'

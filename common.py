@@ -341,7 +341,7 @@ def get_switch_model():
 
 def get_switch_model_from_env():
     model_name = get_env_var(switch_model_env_var_name)
-    if model_name is None or model_name not in [bf2556x_1t,bf6064x_t]:
+    if model_name is None or model_name not in [bf2556x_1t, bf6064x_t]:
         print('Please set env_var SWITCH_MODEL with values either {0} or {1}'.
               format(bf2556x_1t, bf6064x_t))
         exit(0)
