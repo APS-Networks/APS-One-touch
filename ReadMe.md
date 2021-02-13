@@ -10,8 +10,8 @@ Default input while execution i.e. when user just presses enter without any inpu
 |---|---|---|
 |bf-reference-bsp-&lt;Release>-&lt;APSN switch model>_&lt;APSN ver>.zip|APSN Switches Platform package & Patch|APSN Support Portal|
 |sal_&lt;Release>|Switch Abstraction Layer for APSN Switches|APSN Support Portal|
-|bf-sde-&lt;Release>|Intel Tofino SDE|Intel's Support Portal|
-|bf-reference-bsp-&lt;Release>|Intel Tofino SDE|Intel's Support Portal|
+|bf-sde-&lt;Release>|Intel's Tofino SDE|Intel's Support Portal|
+|bf-reference-bsp-&lt;Release>|Intel's Standard BSP for Tofino|Intel's Support Portal|
  
 ## Release Compatibility 
 |Device|AOT|SAL|APSN BSP|SDE|OS (Recommended)|Kernel|
