@@ -263,7 +263,7 @@ def load_drivers():
         print('Loading kernel modules.')
         if not load_and_verify_kernel_modules():
             print("ERROR:Some kernel modules are not loaded.")
-            #exit(0)
+            exit(0)
     else:
         print('Running simulation, No need to load kernel modules.')
 
