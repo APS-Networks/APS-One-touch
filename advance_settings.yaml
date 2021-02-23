@@ -6,7 +6,7 @@
 PATH_PREFIX: #Various paths used in this setting file are evaluated relative to this, Default is user home diretory
 
 BSP:
-  bsp_dev: /bsp/bf-reference-bsp-9.3.0-BF2556
+  bsp_dev: /bsp/bf-reference-bsp-9.4.0-BF6064
   # Repository path to complete BSP code.
            # Defaults to /bsp/bf-reference-bsp-<ref_bsp_version>-BF2556
            # OR /bsp/bf-reference-bsp-<ref_bsp_version>-BF6064
@@ -25,5 +25,5 @@ SAL: &sal
   #And in case of stratum_xyz profile selected for stratum APS value is overridden to false automatically
 
 GB: #Following parameters are useful when you have SAL src and building it, Otherwise can be ignored.
-  gb_src: /Gearbox/Px-4.2_2020_03_018/work/cpss/
-  gb_lib: /Gearbox/Px-4.2_2020_03_018/work/cpss/compilation_root/cpss_4.2/ia64_PX/
+  gb_src: /gearbox/Px-4.2_2020_03_018/work/cpss/
+  gb_lib: /gearbox/Px-4.2_2020_03_018/work/cpss/compilation_root/cpss_4.2/ia64_PX/

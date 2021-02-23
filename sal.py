@@ -106,7 +106,13 @@ def get_sal_profile_dict():
         logging.error('There is no selected or associated SAL profile')
 
 
+def install_sal_deps():
+    os.system('sudo apt install -y libboost-log1.65-dev')
+    os.system('python -m pip install grpcio-tools')
+
+
 def build_sal():
+    install_sal_deps()
     print('Building SAL...')
     try:
         # TODO Need to fix this in SAL, to use dedicated boost libs.

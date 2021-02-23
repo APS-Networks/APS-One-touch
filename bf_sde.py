@@ -197,10 +197,12 @@ def ask_user_for_building_bsp():
                        "OR developer's option- packaging(p)?")
         if not in_put:
             in_put = "n"
-        if in_put == "y":
-            install_switch_bsp()
-        if in_put == "p":
+        #Order is important, if 'p' and 'y' both oprions are given
+        # Then first package then build
+        if "p" in in_put:
             prepare_bsp_pkg()
+        if "y" in in_put:
+            install_switch_bsp()
 
 
 def ask_user_for_starting_sde():
@@ -265,6 +267,8 @@ def set_sde_env_n_load_drivers():
     load_drivers()
     return True
 
+def install_bsp_deps():
+    os.system('sudo apt -y install libusb-1.0-0-dev libcurl4-openssl-dev')
 
 def install_switch_bsp():
     set_sde_env_n_load_drivers()
@@ -310,6 +314,7 @@ def install_switch_bsp():
         "BSP_INSTALL directory set to {}".format(
             os.environ['BSP_INSTALL']))
 
+    install_bsp_deps()
     os.system("autoreconf && autoconf")
     os.system("chmod +x ./autogen.sh")
     thrift_flag = ''
