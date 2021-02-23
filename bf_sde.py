@@ -166,7 +166,13 @@ def prepare_bsp_pkg():
         'git --git-dir {0}/.git rev-parse HEAD'.format(bsp_dev_abs))
     os.chdir(bsp_dev_abs)
     execute_cmd_n_get_output_2(
-        'git --git-dir {0}/.git diff {1} {2} -- \':!./platforms/apsn/\' \':!.idea/\' \':!.gitignore\' > {3}'.
+        'git --git-dir {0}/.git diff {1} {2} -- '
+        '\':!./platforms/apsn/\' '
+        '\':!.idea/\' '
+        '\':!.gitignore\' '
+        '\':!autom4te.cache\' '
+        '\':!*Makefile.in\' '
+        '> {3}'.
             format(bsp_dev_abs, earliest_commit_hash, latest_commit_hash,
                    bsp_dev_abs + '/' + get_diff_file_name()))
 
@@ -257,7 +263,7 @@ def load_drivers():
         print('Loading kernel modules.')
         if not load_and_verify_kernel_modules():
             print("ERROR:Some kernel modules are not loaded.")
-            exit(0)
+            #exit(0)
     else:
         print('Running simulation, No need to load kernel modules.')
 
