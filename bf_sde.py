@@ -13,9 +13,8 @@ from common import create_symlinks, execute_cmd_n_get_output, get_env_var, \
     set_env_var, validate_path_existence, \
     append_to_env_var, \
     dname, get_switch_model, execute_cmd, get_ref_bsp_abs_path, \
-    get_aps_bsp_pkg_abs_path, release_dir, \
-    execute_cmd_n_get_output_2, delete_files, get_path_relative_to_user_home, \
-    get_from_advance_setting_dict
+    get_aps_bsp_pkg_abs_path, execute_cmd_n_get_output_2, get_path_relative_to_user_home, \
+    get_from_advance_setting_dict, create_release
 from constants import stratum_profile
 from drivers import load_and_verify_kernel_modules
 
@@ -175,26 +174,8 @@ def prepare_bsp_pkg():
         '> {3}'.
             format(bsp_dev_abs, earliest_commit_hash, latest_commit_hash,
                    bsp_dev_abs + '/' + get_diff_file_name()))
-
-    latest_commit_hash_short = execute_cmd_n_get_output_2(
-        'git --git-dir {0}/.git rev-parse --short HEAD'.format(bsp_dev_abs))
-    bsp_name = '/' + os.path.basename(bsp_dev_abs) \
-               + '_' + latest_commit_hash_short
-    bsp_rel_dir = release_dir + bsp_name
-
-    try:
-        os.mkdir(bsp_rel_dir)
-        print('SAL release directory {} created.'.format(bsp_rel_dir))
-    except FileExistsError:
-        print('BSP Release directory {} already exists, recreated.'.format(
-            bsp_rel_dir))
-        delete_files(bsp_rel_dir)
-        os.mkdir(bsp_rel_dir)
-
-    shutil.move(bsp_dev_abs + '/' + get_diff_file_name(), bsp_rel_dir + '/' +
-                get_diff_file_name())
-    shutil.copytree(bsp_dev_abs + '/platforms/apsn/', bsp_rel_dir + '/apsn')
-    shutil.make_archive(bsp_rel_dir, 'zip', bsp_rel_dir)
+    create_release(bsp_dev_abs, get_diff_file_name(),
+                   '/platforms/apsn/')
 
 
 def ask_user_for_building_bsp():
@@ -273,8 +254,10 @@ def set_sde_env_n_load_drivers():
     load_drivers()
     return True
 
+
 def install_bsp_deps():
     os.system('sudo apt -y install libusb-1.0-0-dev libcurl4-openssl-dev')
+
 
 def install_switch_bsp():
     set_sde_env_n_load_drivers()
@@ -282,7 +265,7 @@ def install_switch_bsp():
     print("Installing {}".format(aps_bsp_installation_file))
     aps_zip = zipfile.ZipFile(aps_bsp_installation_file)
     aps_zip.extractall(Path(aps_bsp_installation_file).parent)
-    aps_bsp_dir = aps_zip.namelist()[0]
+    aps_bsp_dir = aps_zip.namelist()[0]+'/apsn/'
     aps_bsp_dir_absolute = str(
         Path(aps_bsp_installation_file).parent) + '/' + aps_bsp_dir
     aps_zip.close()

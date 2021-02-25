@@ -1,15 +1,14 @@
 import logging
 import os
-import shutil
 
 import common
 import constants
 from bf_sde import set_sde_env_n_load_drivers, load_bf_sde_profile
 from common import delete_files, get_env_var, get_gb_lib_home_absolute, \
-    execute_cmd, execute_cmd_n_get_output_2, get_from_advance_setting_dict, \
+    execute_cmd, get_from_advance_setting_dict, \
     get_selected_profile_name, set_env_var, get_gb_src_home_absolute, \
     get_path_relative_to_user_home, get_selected_profile_dict, \
-    get_sde_home_absolute, append_to_env_var
+    get_sde_home_absolute, append_to_env_var, create_release, get_sal_rel_absolute
 from drivers import load_and_verify_kernel_modules
 
 sal_thirdparty_path = ''
@@ -134,140 +133,34 @@ def build_sal():
     return True
 
 
-sal_rel_dir = common.release_dir + '/sal'
+sal_rel_dir = get_sal_rel_absolute()
 
 
 def prepare_sal_release():
-    try:
-        os.mkdir(sal_rel_dir)
-        print('SAL release directory {} created.'.format(sal_rel_dir))
-    except FileExistsError:
-        print('SAL Release directory {} already exists, recreated.'.format(
-            sal_rel_dir))
-        delete_files(sal_rel_dir)
-        os.mkdir(sal_rel_dir)
-
-    shutil.copytree(get_env_var(constants.sal_home_env_var_name) + '/include/',
-                    sal_rel_dir + '/include')
-    shutil.copytree(
-        get_env_var(constants.sal_home_env_var_name) + '/src/include/',
-        sal_rel_dir + '/src/include')
-    shutil.copytree(get_env_var(constants.sal_home_env_var_name) + '/build',
-                    sal_rel_dir + '/build')
-    shutil.copytree(get_env_var(constants.sal_home_env_var_name) + '/lib',
-                    sal_rel_dir + '/lib')
-    shutil.copytree(get_env_var(constants.sal_home_env_var_name) + '/scripts',
-                    sal_rel_dir + '/scripts')
-    shutil.copytree(get_env_var(constants.sal_home_env_var_name) + '/config',
-                    sal_rel_dir + '/config')
-    shutil.copytree(get_env_var(constants.sal_home_env_var_name) + '/proto',
-                    sal_rel_dir + '/proto')
-    if get_from_advance_setting_dict(constants.sal_sw_attr_node,
-                                     constants.build_third_party_node):
-        shutil.copytree(
-            get_env_var(constants.tp_install_env_var_name) + '/lib',
-            sal_rel_dir + '/install/lib')
-        shutil.copytree(
-            get_env_var(constants.tp_install_env_var_name) + '/include',
-            sal_rel_dir + '/install/include')
-        shutil.copytree(
-            get_env_var(constants.tp_install_env_var_name) + '/bin',
-            sal_rel_dir + '/install/bin')
-        shutil.copytree(
-            get_env_var(constants.tp_install_env_var_name) + '/share',
-            sal_rel_dir + '/install/share')
-
-    os.mkdir(sal_rel_dir + '/test')
-    shutil.copyfile(get_env_var(constants.sal_home_env_var_name) + '/README.md'
-                    , sal_rel_dir + '/README.md')
-    shutil.copyfile(get_env_var(
-        constants.sal_home_env_var_name) + '/test/sal_service_test_BF6064.py',
-                    sal_rel_dir + '/test/sal_service_test_BF6064.py')
-    shutil.copyfile(get_env_var(
-        constants.sal_home_env_var_name) + '/test/sal_service_test_BF2556.py',
-                    sal_rel_dir + '/test/sal_service_test_BF2556.py')
-    shutil.copyfile(
-        get_env_var(constants.sal_home_env_var_name) + '/test/TestUtil.py',
-        sal_rel_dir + '/test/TestUtil.py')
-    shutil.copyfile(
-        get_env_var(constants.sal_home_env_var_name) + '/sal_services_pb2.py',
-        sal_rel_dir + '/sal_services_pb2.py')
-    shutil.copyfile(get_env_var(
-        constants.sal_home_env_var_name) + '/sal_services_pb2_grpc.py',
-                    sal_rel_dir + '/sal_services_pb2_grpc.py')
-    shutil.copyfile(
-        get_env_var(constants.sal_home_env_var_name) + '/sal_services_pb2.py',
-        sal_rel_dir + '/sal_services.grpc.pb.cc')
-    shutil.copyfile(get_env_var(
-        constants.sal_home_env_var_name) + '/sal_services_pb2_grpc.py',
-                    sal_rel_dir + '/sal_services.grpc.pb.h')
-    shutil.copyfile(get_env_var(
-        constants.sal_home_env_var_name) + '/sal_services_pb2_grpc.py',
-                    sal_rel_dir + '/sal_services.pb.cc')
-    shutil.copyfile(get_env_var(
-        constants.sal_home_env_var_name) + '/sal_services_pb2_grpc.py',
-                    sal_rel_dir + '/sal_services.pb.h')
-
-    prepare_sal_pkg()
-
+    os.chdir(get_env_var(constants.sal_home_env_var_name))
+    create_release(get_env_var(constants.sal_home_env_var_name),
+                   '/include/',
+                   '/src/include/',
+                   '/build',
+                   '/lib',
+                   '/scripts',
+                   '/config',
+                   '/proto',
+                   '/install/lib',
+                   '/install/include',
+                   '/install/bin',
+                   '/install/share',
+                   '/README.md',
+                   '/test/sal_service_test_BF6064.py',
+                   '/test/sal_service_test_BF2556.py',
+                   '/test/TestUtil.py',
+                   '/sal_services_pb2.py',
+                   '/sal_services_pb2_grpc.py',
+                   '/sal_services.grpc.pb.cc',
+                   '/sal_services.grpc.pb.h',
+                   '/sal_services.pb.cc',
+                   '/sal_services.pb.h')
     return True
-
-
-def prepare_sal_pkg():
-    # TODO - Should clone the code first then prepare release (dev and main)
-    #  Build is prepared based on what is present on build machine currently.
-    rel_notes_file = 'ReleaseNotes.txt'
-    rel_tag_latest = execute_cmd_n_get_output_2(
-        'git --git-dir {0}/.git describe --abbrev=0 --tags'.
-            format(get_env_var(constants.sal_home_env_var_name))).strip()
-
-    # If only one tag exists then second last release tag refers to previous
-    # commit hash to latest release tag.
-    release_tag_secondlast = execute_cmd_n_get_output_2(
-        'git --git-dir {0}/.git '
-        'describe --abbrev=0 '
-        '--tags `git rev-list '
-        '--tags --skip=1 --max-count=1` --always'.
-            format(get_env_var(constants.sal_home_env_var_name))).strip()
-
-    hash_rel_tag_latest = execute_cmd_n_get_output_2(
-        'git --git-dir {0}/.git rev-list -n 1 {1}'.
-            format(get_env_var(constants.sal_home_env_var_name),
-                   rel_tag_latest))
-
-    hash_latest = execute_cmd_n_get_output_2(
-        'git --git-dir {0}/.git rev-parse HEAD'.
-            format(get_env_var(constants.sal_home_env_var_name)))
-
-    arch_name = None
-    start_hash_for_RN = None
-    end_hash_for_RN = None
-
-    if hash_latest == hash_rel_tag_latest:
-        print('Preparing main release {}'.format(rel_tag_latest))
-        print('Preparing release notes since release tag {}'.format(
-            release_tag_secondlast))
-        start_hash_for_RN = release_tag_secondlast
-        end_hash_for_RN = rel_tag_latest
-        arch_name = common.release_dir + '/sal_{}'.format(rel_tag_latest)
-    else:
-        print('Preparing development release.')
-        start_hash_for_RN = rel_tag_latest
-        end_hash_for_RN = hash_latest
-        suffix = execute_cmd_n_get_output_2(
-            'git --git-dir {0}/.git describe --tags'.
-                format(get_env_var(constants.sal_home_env_var_name))).strip()
-        arch_name = common.release_dir + '/sal_{}'.format(suffix)
-
-    os.system(
-        'git --git-dir {0}/.git log --pretty=format:%s {2}..{3} > {0}/{1}'.
-            format(get_env_var(constants.sal_home_env_var_name),
-                   rel_notes_file, start_hash_for_RN, end_hash_for_RN))
-    shutil.copyfile(get_env_var(
-        constants.sal_home_env_var_name) + '/' + rel_notes_file,
-                    sal_rel_dir + '/' + rel_notes_file)
-    shutil.make_archive(arch_name, 'zip', sal_rel_dir)
-    print('SAL release is available at {}'.format(common.release_dir))
 
 
 def clean_sal():
@@ -490,32 +383,29 @@ def make_executable(path):
 
 def execute_user_action(sal_input):
     rc = True
-    for action_char in sal_input:
-        if action_char == 'c':
-            rc &= set_sal_env()
-            rc &= clean_sal()
-        elif action_char == 'r':
-            rc &= run_sal()
-        elif action_char == 't':
-            print('Running SAL tests from AOT are currently not supported, '
-                  'Should run from within SAL package only')
-            # rc &= test_sal()
-        elif action_char == 'b':
-            rc &= set_sal_env()
-            rc &= build_sal()
-            rc &= prepare_sal_release()
-        elif action_char == 'i':
-            if get_from_advance_setting_dict(constants.sal_sw_attr_node,
-                                             constants.build_third_party_node):
-                rc &= install_sal_thirdparty_deps()
-            else:
-                print(
-                    'But choose not to build thirdparty SW. Check settings.yaml')
+    if 'c' in sal_input:
+        rc &= set_sal_env()
+        rc &= clean_sal()
+    if 'r' in sal_input:
+        rc &= run_sal()
+    if 't' in sal_input:
+        print('Running SAL tests from AOT are currently not supported, '
+              'Should run from within SAL package only')
+        # rc &= test_sal()
+    if 'b' in sal_input:
+        rc &= set_sal_env()
+        rc &= build_sal()
+    if 'i' in sal_input:
+        if get_from_advance_setting_dict(constants.sal_sw_attr_node,
+                                         constants.build_third_party_node):
+            rc &= install_sal_thirdparty_deps()
         else:
             print(
-                "Invalid action {0} or action doesn't fit with selected profile {1}."
-                    .format(action_char, get_selected_profile_name()))
-            return False
+                'But choose not to build thirdparty SW. Check settings.yaml')
+    if 'p' in sal_input:
+        rc &= set_sal_env()
+        rc &= prepare_sal_release()
+
     return rc
 
 
@@ -523,7 +413,7 @@ def take_user_input():
     sal_input = input(
         "SAL : run(r), [do_nothing(n)], "
         "OR developer's options - "
-        "build(b), clean(c), install 3rdParty SWs(i) ? ")
+        "build(b), clean(c), install 3rdParty SWs(i), prepare rel(p) ? ")
 
     if 'n' in sal_input or not sal_input:
         # In case user give nasty input like cbrn

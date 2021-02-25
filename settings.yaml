@@ -31,6 +31,10 @@ BF SDE: &bf_sde
     #- -iod
     #- -bm bf-drivers
 
+SAL :
+  sal_rel: /APS-One-touch/release/sal_1.1.1 #Path SAL Release directory where SAL executables are present
+
+
 STRATUM: &stratum
   stratum_home: /stratum
   stratum_config: #default is APS-One-touch/stratum_config

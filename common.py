@@ -91,9 +91,126 @@ def delete_files(file):
         os.system('rm {}'.format(file))
 
 
-release_dir = dname + '/release'
-if not os.path.exists(release_dir):
-    os.mkdir(release_dir)
+aot_release_dir = dname + '/release'
+if not os.path.exists(aot_release_dir):
+    os.mkdir(aot_release_dir)
+
+
+def get_latest_git_tag(local_git_repo):
+    return execute_cmd_n_get_output_2(
+        'git --git-dir {0}/.git describe --abbrev=0 --tags'.
+        format(local_git_repo)).strip()
+
+
+def get_git_tag_hash(local_git_repo, git_tag):
+    return execute_cmd_n_get_output_2(
+        'git --git-dir {0}/.git rev-list -n 1 {1}'.
+        format(local_git_repo, git_tag))
+
+
+def get_latest_git_hash(local_git_repo):
+    return execute_cmd_n_get_output_2(
+        'git --git-dir {0}/.git rev-parse HEAD'.
+        format(local_git_repo))
+
+
+def get_2nd_latest_git_tag(local_git_repo):
+    # If only one tag exists then second last release tag refers to previous
+    # commit hash to latest release tag.
+    print(local_git_repo)
+    return execute_cmd_n_get_output_2(
+        'git --git-dir {0}/.git describe --abbrev=0 --tags `git rev-list --tags --skip=1 --max-count=1` --always'.
+        format(local_git_repo)).strip()
+
+
+def create_nested_dir(destination_location, dir_path):
+    """
+    Creates nested path given in @dir_path string inside @destination_location,
+    the outermost directory is ignored and that can be copied by calling function when
+    all parent directory structure is present.
+    Args:
+        destination_location:
+        dir_path:
+    Returns:
+    """
+    nested_path_list = dir_path.split('/')
+    #clear up empty strings in the path
+    nested_path_list = list(filter(None, nested_path_list))
+    #Slice the last dir
+    nested_path_list = nested_path_list[:-1]
+    for d in nested_path_list:
+        destination_location += '/'+d+'/'
+        if not os.path.exists(destination_location):
+            os.mkdir(destination_location)
+
+
+def create_release(local_git_repo, *files_to_release):
+    """
+
+    Args:
+        local_git_repo: Absolute path to local git repository
+        *files_to_release: File paths relative to local_git_repo to be part of release.
+    Returns:
+
+    """
+    rel_tag_latest = get_latest_git_tag(local_git_repo)
+    release_tag_2ndlast = get_2nd_latest_git_tag(local_git_repo)
+    hash_rel_tag_latest = get_git_tag_hash(local_git_repo, rel_tag_latest)
+    hash_latest = get_latest_git_hash(local_git_repo)
+
+    arch_name = None
+    start_hash_for_RN = None
+    end_hash_for_RN = None
+
+    if hash_latest == hash_rel_tag_latest:
+        print('Preparing main release {}'.format(rel_tag_latest))
+        print('Preparing release notes since release tag {}'.format(
+            release_tag_2ndlast))
+        start_hash_for_RN = release_tag_2ndlast
+        end_hash_for_RN = rel_tag_latest
+        arch_name = aot_release_dir + '/{0}_{1}'. \
+            format(os.path.basename(local_git_repo), rel_tag_latest)
+    else:
+        print('Preparing development release.')
+        start_hash_for_RN = rel_tag_latest
+        end_hash_for_RN = hash_latest
+        suffix = execute_cmd_n_get_output_2(
+            'git --git-dir {0}/.git describe --tags'.
+                format(local_git_repo)).strip()
+        arch_name = aot_release_dir + '/{0}_{1}'. \
+            format(os.path.basename(local_git_repo), suffix)
+
+    try:
+        os.mkdir(arch_name)
+        print('Release directory {} created.'.format(arch_name))
+    except FileExistsError:
+        print('Release directory {} already exists, recreated.'.format(
+            arch_name))
+        delete_files(arch_name)
+        os.mkdir(arch_name)
+
+    rel_notes_file = 'RelNotes_{}.txt'.format(os.path.basename(os.path.normpath(arch_name)))
+    make_rel_notes(local_git_repo, rel_notes_file, start_hash_for_RN, end_hash_for_RN)
+
+    for file in files_to_release:
+        abs_file_path = local_git_repo +'/'+file
+        create_nested_dir(arch_name, file)
+        if os.path.isdir(abs_file_path):
+            shutil.copytree(abs_file_path, arch_name + '/' + file)
+        else:
+            shutil.copyfile(abs_file_path, arch_name + '/' + file)
+    shutil.copyfile(rel_notes_file, arch_name + '/' + rel_notes_file)
+    shutil.make_archive(arch_name, 'zip', arch_name)
+    print('Release is available at {}'.format(aot_release_dir))
+
+
+def make_rel_notes(local_git_repo, rel_notes_file, start_hash_for_rn, end_hash_for_rn):
+    cmd = 'git --git-dir {0}/.git log --pretty=format:%s {2}..{3} > {0}/{1}'.\
+        format(local_git_repo, rel_notes_file,
+        start_hash_for_rn, end_hash_for_rn)
+
+    print('Executing command : {}'.format(cmd))
+    os.system(cmd)
 
 
 def check_path(some_path, path_for):
@@ -272,6 +389,13 @@ def get_sde_home_absolute():
         return get_path_relative_to_user_home(sde_home_in_config)
     # If not given in yaml, return sde_home relative to APS one touch
     return dname + '/' + get_sde_dir_name_in_tar()
+
+
+def get_sal_rel_absolute():
+    sal_rel_in_config = get_from_setting_dict('SAL', 'sal_rel')
+    if sal_rel_in_config:
+        # return absolute path as configured in yaml
+        return get_path_relative_to_user_home(sal_rel_in_config)
 
 
 def get_sde_install_dir_absolute():
