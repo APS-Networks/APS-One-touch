@@ -181,7 +181,6 @@ def clean_sal():
 
 def run_sal():
     print('Starting SAL reference application...')
-    set_sal_runtime_env()
     if get_selected_profile_name() == constants.sal_hw_profile_name and not load_and_verify_kernel_modules():
         print("ERROR:Some kernel modules are not loaded.")
         exit(0)
@@ -383,18 +382,10 @@ def make_executable(path):
 
 def execute_user_action(sal_input):
     rc = True
+
     if 'c' in sal_input:
         rc &= set_sal_env()
         rc &= clean_sal()
-    if 'r' in sal_input:
-        rc &= run_sal()
-    if 't' in sal_input:
-        print('Running SAL tests from AOT are currently not supported, '
-              'Should run from within SAL package only')
-        # rc &= test_sal()
-    if 'b' in sal_input:
-        rc &= set_sal_env()
-        rc &= build_sal()
     if 'i' in sal_input:
         if get_from_advance_setting_dict(constants.sal_sw_attr_node,
                                          constants.build_third_party_node):
@@ -402,10 +393,19 @@ def execute_user_action(sal_input):
         else:
             print(
                 'But choose not to build thirdparty SW. Check settings.yaml')
+    if 'b' in sal_input:
+        rc &= set_sal_env()
+        rc &= build_sal()
     if 'p' in sal_input:
         rc &= set_sal_env()
         rc &= prepare_sal_release()
-
+    if 'r' in sal_input:
+        set_sal_runtime_env()
+        rc &= run_sal()
+    if 't' in sal_input:
+        print('Running SAL tests from AOT are currently not supported, '
+              'Should run from within SAL package only')
+        # rc &= test_sal()
     return rc
 
 

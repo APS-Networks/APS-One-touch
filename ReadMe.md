@@ -16,6 +16,7 @@ Default input while execution i.e. when user just presses enter without any inpu
 ## Release Compatibility 
 |Device|AOT|SAL|APSN BSP|SDE|OS (Recommended)|Kernel|
 |---|---|---|---|---|---|---|
+|BF2556X_1T<br>BF6064X_T|v1.4.2|sal_1.2.0|bf-reference-bsp-9.4.0-BF2556_1.0.0.zip<br>bf-reference-bsp-9.4.0-BF6064_1.0.0.zip|BF_SDE_9.4.0|Ubuntu Server 18.04.4 LTS|5.4.x
 |BF2556X_1T<br>BF6064X_T|v1.4.1|sal_1.1.1|bf-reference-bsp-9.3.0-BF2556_1c5723d.zip<br>bf-reference-bsp-9.3.0-BF6064_f536cae.zip|BF_SDE_9.3.0|Ubuntu Server 18.04.4 LTS|5.4.x
 |BF2556X_1T<br>BF6064X_T|v1.3.0|sal_1.1.0|bf-reference-bsp-9.2.0-BF2556_5189449.zip<br>bf-reference-bsp-9.2.0-BF6064_0ee36ac.zip|BF_SDE_9.2.0|Ubuntu Server 18.04.4 LTS|4.15.x
 |BF2556X_1T<br>BF6064X_T|v1.2.0|sal_1.1.0|BF2556X-1T_BSP_9.0.0(master HEAD)<br>BF6064X_BSP_9.0.0(master HEAD)|BF_SDE_9.1<br>BF_SDE_9.2|Ubuntu Server 18.04.4 LTS|4.15.x

@@ -26,7 +26,13 @@ def get_sde_build_flags():
 def get_p4_studio_build_profile_name():
     return get_from_setting_dict('BF SDE', 'p4studio_build_profile')
 
+
+def install_sde_deps():
+    os.system('sudo apt -y install python')
+
+
 def build_sde():
+    install_sde_deps()
     sde_tar = tarfile.open(get_sde_pkg_abs_path())
     sde_home_absolute = get_sde_home_absolute()
     sde_build_flags = get_sde_build_flags()
