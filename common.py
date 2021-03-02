@@ -117,9 +117,8 @@ def get_latest_git_hash(local_git_repo):
 def get_2nd_latest_git_tag(local_git_repo):
     # If only one tag exists then second last release tag refers to previous
     # commit hash to latest release tag.
-    print(local_git_repo)
     return execute_cmd_n_get_output_2(
-        'git --git-dir {0}/.git describe --abbrev=0 --tags `git rev-list --tags --skip=1 --max-count=1` --always'.
+        'git --git-dir {0}/.git describe --abbrev=0 --tags `git --git-dir {0}/.git rev-list --tags --skip=1 --max-count=1` --always'.
         format(local_git_repo)).strip()
 
 
@@ -198,7 +197,7 @@ def create_release(local_git_repo, *files_to_release):
             shutil.copytree(abs_file_path, arch_name + '/' + arr[1])
         else:
             shutil.copyfile(abs_file_path, arch_name + '/' + arr[1])
-    shutil.copyfile(rel_notes_file, arch_name + '/' + rel_notes_file)
+    shutil.copyfile(local_git_repo+'/'+rel_notes_file, arch_name + '/' + rel_notes_file)
     shutil.make_archive(arch_name, 'zip', arch_name)
     print('Release is available at {}'.format(aot_release_dir))
 
