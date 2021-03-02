@@ -6,11 +6,11 @@
 PATH_PREFIX: #Various paths used in this setting file are evaluated relative to this, Default is user home diretory
 
 BSP:
-  bsp_dev: /bsp/bf-reference-bsp-9.4.0-BF2556
-  # Repository path to complete BSP code.
-           # Defaults to /bsp/bf-reference-bsp-<ref_bsp_version>-BF2556
-           # OR /bsp/bf-reference-bsp-<ref_bsp_version>-BF6064
-           # depending upon switch model selected in settings.yaml .
+  bsp_repo: /bsp/bf-reference-bsp-9.4.0-BF2556  # Local Repository path to complete BSP code.
+
+SAL:
+  sal_repo: sal # Local sal repo path.
+  tp_install: #Path to 3rdparty install dir i.e. grpc and protobuf, defaults to $sal_repo/sal_tp_install
 
 GB: #Following parameters are useful when you have SAL src and building it, Otherwise can be ignored.
   gb_src: /gearbox/Px-4.2_2020_03_018/work/cpss/

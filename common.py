@@ -259,7 +259,7 @@ def get_path_prefix():
     return p
 
 
-def get_path_relative_to_user_home(pth):
+def get_abs_path(pth):
     return get_path_prefix() + '/' + pth
 
 
@@ -348,7 +348,7 @@ def get_from_advance_setting_dict(*keys):
 
 
 def get_sde_pkg_abs_path():
-    sde_pkg = get_path_relative_to_user_home(
+    sde_pkg = get_abs_path(
         get_from_setting_dict('BF SDE', 'sde_pkg'))
     if not tarfile.is_tarfile(sde_pkg):
         print("Invalid tofino SDE tar file {} can not build.".format(sde_pkg))
@@ -357,7 +357,7 @@ def get_sde_pkg_abs_path():
 
 
 def get_aps_bsp_pkg_abs_path():
-    bsp_pkg = get_path_relative_to_user_home(
+    bsp_pkg = get_abs_path(
         get_from_setting_dict(BSP_node, aps_bsp_pkg_node))
     if not zipfile.is_zipfile(bsp_pkg):
         print("Invalid APS BSP zip file {} can not build.".format(bsp_pkg))
@@ -366,7 +366,7 @@ def get_aps_bsp_pkg_abs_path():
 
 
 def get_ref_bsp_abs_path():
-    bsp_pkg = get_path_relative_to_user_home(
+    bsp_pkg = get_abs_path(
         get_from_setting_dict(BSP_node, ref_bsp_node))
     if not tarfile.is_tarfile(bsp_pkg):
         print("Invalid Reference BSP tar file {} can not build.".format(bsp_pkg))
@@ -385,7 +385,7 @@ def get_sde_home_absolute():
     sde_home_in_config = get_from_setting_dict('BF SDE', 'sde_home')
     if sde_home_in_config:
         # return absolute path as configured in yaml
-        return get_path_relative_to_user_home(sde_home_in_config)
+        return get_abs_path(sde_home_in_config)
     # If not given in yaml, return sde_home relative to APS one touch
     return dname + '/' + get_sde_dir_name_in_tar()
 
@@ -440,7 +440,7 @@ def get_gb_src_home_from_config():
 
 
 def get_gb_src_home_absolute():
-    return get_path_relative_to_user_home(get_gb_src_home_from_config())
+    return get_abs_path(get_gb_src_home_from_config())
 
 
 def get_gb_lib_home_from_config():
@@ -448,7 +448,7 @@ def get_gb_lib_home_from_config():
 
 
 def get_gb_lib_home_absolute():
-    return get_path_relative_to_user_home(get_gb_lib_home_from_config())
+    return get_abs_path(get_gb_lib_home_from_config())
 
 
 def get_switch_model():

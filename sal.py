@@ -7,8 +7,8 @@ from bf_sde import set_sde_env_n_load_drivers, load_bf_sde_profile
 from common import delete_files, get_env_var, get_gb_lib_home_absolute, \
     execute_cmd, get_from_advance_setting_dict, \
     get_selected_profile_name, set_env_var, get_gb_src_home_absolute, \
-    get_path_relative_to_user_home, get_selected_profile_dict, \
-    get_sde_home_absolute, append_to_env_var, create_release, get_path_prefix, get_from_setting_dict
+    get_abs_path, get_selected_profile_dict, \
+    get_sde_home_absolute, append_to_env_var, create_release, get_path_prefix
 from drivers import load_and_verify_kernel_modules
 
 
@@ -23,9 +23,12 @@ def set_sal_runtime_env():
 
 def set_sal_env():
     print("Setting environment for SAL.")
-    rc = set_sal_runtime_env()
+    if not set_sde_env_n_load_drivers():
+        return False
+    rc = set_env_var(constants.sal_home_env_var_name, get_sal_repo_absolute())
+    print('SAL_HOME: {}'.format(get_env_var(constants.sal_home_env_var_name)))
     rc &= set_env_var(constants.pythonpath_env_var_name,
-                      get_sal_home_absolute())
+                      get_env_var(constants.sal_home_env_var_name))
     rc &= set_env_var(constants.sde_include_env_var_name,
                       get_env_var(
                           constants.sde_install_env_var_name) + '/include')
@@ -55,25 +58,34 @@ def set_sal_env():
 
 
 def get_sal_home_absolute():
-    return get_path_relative_to_user_home(get_sal_home_from_config())
+    return get_abs_path(get_sal_home_from_config())
+
+
+def get_sal_repo_absolute():
+    return get_abs_path(get_sal_repo_from_config())
 
 
 def get_tp_install_path_from_settings():
-    if not get_from_setting_dict(constants.sal_sw_attr_node,
+    if not get_from_advance_setting_dict(constants.sal_sw_attr_node,
                                  constants.tp_install_node_name):
-        return get_sal_home_from_config() + '/sal_tp_install/'
+        return get_sal_repo_from_config() + '/sal_tp_install/'
     else:
-        return get_from_setting_dict(constants.sal_sw_attr_node,
+        return get_from_advance_setting_dict(constants.sal_sw_attr_node,
                                      constants.tp_install_node_name)
 
 
 def get_tp_install_path_absolute():
-    return get_path_relative_to_user_home(get_tp_install_path_from_settings())
+    return get_abs_path(get_tp_install_path_from_settings())
 
 
 def get_sal_home_from_config():
     return common.settings_dict. \
         get(constants.sal_sw_attr_node).get(constants.sal_home_node)
+
+
+def get_sal_repo_from_config():
+    return common.advance_settings_dict. \
+        get(constants.sal_sw_attr_node).get(constants.sal_repo_node_name)
 
 
 def get_sal_profile_dict():
@@ -121,29 +133,28 @@ def build_sal():
 
 
 def prepare_sal_release():
-    os.chdir(get_env_var(constants.sal_home_env_var_name))
-    create_release(get_env_var(constants.sal_home_env_var_name),
-                   [get_env_var(constants.sal_home_env_var_name), '/include/'],
-                   [get_env_var(constants.sal_home_env_var_name), '/src/include/'],
-                   [get_env_var(constants.sal_home_env_var_name), '/build'],
-                   [get_env_var(constants.sal_home_env_var_name), '/lib'],
-                   [get_env_var(constants.sal_home_env_var_name), '/scripts'],
-                   [get_env_var(constants.sal_home_env_var_name), '/config'],
-                   [get_env_var(constants.sal_home_env_var_name), '/proto'],
+    create_release(get_sal_repo_absolute(),
+                   [get_sal_repo_absolute(), '/include/'],
+                   [get_sal_repo_absolute(), '/src/include/'],
+                   [get_sal_repo_absolute(), '/build'],
+                   [get_sal_repo_absolute(), '/lib'],
+                   [get_sal_repo_absolute(), '/scripts'],
+                   [get_sal_repo_absolute(), '/config'],
+                   [get_sal_repo_absolute(), '/proto'],
                    [get_path_prefix(), '/{}/lib'.format(get_tp_install_path_from_settings())],
                    [get_path_prefix(), '/{}/include'.format(get_tp_install_path_from_settings())],
                    [get_path_prefix(), '/{}/bin'.format(get_tp_install_path_from_settings())],
                    [get_path_prefix(), '/{}/share'.format(get_tp_install_path_from_settings())],
-                   [get_env_var(constants.sal_home_env_var_name), '/README.md'],
-                   [get_env_var(constants.sal_home_env_var_name), '/test/sal_service_test_BF6064.py'],
-                   [get_env_var(constants.sal_home_env_var_name), '/test/sal_service_test_BF2556.py'],
-                   [get_env_var(constants.sal_home_env_var_name), '/test/TestUtil.py'],
-                   [get_env_var(constants.sal_home_env_var_name), '/sal_services_pb2.py'],
-                   [get_env_var(constants.sal_home_env_var_name), '/sal_services_pb2_grpc.py'],
-                   [get_env_var(constants.sal_home_env_var_name), '/sal_services.grpc.pb.cc'],
-                   [get_env_var(constants.sal_home_env_var_name), '/sal_services.grpc.pb.h'],
-                   [get_env_var(constants.sal_home_env_var_name), '/sal_services.pb.cc'],
-                   [get_env_var(constants.sal_home_env_var_name), '/sal_services.pb.h'])
+                   [get_sal_repo_absolute(), '/README.md'],
+                   [get_sal_repo_absolute(), '/test/sal_service_test_BF6064.py'],
+                   [get_sal_repo_absolute(), '/test/sal_service_test_BF2556.py'],
+                   [get_sal_repo_absolute(), '/test/TestUtil.py'],
+                   [get_sal_repo_absolute(), '/sal_services_pb2.py'],
+                   [get_sal_repo_absolute(), '/sal_services_pb2_grpc.py'],
+                   [get_sal_repo_absolute(), '/sal_services.grpc.pb.cc'],
+                   [get_sal_repo_absolute(), '/sal_services.grpc.pb.h'],
+                   [get_sal_repo_absolute(), '/sal_services.pb.cc'],
+                   [get_sal_repo_absolute(), '/sal_services.pb.h'])
     return True
 
 
@@ -366,7 +377,6 @@ def execute_user_action(sal_input):
         rc &= set_sal_env()
         rc &= build_sal()
     if 'p' in sal_input:
-        rc &= set_sal_env()
         rc &= prepare_sal_release()
     if 'r' in sal_input:
         set_sal_runtime_env()

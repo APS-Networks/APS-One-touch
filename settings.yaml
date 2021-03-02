@@ -33,7 +33,6 @@ BF SDE: &bf_sde
 
 SAL :
   sal_home: /APS-One-touch/release/sal_1.1.1 #Path to directory where SAL artifacts are present
-  tp_install: #Path to 3rdparty install dir i.e. grpc and protobuf, defaults to SAL_HOME/sal_tp_install
 
 STRATUM: &stratum
   stratum_home: /stratum

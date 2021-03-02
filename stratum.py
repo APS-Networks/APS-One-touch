@@ -2,7 +2,7 @@ import os
 import shutil
 
 from common import append_to_env_var, get_env_var, \
-    get_path_relative_to_user_home, get_sde_install_dir_absolute, \
+    get_abs_path, get_sde_install_dir_absolute, \
     get_sde_version, get_selected_profile_dict, get_selected_profile_name, \
     set_env_var, get_switch_model, settings_dict
 import common
@@ -149,7 +149,7 @@ def get_stratum_profile_details_dict():
 
 
 def get_stratum_home_absolute():
-    return get_path_relative_to_user_home(
+    return get_abs_path(
         get_stratum_profile_details_dict().get('stratum_home'))
 
 
@@ -159,7 +159,7 @@ def get_stratum_config_dir_absolute():
     if stratum_config_dir is None:
         return common.dname + '/stratum_config/'
     else:
-        return get_path_relative_to_user_home(
+        return get_abs_path(
             get_stratum_profile_details_dict().get('stratum_config'))
 
 

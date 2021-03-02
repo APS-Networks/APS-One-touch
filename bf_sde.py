@@ -13,7 +13,7 @@ from common import create_symlinks, execute_cmd_n_get_output, get_env_var, \
     set_env_var, validate_path_existence, \
     append_to_env_var, \
     dname, get_switch_model, execute_cmd, get_ref_bsp_abs_path, \
-    get_aps_bsp_pkg_abs_path, execute_cmd_n_get_output_2, get_path_relative_to_user_home, \
+    get_aps_bsp_pkg_abs_path, execute_cmd_n_get_output_2, get_abs_path, \
     get_from_advance_setting_dict, create_release
 from constants import stratum_profile
 from drivers import load_and_verify_kernel_modules
@@ -153,23 +153,23 @@ def get_diff_file_name():
     return '{}.diff'.format(get_switch_model()).lower()
 
 
-def get_bsp_dev_abs_path():
+def get_bsp_repo_abs_path():
     path_from_adv_setting = get_from_advance_setting_dict(
-        constants.BSP_node, constants.bsp_dev_node_name)
+        constants.BSP_node, constants.bsp_repo_node_name)
     if path_from_adv_setting is None:
-        return get_default_bsp_dev_path()
+        return get_default_bsp_repo_path()
     else:
-        return get_path_relative_to_user_home(path_from_adv_setting)
+        return get_abs_path(path_from_adv_setting)
 
 
 def prepare_bsp_pkg():
-    bsp_dev_abs = get_bsp_dev_abs_path()
+    bsp_repo_abs = get_bsp_repo_abs_path()
     earliest_commit_hash = execute_cmd_n_get_output_2(
         'git --git-dir {0}/.git rev-list --max-parents=0 HEAD'.format(
-            bsp_dev_abs))
+            bsp_repo_abs))
     latest_commit_hash = execute_cmd_n_get_output_2(
-        'git --git-dir {0}/.git rev-parse HEAD'.format(bsp_dev_abs))
-    os.chdir(bsp_dev_abs)
+        'git --git-dir {0}/.git rev-parse HEAD'.format(bsp_repo_abs))
+    os.chdir(bsp_repo_abs)
     execute_cmd_n_get_output_2(
         'git --git-dir {0}/.git diff {1} {2} -- '
         '\':!./platforms/apsn/\' '
@@ -178,10 +178,10 @@ def prepare_bsp_pkg():
         '\':!autom4te.cache\' '
         '\':!*Makefile.in\' '
         '> {3}'.
-            format(bsp_dev_abs, earliest_commit_hash, latest_commit_hash,
-                   bsp_dev_abs + '/' + get_diff_file_name()))
-    create_release(bsp_dev_abs, [bsp_dev_abs, get_diff_file_name()],
-                                [bsp_dev_abs, '/platforms/apsn/'])
+            format(bsp_repo_abs, earliest_commit_hash, latest_commit_hash,
+                   bsp_repo_abs + '/' + get_diff_file_name()))
+    create_release(bsp_repo_abs, [bsp_repo_abs, get_diff_file_name()],
+                                [bsp_repo_abs, '/platforms/apsn/'])
 
 
 def ask_user_for_building_bsp():
@@ -341,12 +341,12 @@ if __name__ == '__main__':
     just_load_sde()
 
 
-def get_default_bsp_dev_path():
+def get_default_bsp_repo_path():
     if get_switch_model() == constants.bf2556x_1t:
-        return get_path_relative_to_user_home(
+        return get_abs_path(
             '/bsp/bf-reference-bsp-9.2.0-BF2556')
     elif get_switch_model() == constants.bf6064x_t:
-        return get_path_relative_to_user_home(
+        return get_abs_path(
             '/bsp/bf-reference-bsp-9.2.0-BF6064')
     else:
         print('Development BSp can\'t be retrieved for switch model'.
