@@ -191,14 +191,13 @@ def create_release(local_git_repo, *files_to_release):
 
     rel_notes_file = 'RelNotes_{}.txt'.format(os.path.basename(os.path.normpath(arch_name)))
     make_rel_notes(local_git_repo, rel_notes_file, start_hash_for_RN, end_hash_for_RN)
-
-    for file in files_to_release:
-        abs_file_path = local_git_repo +'/'+file
-        create_nested_dir(arch_name, file)
+    for arr in files_to_release:
+        abs_file_path = arr[0] + '/' + arr[1]
+        create_nested_dir(arch_name, arr[1])
         if os.path.isdir(abs_file_path):
-            shutil.copytree(abs_file_path, arch_name + '/' + file)
+            shutil.copytree(abs_file_path, arch_name + '/' + arr[1])
         else:
-            shutil.copyfile(abs_file_path, arch_name + '/' + file)
+            shutil.copyfile(abs_file_path, arch_name + '/' + arr[1])
     shutil.copyfile(rel_notes_file, arch_name + '/' + rel_notes_file)
     shutil.make_archive(arch_name, 'zip', arch_name)
     print('Release is available at {}'.format(aot_release_dir))
@@ -389,13 +388,6 @@ def get_sde_home_absolute():
         return get_path_relative_to_user_home(sde_home_in_config)
     # If not given in yaml, return sde_home relative to APS one touch
     return dname + '/' + get_sde_dir_name_in_tar()
-
-
-def get_sal_rel_absolute():
-    sal_rel_in_config = get_from_setting_dict('SAL', 'sal_rel')
-    if sal_rel_in_config:
-        # return absolute path as configured in yaml
-        return get_path_relative_to_user_home(sal_rel_in_config)
 
 
 def get_sde_install_dir_absolute():

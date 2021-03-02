@@ -8,17 +8,22 @@ from common import delete_files, get_env_var, get_gb_lib_home_absolute, \
     execute_cmd, get_from_advance_setting_dict, \
     get_selected_profile_name, set_env_var, get_gb_src_home_absolute, \
     get_path_relative_to_user_home, get_selected_profile_dict, \
-    get_sde_home_absolute, append_to_env_var, create_release, get_sal_rel_absolute
+    get_sde_home_absolute, append_to_env_var, create_release, get_path_prefix, get_from_setting_dict
 from drivers import load_and_verify_kernel_modules
 
-sal_thirdparty_path = ''
+
+def set_sal_runtime_env():
+    print("Setting environment for SAL runtime.")
+    if not set_sde_env_n_load_drivers():
+        return False
+    set_env_var(constants.sal_home_env_var_name, get_sal_home_absolute())
+    print('SAL_HOME: {}'.format(get_env_var(constants.sal_home_env_var_name)))
+    return True
 
 
 def set_sal_env():
     print("Setting environment for SAL.")
-    if not set_sde_env_n_load_drivers():
-        return False
-    rc = set_env_var(constants.sal_home_env_var_name, get_sal_home_absolute())
+    rc = set_sal_runtime_env()
     rc &= set_env_var(constants.pythonpath_env_var_name,
                       get_sal_home_absolute())
     rc &= set_env_var(constants.sde_include_env_var_name,
@@ -28,24 +33,8 @@ def set_sal_env():
                       get_gb_src_home_absolute())
     rc &= set_env_var(constants.gb_lib_home_env_var_name,
                       get_gb_lib_home_absolute())
-    # rc &= set_env_var(constants.sal_install_env_var_name,
-    #                   get_sal_home_absolute() + '/install/')
-    if get_from_advance_setting_dict(constants.sal_sw_attr_node,
-                                     constants.build_third_party_node):
-        if get_from_advance_setting_dict(constants.sal_sw_attr_node,
-                                         constants.tp_install_node_name) \
-                is None:
-            rc &= set_env_var(constants.tp_install_env_var_name,
-                              get_sal_home_absolute() + '/install/')
-        else:
-            rc &= set_env_var(constants.tp_install_env_var_name,
-                              get_tp_install_path_absolute())
-        print('TP_INSTALL set to {}'.format(
-            get_env_var(constants.tp_install_env_var_name)))
-    else:
-        rc &= set_env_var(constants.tp_install_env_var_name,
-                          get_env_var(constants.sde_install_env_var_name))
-
+    rc &= set_env_var(constants.tp_install_env_var_name,
+                      get_tp_install_path_absolute())
     print('SAL_HOME: {0} \
     \n PYTHONPATH: {1} \
     \n SDE: {2} \
@@ -65,27 +54,25 @@ def set_sal_env():
     return rc
 
 
-def set_sal_runtime_env():
-    print("Setting environment for SAL runtime.")
-    if not set_sde_env_n_load_drivers():
-        return False
-    set_env_var(constants.sal_home_env_var_name, sal_rel_dir)
-    print('SAL_HOME: {}'.format(get_env_var(constants.sal_home_env_var_name)))
-    return True
-
-
 def get_sal_home_absolute():
     return get_path_relative_to_user_home(get_sal_home_from_config())
 
 
+def get_tp_install_path_from_settings():
+    if not get_from_setting_dict(constants.sal_sw_attr_node,
+                                 constants.tp_install_node_name):
+        return get_sal_home_from_config() + '/sal_tp_install/'
+    else:
+        return get_from_setting_dict(constants.sal_sw_attr_node,
+                                     constants.tp_install_node_name)
+
+
 def get_tp_install_path_absolute():
-    return get_path_relative_to_user_home(
-        get_from_advance_setting_dict(constants.sal_sw_attr_node,
-                                      constants.tp_install_node_name))
+    return get_path_relative_to_user_home(get_tp_install_path_from_settings())
 
 
 def get_sal_home_from_config():
-    return common.advance_settings_dict. \
+    return common.settings_dict. \
         get(constants.sal_sw_attr_node).get(constants.sal_home_node)
 
 
@@ -133,33 +120,30 @@ def build_sal():
     return True
 
 
-sal_rel_dir = get_sal_rel_absolute()
-
-
 def prepare_sal_release():
     os.chdir(get_env_var(constants.sal_home_env_var_name))
     create_release(get_env_var(constants.sal_home_env_var_name),
-                   '/include/',
-                   '/src/include/',
-                   '/build',
-                   '/lib',
-                   '/scripts',
-                   '/config',
-                   '/proto',
-                   '/install/lib',
-                   '/install/include',
-                   '/install/bin',
-                   '/install/share',
-                   '/README.md',
-                   '/test/sal_service_test_BF6064.py',
-                   '/test/sal_service_test_BF2556.py',
-                   '/test/TestUtil.py',
-                   '/sal_services_pb2.py',
-                   '/sal_services_pb2_grpc.py',
-                   '/sal_services.grpc.pb.cc',
-                   '/sal_services.grpc.pb.h',
-                   '/sal_services.pb.cc',
-                   '/sal_services.pb.h')
+                   [get_env_var(constants.sal_home_env_var_name), '/include/'],
+                   [get_env_var(constants.sal_home_env_var_name), '/src/include/'],
+                   [get_env_var(constants.sal_home_env_var_name), '/build'],
+                   [get_env_var(constants.sal_home_env_var_name), '/lib'],
+                   [get_env_var(constants.sal_home_env_var_name), '/scripts'],
+                   [get_env_var(constants.sal_home_env_var_name), '/config'],
+                   [get_env_var(constants.sal_home_env_var_name), '/proto'],
+                   [get_path_prefix(), '/{}/lib'.format(get_tp_install_path_from_settings())],
+                   [get_path_prefix(), '/{}/include'.format(get_tp_install_path_from_settings())],
+                   [get_path_prefix(), '/{}/bin'.format(get_tp_install_path_from_settings())],
+                   [get_path_prefix(), '/{}/share'.format(get_tp_install_path_from_settings())],
+                   [get_env_var(constants.sal_home_env_var_name), '/README.md'],
+                   [get_env_var(constants.sal_home_env_var_name), '/test/sal_service_test_BF6064.py'],
+                   [get_env_var(constants.sal_home_env_var_name), '/test/sal_service_test_BF2556.py'],
+                   [get_env_var(constants.sal_home_env_var_name), '/test/TestUtil.py'],
+                   [get_env_var(constants.sal_home_env_var_name), '/sal_services_pb2.py'],
+                   [get_env_var(constants.sal_home_env_var_name), '/sal_services_pb2_grpc.py'],
+                   [get_env_var(constants.sal_home_env_var_name), '/sal_services.grpc.pb.cc'],
+                   [get_env_var(constants.sal_home_env_var_name), '/sal_services.grpc.pb.h'],
+                   [get_env_var(constants.sal_home_env_var_name), '/sal_services.pb.cc'],
+                   [get_env_var(constants.sal_home_env_var_name), '/sal_services.pb.h'])
     return True
 
 
@@ -184,12 +168,12 @@ def run_sal():
     if get_selected_profile_name() == constants.sal_hw_profile_name and not load_and_verify_kernel_modules():
         print("ERROR:Some kernel modules are not loaded.")
         exit(0)
-
-    sal_executable = sal_rel_dir + '/build/salRefApp'
+    sal_home=get_env_var(constants.sal_home_env_var_name)
+    sal_executable = sal_home + '/build/salRefApp'
     sal_run_cmd = 'sudo -E LD_LIBRARY_PATH={0}:{1}:{2}:{3} {4}'.format(
-        sal_rel_dir + '/build',
-        sal_rel_dir + '/lib',
-        get_env_var(constants.sal_home_env_var_name) + '/install/lib',
+        sal_home + '/build',
+        sal_home + '/lib',
+        get_tp_install_path_absolute() + '/lib',
         get_sde_home_absolute() + '/install/lib', sal_executable)
     print('Running SAL with command: {}'.format(sal_run_cmd))
     execute_cmd(sal_run_cmd)
@@ -226,18 +210,18 @@ def run_sal():
 #         os.system("sudo pkill -9 {}".format('salRefApp'))
 #     return True
 
+sal_3rdparty_path = get_tp_install_path_absolute()
+
 
 def install_sal_thirdparty_deps():
-    print('Installing SAL thirdparty dependencies.')
-    global sal_thirdparty_path
-    sal_thirdparty_path = get_sal_home_absolute() + '/install/thirdparty/'
+    print('Installing SAL 3rdparty dependencies.')
 
-    if not os.path.exists(sal_thirdparty_path):
-        os.makedirs(sal_thirdparty_path)
+    if not os.path.exists(sal_3rdparty_path):
+        os.makedirs(sal_3rdparty_path)
 
     res = installProtobuf()
     append_to_env_var(constants.path_env_var_name,
-                      get_sal_home_absolute() + '/install/bin/')
+                      sal_3rdparty_path + '/bin/')
     res &= installgRPC()
     return res
 
@@ -245,7 +229,7 @@ def install_sal_thirdparty_deps():
 def installProtobuf():
     print('Installing protobuf.')
     protobuf_ver = 'v3.6.1'
-    protobuf_dir = '{0}/protobuf{1}/'.format(sal_thirdparty_path, protobuf_ver)
+    protobuf_dir = '{0}/protobuf{1}/'.format(sal_3rdparty_path, protobuf_ver)
     if os.path.exists(protobuf_dir):
         print('{0} already exists, will rebuild.'.format(protobuf_dir))
     else:
@@ -257,28 +241,26 @@ def installProtobuf():
 
     os.chdir(protobuf_dir)
     os.system('./autogen.sh')
-    rc = os.system('./configure -q --prefix={}'.format(
-        get_sal_home_absolute() + '/install/'))
+    rc = os.system('./configure -q --prefix={}'.format(sal_3rdparty_path))
     if rc != 0:
         return False
-    rc = os.system('make -j -s')
+    rc = os.system('make -s')
     if rc != 0:
         return False
     # os.system('make check')
-    rc = os.system('make -j -s install')
+    rc = os.system('make -s install')
     if rc != 0:
         return False
     rc = os.system('sudo ldconfig')
     if rc != 0:
         return False
     return True
-    # os.system('sudo pip install protobuf=={}'.format(protobuf_ver))
 
 
 def installgRPC():
     print('Installing gRPC.')
     gRPC_ver = 'v1.17.0'
-    gRPC_dir = '{0}/grpc{1}/'.format(sal_thirdparty_path, gRPC_ver)
+    gRPC_dir = '{0}/grpc{1}/'.format(sal_3rdparty_path, gRPC_ver)
     if os.path.exists(gRPC_dir):
         print('{0} already exists, will rebuild.'.format(gRPC_dir))
     else:
@@ -297,26 +279,18 @@ def installgRPC():
     #         print('Executing gRPC cmake command : '.format(cmake_cmd))
     #         rc=os.system(cmake_cmd)
 
-    make_cmd = 'LD_LIBRARY_PATH={0}/lib/ PKG_CONFIG_PATH={0}/lib/pkgconfig/:$PKG_CONFIG_PATH \
-    make -j -s LDFLAGS=-L{0}/lib prefix={0}'.format(
-        get_sal_home_absolute() + '/install/')
+    make_cmd = 'make clean && LD_LIBRARY_PATH={0}/lib/ PKG_CONFIG_PATH={0}/lib/pkgconfig/:$PKG_CONFIG_PATH \
+    make -s LDFLAGS=-L{0}/lib prefix={0}'.format(sal_3rdparty_path, 'include/')
     print('Executing CMD: {}'.format(make_cmd))
     rc = os.system(make_cmd)
     if rc != 0:
         print('{} Failed with return code {}'.format(make_cmd, rc))
         return False
 
-    make_install_cmd = 'make -s install prefix={0}'.format(
-        get_sal_home_absolute() + '/install/')
+    make_install_cmd = 'make -s install prefix={0}'.format(sal_3rdparty_path)
     rc = os.system(make_install_cmd)
     if rc != 0:
         print('{} Failed with return code {}'.format(make_install_cmd, rc))
-        return False
-
-    ld_cmd = 'sudo ldconfig'
-    rc = os.system(ld_cmd)
-    if rc != 0:
-        print('{} Failed with return code {}'.format(ld_cmd, rc))
         return False
     return True
 
@@ -387,12 +361,7 @@ def execute_user_action(sal_input):
         rc &= set_sal_env()
         rc &= clean_sal()
     if 'i' in sal_input:
-        if get_from_advance_setting_dict(constants.sal_sw_attr_node,
-                                         constants.build_third_party_node):
-            rc &= install_sal_thirdparty_deps()
-        else:
-            print(
-                'But choose not to build thirdparty SW. Check settings.yaml')
+        rc &= install_sal_thirdparty_deps()
     if 'b' in sal_input:
         rc &= set_sal_env()
         rc &= build_sal()

@@ -180,8 +180,8 @@ def prepare_bsp_pkg():
         '> {3}'.
             format(bsp_dev_abs, earliest_commit_hash, latest_commit_hash,
                    bsp_dev_abs + '/' + get_diff_file_name()))
-    create_release(bsp_dev_abs, get_diff_file_name(),
-                   '/platforms/apsn/')
+    create_release(bsp_dev_abs, [bsp_dev_abs, get_diff_file_name()],
+                                [bsp_dev_abs, '/platforms/apsn/'])
 
 
 def ask_user_for_building_bsp():
