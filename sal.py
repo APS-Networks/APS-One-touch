@@ -8,7 +8,7 @@ from common import delete_files, get_env_var, get_gb_lib_home_absolute, \
     execute_cmd, get_from_advance_setting_dict, \
     get_selected_profile_name, set_env_var, get_gb_src_home_absolute, \
     get_abs_path, get_selected_profile_dict, \
-    get_sde_home_absolute, append_to_env_var, create_release, get_path_prefix
+    get_sde_home_absolute, append_to_env_var, create_release, get_path_prefix, get_from_setting_dict
 from drivers import load_and_verify_kernel_modules
 
 
@@ -36,24 +36,20 @@ def set_sal_env():
                       get_gb_src_home_absolute())
     rc &= set_env_var(constants.gb_lib_home_env_var_name,
                       get_gb_lib_home_absolute())
-    rc &= set_env_var(constants.tp_install_env_var_name,
-                      get_tp_install_path_absolute())
     print('SAL_HOME: {0} \
     \n PYTHONPATH: {1} \
     \n SDE: {2} \
     \n SDE_INSTALL: {3} \
     \n SDE_INCLUDE: {4} \
     \n GB_SRC_HOME: {5} \
-    \n GB_LIB_HOME: {6} \
-    \n TP_INSTALL: {7}'.format(
+    \n GB_LIB_HOME: {6}'.format(
         get_env_var(constants.sal_home_env_var_name),
         get_env_var(constants.pythonpath_env_var_name),
         get_env_var(constants.sde_env_var_name),
         get_env_var(constants.sde_install_env_var_name),
         get_env_var(constants.sde_include_env_var_name),
         get_env_var(constants.gb_src_home_env_var_name),
-        get_env_var(constants.gb_lib_home_env_var_name),
-        get_env_var(constants.tp_install_env_var_name)))
+        get_env_var(constants.gb_lib_home_env_var_name)))
     return rc
 
 
@@ -66,11 +62,11 @@ def get_sal_repo_absolute():
 
 
 def get_tp_install_path_from_settings():
-    if not get_from_advance_setting_dict(constants.sal_sw_attr_node,
+    if not get_from_setting_dict(constants.sal_sw_attr_node,
                                  constants.tp_install_node_name):
-        return get_sal_repo_from_config() + '/sal_tp_install/'
+        return get_sal_home_from_config() + '/sal_tp_install/'
     else:
-        return get_from_advance_setting_dict(constants.sal_sw_attr_node,
+        return get_from_setting_dict(constants.sal_sw_attr_node,
                                      constants.tp_install_node_name)
 
 
@@ -133,28 +129,38 @@ def build_sal():
 
 
 def prepare_sal_release():
-    create_release(get_sal_repo_absolute(),
-                   [get_sal_repo_absolute(), '/include/'],
-                   [get_sal_repo_absolute(), '/src/include/'],
-                   [get_sal_repo_absolute(), '/build'],
-                   [get_sal_repo_absolute(), '/lib'],
-                   [get_sal_repo_absolute(), '/scripts'],
-                   [get_sal_repo_absolute(), '/config'],
-                   [get_sal_repo_absolute(), '/proto'],
-                   [get_path_prefix(), '/{}/lib'.format(get_tp_install_path_from_settings())],
-                   [get_path_prefix(), '/{}/include'.format(get_tp_install_path_from_settings())],
-                   [get_path_prefix(), '/{}/bin'.format(get_tp_install_path_from_settings())],
-                   [get_path_prefix(), '/{}/share'.format(get_tp_install_path_from_settings())],
-                   [get_sal_repo_absolute(), '/README.md'],
-                   [get_sal_repo_absolute(), '/test/sal_service_test_BF6064.py'],
-                   [get_sal_repo_absolute(), '/test/sal_service_test_BF2556.py'],
-                   [get_sal_repo_absolute(), '/test/TestUtil.py'],
-                   [get_sal_repo_absolute(), '/sal_services_pb2.py'],
-                   [get_sal_repo_absolute(), '/sal_services_pb2_grpc.py'],
-                   [get_sal_repo_absolute(), '/sal_services.grpc.pb.cc'],
-                   [get_sal_repo_absolute(), '/sal_services.grpc.pb.h'],
-                   [get_sal_repo_absolute(), '/sal_services.pb.cc'],
-                   [get_sal_repo_absolute(), '/sal_services.pb.h'])
+
+    files_to_copy= [
+        [get_sal_repo_absolute(), '/include/'],
+        [get_sal_repo_absolute(), '/src/include/'],
+        [get_sal_repo_absolute(), '/build'],
+        [get_sal_repo_absolute(), '/lib'],
+        [get_sal_repo_absolute(), '/scripts'],
+        [get_sal_repo_absolute(), '/config'],
+        [get_sal_repo_absolute(), '/proto'],
+        [get_sal_repo_absolute(), '/README.md'],
+        [get_sal_repo_absolute(), '/test/sal_service_test_BF6064.py'],
+        [get_sal_repo_absolute(), '/test/sal_service_test_BF2556.py'],
+        [get_sal_repo_absolute(), '/test/TestUtil.py'],
+        [get_sal_repo_absolute(), '/sal_services_pb2.py'],
+        [get_sal_repo_absolute(), '/sal_services_pb2_grpc.py'],
+        [get_sal_repo_absolute(), '/sal_services.grpc.pb.cc'],
+        [get_sal_repo_absolute(), '/sal_services.grpc.pb.h'],
+        [get_sal_repo_absolute(), '/sal_services.pb.cc'],
+        [get_sal_repo_absolute(), '/sal_services.pb.h']
+    ]
+
+    package_input = input("Package 3rdParty [y]/n:")
+    if not package_input:
+        package_input = 'y'
+    if package_input == 'y':
+        files_to_copy.append([get_sal_repo_absolute(), '/{}/lib'.format(sal_3rdparty_build_dir)])
+        files_to_copy.append([get_sal_repo_absolute(), '/{}/include'.format(sal_3rdparty_build_dir)])
+        files_to_copy.append([get_sal_repo_absolute(), '/{}/bin'.format(sal_3rdparty_build_dir)])
+        files_to_copy.append([get_sal_repo_absolute(), '/{}/share'.format(sal_3rdparty_build_dir)])
+
+    create_release(get_sal_repo_absolute(), files_to_copy)
+
     return True
 
 
@@ -221,18 +227,19 @@ def run_sal():
 #         os.system("sudo pkill -9 {}".format('salRefApp'))
 #     return True
 
-sal_3rdparty_path = get_tp_install_path_absolute()
+sal_3rdparty_build_dir = '/sal_tp_install'
+sal_3rdparty_build_path = get_sal_home_absolute()+sal_3rdparty_build_dir
 
 
 def install_sal_thirdparty_deps():
     print('Installing SAL 3rdparty dependencies.')
 
-    if not os.path.exists(sal_3rdparty_path):
-        os.makedirs(sal_3rdparty_path)
+    if not os.path.exists(sal_3rdparty_build_path):
+        os.makedirs(sal_3rdparty_build_path)
 
     res = installProtobuf()
     append_to_env_var(constants.path_env_var_name,
-                      sal_3rdparty_path + '/bin/')
+                      sal_3rdparty_build_path + '/bin/')
     res &= installgRPC()
     return res
 
@@ -240,7 +247,7 @@ def install_sal_thirdparty_deps():
 def installProtobuf():
     print('Installing protobuf.')
     protobuf_ver = 'v3.6.1'
-    protobuf_dir = '{0}/protobuf{1}/'.format(sal_3rdparty_path, protobuf_ver)
+    protobuf_dir = '{0}/protobuf{1}/'.format(sal_3rdparty_build_path, protobuf_ver)
     if os.path.exists(protobuf_dir):
         print('{0} already exists, will rebuild.'.format(protobuf_dir))
     else:
@@ -252,7 +259,7 @@ def installProtobuf():
 
     os.chdir(protobuf_dir)
     os.system('./autogen.sh')
-    rc = os.system('./configure -q --prefix={}'.format(sal_3rdparty_path))
+    rc = os.system('./configure -q --prefix={}'.format(sal_3rdparty_build_path))
     if rc != 0:
         return False
     rc = os.system('make -s')
@@ -271,7 +278,7 @@ def installProtobuf():
 def installgRPC():
     print('Installing gRPC.')
     gRPC_ver = 'v1.17.0'
-    gRPC_dir = '{0}/grpc{1}/'.format(sal_3rdparty_path, gRPC_ver)
+    gRPC_dir = '{0}/grpc{1}/'.format(sal_3rdparty_build_path, gRPC_ver)
     if os.path.exists(gRPC_dir):
         print('{0} already exists, will rebuild.'.format(gRPC_dir))
     else:
@@ -291,14 +298,14 @@ def installgRPC():
     #         rc=os.system(cmake_cmd)
 
     make_cmd = 'make clean && LD_LIBRARY_PATH={0}/lib/ PKG_CONFIG_PATH={0}/lib/pkgconfig/:$PKG_CONFIG_PATH \
-    make -s LDFLAGS=-L{0}/lib prefix={0}'.format(sal_3rdparty_path, 'include/')
+    make -s LDFLAGS=-L{0}/lib prefix={0}'.format(sal_3rdparty_build_path, 'include/')
     print('Executing CMD: {}'.format(make_cmd))
     rc = os.system(make_cmd)
     if rc != 0:
         print('{} Failed with return code {}'.format(make_cmd, rc))
         return False
 
-    make_install_cmd = 'make -s install prefix={0}'.format(sal_3rdparty_path)
+    make_install_cmd = 'make -s install prefix={0}'.format(sal_3rdparty_build_path)
     rc = os.system(make_install_cmd)
     if rc != 0:
         print('{} Failed with return code {}'.format(make_install_cmd, rc))

@@ -143,12 +143,12 @@ def create_nested_dir(destination_location, dir_path):
             os.mkdir(destination_location)
 
 
-def create_release(local_git_repo, *files_to_release):
+def create_release(local_git_repo, files_to_release):
     """
 
     Args:
         local_git_repo: Absolute path to local git repository
-        *files_to_release: File paths relative to local_git_repo to be part of release.
+        files_to_release: File paths relative to local_git_repo to be part of release.
     Returns:
 
     """

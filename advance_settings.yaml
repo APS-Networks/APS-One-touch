@@ -10,7 +10,6 @@ BSP:
 
 SAL:
   sal_repo: sal # Local sal repo path.
-  tp_install: #Path to 3rdparty install dir i.e. grpc and protobuf, defaults to $sal_repo/sal_tp_install
 
 GB: #Following parameters are useful when you have SAL src and building it, Otherwise can be ignored.
   gb_src: /gearbox/Px-4.2_2020_03_018/work/cpss/

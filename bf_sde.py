@@ -180,8 +180,8 @@ def prepare_bsp_pkg():
         '> {3}'.
             format(bsp_repo_abs, earliest_commit_hash, latest_commit_hash,
                    bsp_repo_abs + '/' + get_diff_file_name()))
-    create_release(bsp_repo_abs, [bsp_repo_abs, get_diff_file_name()],
-                                [bsp_repo_abs, '/platforms/apsn/'])
+    create_release(bsp_repo_abs, [[bsp_repo_abs, get_diff_file_name()],
+                                [bsp_repo_abs, '/platforms/apsn/']])
 
 
 def ask_user_for_building_bsp():
@@ -250,7 +250,7 @@ def load_drivers():
         print('Loading kernel modules.')
         if not load_and_verify_kernel_modules():
             print("ERROR:Some kernel modules are not loaded.")
-            exit(0)
+            #exit(0)
     else:
         print('Running simulation, No need to load kernel modules.')
 

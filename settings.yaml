@@ -32,7 +32,8 @@ BF SDE: &bf_sde
     #- -bm bf-drivers
 
 SAL :
-  sal_home: /APS-One-touch/release/sal_1.1.1 #Path to directory where SAL artifacts are present
+  sal_home: /APS-One-touch/release/sal_1.2.0 #Path to directory where SAL artifacts are present
+  tp_install: #3rdParty libs path to run the SAL, defaults to sal_home/sal_tp_install
 
 STRATUM: &stratum
   stratum_home: /stratum
