@@ -227,8 +227,11 @@ def run_sal():
 #         os.system("sudo pkill -9 {}".format('salRefApp'))
 #     return True
 
+#Dependencies will be built inside local repository path
+#Following path isn't used to run SAL from, but from the path
+#configured in settings.yaml 'tp_install'
 sal_3rdparty_build_dir = '/sal_tp_install'
-sal_3rdparty_build_path = get_sal_home_absolute()+sal_3rdparty_build_dir
+sal_3rdparty_build_path = get_sal_repo_absolute()+sal_3rdparty_build_dir
 
 
 def install_sal_thirdparty_deps():
