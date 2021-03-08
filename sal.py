@@ -17,7 +17,9 @@ def set_sal_runtime_env():
     if not set_sde_env_n_load_drivers():
         return False
     set_env_var(constants.sal_home_env_var_name, get_sal_home_absolute())
+    set_env_var(constants.tp_install_env_var_name, get_tp_install_path_absolute())
     print('SAL_HOME: {}'.format(get_env_var(constants.sal_home_env_var_name)))
+    print('TP_INSTALL: {}'.format(get_env_var(constants.tp_install_env_var_name)))
     return True
 
 
@@ -36,20 +38,24 @@ def set_sal_env():
                       get_gb_src_home_absolute())
     rc &= set_env_var(constants.gb_lib_home_env_var_name,
                       get_gb_lib_home_absolute())
+    rc &= set_env_var(constants.tp_install_env_var_name,
+                      get_tp_install_path_absolute())
     print('SAL_HOME: {0} \
     \n PYTHONPATH: {1} \
     \n SDE: {2} \
     \n SDE_INSTALL: {3} \
     \n SDE_INCLUDE: {4} \
     \n GB_SRC_HOME: {5} \
-    \n GB_LIB_HOME: {6}'.format(
+    \n GB_LIB_HOME: {6} \
+    \n TP_INSTALL: {7}'.format(
         get_env_var(constants.sal_home_env_var_name),
         get_env_var(constants.pythonpath_env_var_name),
         get_env_var(constants.sde_env_var_name),
         get_env_var(constants.sde_install_env_var_name),
         get_env_var(constants.sde_include_env_var_name),
         get_env_var(constants.gb_src_home_env_var_name),
-        get_env_var(constants.gb_lib_home_env_var_name)))
+        get_env_var(constants.gb_lib_home_env_var_name),
+        get_env_var(constants.tp_install_env_var_name)))
     return rc
 
 
@@ -102,11 +108,12 @@ def get_sal_profile_dict():
 
 def install_sal_deps():
     os.system('sudo apt install -y libboost-log1.65-dev')
-    os.system('python -m pip install grpcio-tools')
+    os.system('python3 -m pip install grpcio-tools')
+    os.system('sudo install g++-8 gcc-8')
+    return True
 
 
 def build_sal():
-    install_sal_deps()
     print('Building SAL...')
     try:
         # TODO Need to fix this in SAL, to use dedicated boost libs.
@@ -166,7 +173,6 @@ def prepare_sal_release():
 
 def clean_sal():
     print('Cleaning SAL...')
-
     to_delete = [get_env_var(constants.sal_home_env_var_name) + f for f in
                  ['/lib', '/bin', '/build', '/logs/', '/CMakeCache.txt',
                   '/Makefile',
@@ -190,8 +196,8 @@ def run_sal():
     sal_run_cmd = 'sudo -E LD_LIBRARY_PATH={0}:{1}:{2}:{3} {4}'.format(
         sal_home + '/build',
         sal_home + '/lib',
-        get_tp_install_path_absolute() + '/lib',
-        get_sde_home_absolute() + '/install/lib', sal_executable)
+        get_env_var(constants.tp_install_env_var_name) + '/lib',
+        get_env_var(constants.sal_home_env_var_name) + '/install/lib', sal_executable)
     print('Running SAL with command: {}'.format(sal_run_cmd))
     execute_cmd(sal_run_cmd)
     return True
@@ -227,9 +233,9 @@ def run_sal():
 #         os.system("sudo pkill -9 {}".format('salRefApp'))
 #     return True
 
-#Dependencies will be built inside local repository path
-#Following path isn't used to run SAL from, but from the path
-#configured in settings.yaml 'tp_install'
+# Dependencies will be built inside local repository at following fixed path.
+# To run SAL path for 3rdParty path 'tp_install' in settings.yaml is used,
+# Which may or may not be same as following 3rdParty build path.
 sal_3rdparty_build_dir = '/sal_tp_install'
 sal_3rdparty_build_path = get_sal_repo_absolute()+sal_3rdparty_build_dir
 
@@ -379,11 +385,12 @@ def execute_user_action(sal_input):
     rc = True
 
     if 'c' in sal_input:
-        rc &= set_sal_env()
+        set_env_var(constants.sal_home_env_var_name, get_sal_home_absolute())
         rc &= clean_sal()
     if 'i' in sal_input:
         rc &= install_sal_thirdparty_deps()
     if 'b' in sal_input:
+        rc &= install_sal_deps()
         rc &= set_sal_env()
         rc &= build_sal()
     if 'p' in sal_input:
