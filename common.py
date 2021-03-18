@@ -266,8 +266,7 @@ def get_env_var(var_name):
     try:
         return os.environ[var_name]
     except KeyError as e:
-        print('INFO: {} is not set.'.format(var_name))
-        print(e)
+        print('INFO: env_var {} is not set.'.format(var_name))
 
 
 def append_to_env_var(src_env_var_name, new_val_to_append):
@@ -451,7 +450,19 @@ def get_gb_lib_home_absolute():
 
 
 def get_switch_model():
-    return get_from_setting_dict(constants.switch_model_node)
+    output = execute_cmd_n_get_output_2('sudo dmidecode -s system-product-name');
+    switch_model = None
+    if 'BF2556' in output:
+        switch_model = bf2556x_1t
+    elif 'BF6064' in output:
+        switch_model = bf6064x_t
+    else:
+        print('Switch model couldn\'t be retrieved from System, Checking environment for {}'.
+              format(switch_model_env_var_name))
+        switch_model = get_switch_model_from_env()
+
+    print('Switch model is {}'.format(switch_model))
+    return switch_model
 
 
 def get_switch_model_from_env():
