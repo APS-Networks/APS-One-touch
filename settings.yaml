@@ -3,15 +3,11 @@
 
 #For quick start goto bottom and type in profile of choice under slected.
 
-SWITCH Model: BF2556X_1T
-#OR
-#SWITCH Model: BF6064X_T
-
 PATH_PREFIX: #Various paths used in this setting file are evaluated relative to this, Default is user home directory
 
 BSP: &bsp
-  ref_bsp: /bsp/bf-reference-bsp-9.3.0.tar #Reference BSP to be downloaded from Intel's support portal.
-  aps_bsp_pkg: /bsp/bf-reference-bsp-9.3.0-BF2556_1c5723d.zip #Porting code for APS switch.
+  ref_bsp: /bsp/bf-reference-bsp-9.4.0.tar #Reference BSP to be downloaded from Intel's support portal.
+  aps_bsp_pkg: /bsp/bf-reference-bsp-9.4.0-BF2556_1.0.0.zip #Porting code for APS switch.
 
 BF SDE: &bf_sde
   sde_pkg: /BF/bf-sde-9.4.0.tgz

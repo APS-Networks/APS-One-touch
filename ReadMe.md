@@ -23,7 +23,6 @@ Default input while execution i.e. when user just presses enter without any inpu
 
 ## Quick start
 For a quick start user should check for following node values in settings.yaml :
-- SWITCH Model
 - BF SDE
   - sde_pkg 
 - BSP 

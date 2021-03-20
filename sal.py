@@ -120,10 +120,11 @@ def build_sal():
         os.system('sudo rm -rf {}'.format('/usr/local/include/boost'))
     except FileNotFoundError:
         pass
-    os.chdir(get_env_var(constants.sal_home_env_var_name))
-    cmake_cmd = 'cmake '
 
-    cmake_cmd += get_env_var(constants.sal_home_env_var_name)
+    cmake_cmd = 'cmake '
+    cmake_cmd += ' -B ' + get_env_var(constants.sal_home_env_var_name)
+    cmake_cmd += ' -S ' + get_env_var(constants.sal_home_env_var_name)
+
     print('Executing cmake command {}.'.format(cmake_cmd))
 
     execute_cmd(cmake_cmd)
