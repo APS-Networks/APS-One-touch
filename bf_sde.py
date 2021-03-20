@@ -40,7 +40,8 @@ def build_sde():
     # Deletion is required otherwise moving the directories
     # in further steps might create issues.
     # And delete only when user have opted for not to resume build
-    if sde_build_flags is not None and '-rb' not in sde_build_flags:
+    if sde_build_flags is not None and '-rb' not in sde_build_flags\
+            and '-bm' not in sde_build_flags:
         try:
             print("Deleting previous installation at {}.".format(
                 sde_home_absolute))
