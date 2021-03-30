@@ -8,7 +8,7 @@ from common import delete_files, get_env_var, get_gb_lib_home_absolute, \
     execute_cmd, get_from_advance_setting_dict, \
     get_selected_profile_name, set_env_var, get_gb_src_home_absolute, \
     get_abs_path, get_selected_profile_dict, \
-    get_sde_home_absolute, append_to_env_var, create_release, get_path_prefix, get_from_setting_dict
+    get_sde_home_absolute, append_to_env_var, create_release, get_path_prefix, get_from_setting_dict, get_p4_prog_name
 from drivers import load_and_verify_kernel_modules
 
 
@@ -18,8 +18,10 @@ def set_sal_runtime_env():
         return False
     set_env_var(constants.sal_home_env_var_name, get_sal_home_absolute())
     set_env_var(constants.tp_install_env_var_name, get_tp_install_path_absolute())
+    os.environ[constants.p4_prog_env_var_name] = get_p4_prog_name()
     print('SAL_HOME: {}'.format(get_env_var(constants.sal_home_env_var_name)))
     print('TP_INSTALL: {}'.format(get_env_var(constants.tp_install_env_var_name)))
+    print('P4_PROG: {}'.format(get_env_var(constants.p4_prog_env_var_name)))
     return True
 
 
@@ -109,7 +111,8 @@ def get_sal_profile_dict():
 def install_sal_deps():
     os.system('sudo apt install -y libboost-log1.65-dev')
     os.system('python3 -m pip install grpcio-tools')
-    os.system('sudo install g++-8 gcc-8')
+    os.system('sudo apt install g++-8 gcc-8')
+    #os.system('sudo apt install libjsonrpccpp-dev libjsonrpccpp-tools')
     return True
 
 

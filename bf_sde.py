@@ -14,8 +14,8 @@ from common import create_symlinks, execute_cmd_n_get_output, get_env_var, \
     append_to_env_var, \
     dname, get_switch_model, execute_cmd, get_ref_bsp_abs_path, \
     get_aps_bsp_pkg_abs_path, execute_cmd_n_get_output_2, get_abs_path, \
-    get_from_advance_setting_dict, create_release
-from constants import stratum_profile
+    get_from_advance_setting_dict, create_release, get_p4_prog_name
+from constants import stratum_profile, p4_prog_node_name, p4_prog_env_var_name
 from drivers import load_and_verify_kernel_modules
 
 
@@ -98,7 +98,7 @@ def start_bf_switchd():
         # Currently This just an interrupt for user to start tofino model.
         input('Make sure that tofino-model is running?')
 
-    p4_prog_name = get_from_setting_dict('BF SDE', 'p4_name')
+    p4_prog_name = get_env_var(p4_prog_env_var_name)
 
     # LD_LIBRARY_PATH is set for ONLPv2 case, libs in install/lib folder are
     # not found there but this does not cause any harm for Ubuntu case either.
@@ -233,13 +233,15 @@ def set_sde_env():
         set_env_var(constants.sde_env_var_name, sde_home_absolute)
         set_env_var(constants.sde_install_env_var_name,
                     get_env_var(constants.sde_env_var_name) + '/install/')
+        os.environ[constants.p4_prog_env_var_name] = get_p4_prog_name()
         append_to_env_var(constants.path_env_var_name, get_env_var(
             constants.sde_install_env_var_name) + '/bin/')
         print(
-            'Environment variables set: \n SDE: {0} \n SDE_INSTALL: {1} \n PATH: {2}'.format(
+            'Environment variables set: \n SDE: {0} \n SDE_INSTALL: {1} \n PATH: {2} \n P4_PROG: {3}'.format(
                 get_env_var(constants.sde_env_var_name),
                 get_env_var(constants.sde_install_env_var_name),
-                get_env_var(constants.path_env_var_name)))
+                get_env_var(constants.path_env_var_name),
+                get_env_var(constants.p4_prog_env_var_name)))
         return True
     else:
         print('ERROR: SDE directory couldnt be found, exiting .')

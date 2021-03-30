@@ -11,7 +11,7 @@ import constants
 from constants import sal_hw_profile_name, sal_sim_profile_name, \
     sde_hw_profile_name, sde_sim_profile_name, stratum_hw_profile_name, \
     stratum_sim_profile_name, BSP_node, aps_bsp_pkg_node, ref_bsp_node, \
-    switch_model_env_var_name, bf2556x_1t, bf6064x_t
+    switch_model_env_var_name, bf2556x_1t, bf6064x_t, p4_prog_node_name
 import shutil
 
 abspath = os.path.abspath(__file__)
@@ -468,11 +468,17 @@ def get_switch_model():
 def get_switch_model_from_env():
     model_name = get_env_var(switch_model_env_var_name)
     if model_name is None or model_name not in [bf2556x_1t, bf6064x_t]:
-        print('Please set env_var SWITCH_MODEL with values either {0} or {1}'.
+        print('Please set env_var SWITCH_MODEL with values either {0} or {1}, '
+              'e.g.- export SWITCH_MODEL={0}'.
               format(bf2556x_1t, bf6064x_t))
         exit(0)
     return model_name
 
+def get_p4_prog_name():
+    p4ProgName = get_from_setting_dict('BF SDE', p4_prog_node_name)
+    if p4ProgName == None :
+        p4ProgName =''
+    return p4ProgName
 
 def is_sim_profile_selected():
     return 'sim' in get_selected_profile_name()
