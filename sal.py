@@ -5,10 +5,10 @@ import common
 import constants
 from bf_sde import set_sde_env_n_load_drivers, load_bf_sde_profile
 from common import delete_files, get_env_var, get_gb_lib_home_absolute, \
-    execute_cmd, get_from_advance_setting_dict, \
-    get_selected_profile_name, set_env_var, get_gb_src_home_absolute, \
+    execute_cmd, get_selected_profile_name, set_env_var, get_gb_src_home_absolute, \
     get_abs_path, get_selected_profile_dict, \
-    get_sde_home_absolute, append_to_env_var, create_release, get_path_prefix, get_from_setting_dict, get_p4_prog_name
+    append_to_env_var, create_release, get_from_setting_dict, get_p4_prog_name
+from constants import path_env_var_name
 from drivers import load_and_verify_kernel_modules
 
 
@@ -109,7 +109,6 @@ def get_sal_profile_dict():
 
 
 def install_sal_deps():
-    os.system('sudo apt install -y libboost-log1.65-dev')
     os.system('python3 -m pip install grpcio-tools')
     os.system('sudo apt install g++-8 gcc-8')
     #os.system('sudo apt install libjsonrpccpp-dev libjsonrpccpp-tools')
@@ -247,14 +246,33 @@ sal_3rdparty_build_path = get_sal_repo_absolute()+sal_3rdparty_build_dir
 def install_sal_thirdparty_deps():
     print('Installing SAL 3rdparty dependencies.')
 
+
     if not os.path.exists(sal_3rdparty_build_path):
         os.makedirs(sal_3rdparty_build_path)
 
-    res = installProtobuf()
+    i=input('Install boost y/[n] ?')
+    if not i or i not in ['y','n'] :
+        i='n'
+    if i is 'y' and not installBoost():
+        return False
+    
+    i=input('Install protobuf y/[n] ?')
+    if not i or i not in ['y','n'] :
+        i='n'
+    if i is 'y' and not installProtobuf():
+        return False
+
     append_to_env_var(constants.path_env_var_name,
                       sal_3rdparty_build_path + '/bin/')
-    res &= installgRPC()
-    return res
+    print(get_env_var(path_env_var_name))
+
+    i=input('Install gRPC y/[n] ?')
+    if not i or i not in ['y','n']:
+        i='n'
+    if i is 'y' and not installgRPC():
+
+        return False
+    return True
 
 
 def installProtobuf():
@@ -279,7 +297,7 @@ def installProtobuf():
     if rc != 0:
         return False
     # os.system('make check')
-    rc = os.system('make -s install')
+    rc = os.system('make -s -j install')
     if rc != 0:
         return False
     rc = os.system('sudo ldconfig')
@@ -302,23 +320,15 @@ def installgRPC():
         os.system('git submodule update --init --recursive')
 
     os.chdir(gRPC_dir)
-
-    #         os.makedirs(gRPC_dir+'/cmake/build')
-    #         cmake_cmd='cmake ../.. -DgRPC_INSTALL=ON \
-    #                   -DgRPC_BUILD_TESTS=OFF \
-    #                   -DCMAKE_INSTALL_PREFIX={}'.format(get_sal_home_absolute()+'/install/')
-    #         print('Executing gRPC cmake command : '.format(cmake_cmd))
-    #         rc=os.system(cmake_cmd)
-
     make_cmd = 'make clean && LD_LIBRARY_PATH={0}/lib/ PKG_CONFIG_PATH={0}/lib/pkgconfig/:$PKG_CONFIG_PATH \
-    make -s LDFLAGS=-L{0}/lib prefix={0}'.format(sal_3rdparty_build_path, 'include/')
+    make -s -I{0} LDFLAGS=-L{0}/lib prefix={0}'.format(sal_3rdparty_build_path, 'include/')
     print('Executing CMD: {}'.format(make_cmd))
     rc = os.system(make_cmd)
     if rc != 0:
         print('{} Failed with return code {}'.format(make_cmd, rc))
         return False
 
-    make_install_cmd = 'make -s install prefix={0}'.format(sal_3rdparty_build_path)
+    make_install_cmd = 'make -s -j install prefix={0}'.format(sal_3rdparty_build_path)
     rc = os.system(make_install_cmd)
     if rc != 0:
         print('{} Failed with return code {}'.format(make_install_cmd, rc))
@@ -326,57 +336,32 @@ def installgRPC():
     return True
 
 
-# def installgRPC():
-#     print('Installing gRPC.')
-#     gRPC_ver = 'v1.17.0'  # This is required version to build PI, check PI's github.
-#     gRPC_dir = '{0}/grpc{1}/'.format(sal_thirdparty_path, gRPC_ver)
-#     if os.path.exists(gRPC_dir):
-#         print('{0} already exists, will rebuild.'.format(gRPC_dir))
-#     else:
-#         os.system(
-#             'git clone https://github.com/google/grpc.git {}'.format(gRPC_dir))
-#         os.chdir(gRPC_dir)
-#         os.system('git checkout tags/{}'.format(gRPC_ver))
-#         os.system('git submodule update --init --recursive')
-#
-#     os.chdir(gRPC_dir)
-#
-#     try:
-#         os.makedirs(gRPC_dir + '/cmake/build')
-#     except FileExistsError:
-#         print('cmake directory already exists.')
-#     os.chdir('./cmake/build')
-#     cmake_cmd = 'cmake ../.. \
-#               -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX={}'.format(
-#         get_sal_home_absolute() + '/install/')
-#     print('Executing gRPC cmake command : {}'.format(cmake_cmd))
-#
-#     rc = os.system(cmake_cmd)
-#     rc = os.system('make -j prefix={}'.format(get_sal_home_absolute() + '/install/'))
-#     if rc != 0:
-#         return False
-#
-#     rc = os.system('make prefix={} install'.format(get_sal_home_absolute() + '/install/'))
-#     if rc != 0:
-#         return False
-#
-#     # Need to copy grpc_cpp_plugin and libgrpc++.so manually,
-#     # Perhaps a bug in grpc_1.17.0 works fine with grpc_1.34.0 .
-#     grpc_cpp_plug = get_sal_home_absolute() + \
-#                      '/install/bin/grpc_cpp_plugin'
-#     lib_grpcpp = get_sal_home_absolute() + \
-#                     '/install/lib/libgrpc++.so'
-#     shutil.copyfile('grpc_cpp_plugin', grpc_cpp_plug)
-#     shutil.copyfile('libgrpc++.so', lib_grpcpp)
-#     make_executable(grpc_cpp_plug)
-#
-#     #ld_cmd = 'sudo ldconfig'
-#     #rc = os.system(ld_cmd)
-#     # if rc != 0:
-#     #     print('{} Failed with return code {}'.format(ld_cmd, rc))
-#     #     return False
-#     # return True
-#     return rc
+def installBoost():
+    print('Installing Boost.')
+    boost_ver = '1_67_0'
+    boost_dir = '{0}/boost_{1}/'.format(sal_3rdparty_build_path, boost_ver)
+    boost_arch_name = 'boost_{}.tar.bz2'.format(boost_ver)
+
+    if os.path.exists(boost_dir):
+        print('{0} already exists, will rebuild.'.format(boost_dir))
+    else:
+        os.system('wget http://downloads.sourceforge.net/project/boost/boost/{0}/{1} -P {2}'.
+                  format(boost_ver.replace('_','.'),boost_arch_name,sal_3rdparty_build_path))
+
+    rc=os.system('tar -xvf {0} -C {1}'.
+              format(sal_3rdparty_build_path+'/'+boost_arch_name,sal_3rdparty_build_path))
+    os.chdir(boost_dir)
+    print('./bootstrap.sh --prefix={}'.format(sal_3rdparty_build_path))
+    rc &=os.system('./bootstrap.sh --prefix={}'.format(sal_3rdparty_build_path))
+    rc &= os.system('./b2 -j')
+    rc &= os.system('./b2 --with-system --with-log --with-program_options install')
+    rc &= os.system('sudo ldconfig')
+    rc &= os.system('chmod -R a+rwx {}'.format(boost_dir))
+    if rc != 0:
+        print('Boost build failed !')
+        return False
+
+    return True
 
 
 def make_executable(path):
