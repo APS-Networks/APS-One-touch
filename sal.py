@@ -117,11 +117,6 @@ def install_sal_deps():
 
 def build_sal():
     print('Building SAL...')
-    try:
-        # TODO Need to fix this in SAL, to use dedicated boost libs.
-        os.system('sudo rm -rf {}'.format('/usr/local/include/boost'))
-    except FileNotFoundError:
-        pass
 
     cmake_cmd = 'cmake '
     cmake_cmd += ' -B ' + get_env_var(constants.sal_home_env_var_name)
