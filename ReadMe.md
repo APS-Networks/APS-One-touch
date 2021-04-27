@@ -21,6 +21,7 @@ Instead of collecting below SWs from different places please refer 'All in one p
 
 |Device|AOT|SAL|APSN BSP|SDE|Ref-BSP|OS (Recommended)|Kernel|
 |---|---|---|---|---|---|---|---|
+|BF2556X_1T<br>BF6064X_T|v1.5.1|sal_1.3.1|bf-reference-bsp-9.4.0-BF2556_1.0.2.zip<br>bf-reference-bsp-9.4.0-BF6064_1.0.1.zip|BF_SDE_9.4.0|bf-reference-bsp-9.4.0|Ubuntu Server 18.04.4 LTS|5.4.x
 |BF2556X_1T<br>BF6064X_T|v1.5.0|sal_1.3.0|bf-reference-bsp-9.4.0-BF2556_1.0.2.zip<br>bf-reference-bsp-9.4.0-BF6064_1.0.1.zip|BF_SDE_9.4.0|bf-reference-bsp-9.4.0|Ubuntu Server 18.04.4 LTS|5.4.x
 |BF2556X_1T<br>BF6064X_T|v1.4.2|sal_1.2.0|bf-reference-bsp-9.4.0-BF2556_1.0.1.zip<br>bf-reference-bsp-9.4.0-BF6064_1.0.1.zip|BF_SDE_9.4.0|bf-reference-bsp-9.4.0|Ubuntu Server 18.04.4 LTS|5.4.x
 |BF2556X_1T<br>BF6064X_T|v1.4.1|sal_1.1.1|bf-reference-bsp-9.3.0-BF2556_1c5723d.zip<br>bf-reference-bsp-9.3.0-BF6064_f536cae.zip|BF_SDE_9.3.0|bf-reference-bsp-9.3.0|Ubuntu Server 18.04.4 LTS|5.4.x
