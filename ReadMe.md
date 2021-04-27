@@ -6,6 +6,8 @@ To get the files required by installer refer [Required Software](#required-softw
 Default input while execution i.e. when user just presses enter without any input appears in square braces i.e. '[n]' or '[do_nothing]'
 
 ## Required Software
+Following SWs will be required to set up APSN switches, Instead of collecting below SWs from different places please refer 'All in one package' section at APSN Support portal.
+
 |SW|Details|Where to get it|
 |---|---|---|
 |bf-reference-bsp-&lt;Release>-&lt;APSN switch model>_&lt;APSN ver>.zip|APSN Switches Platform package & Patch|APSN Support Portal|
@@ -14,6 +16,9 @@ Default input while execution i.e. when user just presses enter without any inpu
 |bf-reference-bsp-&lt;Release>|Intel's Standard BSP for Tofino|Intel's Support Portal|
  
 ## Release Compatibility 
+Instead of collecting below SWs from different places please refer 'All in one package' section at APSN Support portal.
+'All in one package' contains Below mentioned SWs (except SDE and OS) with compatible releases (as said in below table) and ready to use config.  
+
 |Device|AOT|SAL|APSN BSP|SDE|Ref-BSP|OS (Recommended)|Kernel|
 |---|---|---|---|---|---|---|---|
 |BF2556X_1T<br>BF6064X_T|v1.5.0|sal_1.3.0|bf-reference-bsp-9.4.0-BF2556_1.0.2.zip<br>bf-reference-bsp-9.4.0-BF6064_1.0.1.zip|BF_SDE_9.4.0|bf-reference-bsp-9.4.0|Ubuntu Server 18.04.4 LTS|5.4.x
