@@ -191,11 +191,12 @@ def run_sal():
         exit(0)
     sal_home=get_env_var(constants.sal_home_env_var_name)
     sal_executable = sal_home + '/build/salRefApp'
-    sal_run_cmd = 'sudo -E LD_LIBRARY_PATH={0}:{1}:{2}:{3} {4}'.format(
+    sal_run_cmd = 'sudo -E LD_LIBRARY_PATH={0}:{1}:{2}:{3}:{4} {5}'.format(
         sal_home + '/build',
         sal_home + '/lib',
         get_env_var(constants.tp_install_env_var_name) + '/lib',
-        get_env_var(constants.sal_home_env_var_name) + '/install/lib', sal_executable)
+        get_env_var(constants.sal_home_env_var_name) + '/install/lib',
+        get_env_var(constants.sde_install_env_var_name) + '/lib', sal_executable)
     print('Running SAL with command: {}'.format(sal_run_cmd))
     execute_cmd(sal_run_cmd)
     return True
