@@ -184,23 +184,23 @@ def clean_sal():
     return True
 
 
-def run_sal():
+def run_sal(debug):
     print('Starting SAL reference application...')
     if get_selected_profile_name() == constants.sal_hw_profile_name and not load_and_verify_kernel_modules():
         print("ERROR:Some kernel modules are not loaded.")
         exit(0)
     sal_home=get_env_var(constants.sal_home_env_var_name)
     sal_executable = sal_home + '/build/salRefApp'
-    sal_run_cmd = 'sudo -E LD_LIBRARY_PATH={0}:{1}:{2}:{3}:{4} {5}'.format(
-        sal_home + '/build',
-        sal_home + '/lib',
-        get_env_var(constants.tp_install_env_var_name) + '/lib',
-        get_env_var(constants.sal_home_env_var_name) + '/install/lib',
-        get_env_var(constants.sde_install_env_var_name) + '/lib', sal_executable)
+    sal_run_cmd = 'sudo -E LD_LIBRARY_PATH={0}:{1}:{2}:{3}:{4} {6} {5}'.format(
+      sal_home + '/build',
+      sal_home + '/lib',
+      get_env_var(constants.tp_install_env_var_name) + '/lib',
+      get_env_var(constants.sal_home_env_var_name) + '/install/lib',
+      get_env_var(constants.sde_install_env_var_name) + '/lib', sal_executable,
+      'gdb' if debug else '')
     print('Running SAL with command: {}'.format(sal_run_cmd))
     execute_cmd(sal_run_cmd)
     return True
-
 
 # Currently SAL has to be tested from within SAL package package
 # def test_sal():
@@ -382,7 +382,7 @@ def execute_user_action(sal_input):
         rc &= prepare_sal_release()
     if 'r' in sal_input:
         set_sal_runtime_env()
-        rc &= run_sal()
+        rc &= run_sal('d' in sal_input)
     if 't' in sal_input:
         print('Running SAL tests from AOT are currently not supported, '
               'Should run from within SAL package only')
@@ -394,7 +394,9 @@ def take_user_input():
     sal_input = input(
         "SAL : run(r), [do_nothing(n)], "
         "OR developer's options - "
-        "build(b), clean(c), install 3rdParty SWs(i), prepare rel(p) ? ")
+        "build(b), clean(c), run&debug(rd), "
+        "install 3rdParty SWs(i), "
+        "prepare rel(p) ? ")
 
     if 'n' in sal_input or not sal_input:
         # In case user give nasty input like cbrn
