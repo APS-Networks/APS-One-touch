@@ -4,7 +4,7 @@ import tarfile
 import constants
 from common import execute_cmd_n_get_output, get_env_var, dname, \
     create_symlinks, \
-    is_ubuntu, get_switch_model, get_sde_profile_details
+    is_ubuntu, get_switch_model, get_from_setting_dict
 from constants import sde_module_bf_kdrv_string_value, \
      sde_module_bf_kpkt_string_value
 
@@ -14,7 +14,7 @@ installation_files = {
 
 
 def get_sde_modules():
-    return get_sde_profile_details().get(constants.sde_modules_node)
+    return get_from_setting_dict(constants.sde_details_node,constants.sde_modules_node)
 
 
 def load_and_verify_kernel_modules():

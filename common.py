@@ -8,9 +8,7 @@ import subprocess
 import yaml
 
 import constants
-from constants import sal_hw_profile_name, sal_sim_profile_name, \
-    sde_hw_profile_name, sde_sim_profile_name, stratum_hw_profile_name, \
-    stratum_sim_profile_name, BSP_node, aps_bsp_pkg_node, ref_bsp_node, \
+from constants import BSP_node, aps_bsp_pkg_node, ref_bsp_node, \
     switch_model_env_var_name, bf2556x_1t, bf6064x_t, p4_prog_node_name
 import shutil
 
@@ -392,46 +390,6 @@ def get_sde_install_dir_absolute():
     return get_sde_home_absolute() + '/install'
 
 
-def get_sde_profile_dict():
-    """
-    Method returns sde profile dictionary valid for selected profile.
-    """
-    if get_selected_profile_name() in [sal_hw_profile_name,
-                                       stratum_hw_profile_name]:
-        return settings_dict.get(constants.build_profiles_node).get(
-            constants.sde_hw_profile_node)
-    elif get_selected_profile_name() in [sal_sim_profile_name,
-                                         stratum_sim_profile_name]:
-        return settings_dict.get(constants.build_profiles_node).get(
-            constants.sde_sim_profile_node)
-    elif get_selected_profile_name() in [sde_hw_profile_name,
-                                         sde_sim_profile_name]:
-        return get_selected_profile_dict()
-    else:
-        print(
-            "Selected profile is not or doesn't have associated SDE profile !")
-
-
-def get_sde_profile_name():
-    return get_sde_profile_dict().get(constants.name_node)
-
-
-def get_sde_profile_details():
-    return get_sde_profile_dict().get(constants.details_node)
-
-
-def get_sde_version():
-    return get_sde_profile_details().get(constants.sde_version_node)
-
-
-def get_selected_profile_dict():
-    return settings_dict.get(constants.build_profiles_node).get(
-        constants.selected_node)
-
-
-def get_selected_profile_name():
-    return get_selected_profile_dict().get(constants.name_node)
-
 
 def get_gb_src_home_from_config():
     return advance_settings_dict.get('GB').get('gb_src')
@@ -450,7 +408,7 @@ def get_gb_lib_home_absolute():
 
 
 def get_switch_model():
-    output = execute_cmd_n_get_output_2('sudo dmidecode -s system-product-name');
+    output = execute_cmd_n_get_output_2('sudo dmidecode -s system-product-name')
     switch_model = None
     if 'BF2556' in output:
         switch_model = bf2556x_1t
@@ -474,11 +432,14 @@ def get_switch_model_from_env():
         exit(0)
     return model_name
 
+
 def get_p4_prog_name():
     p4ProgName = get_from_setting_dict('BF SDE', p4_prog_node_name)
     if p4ProgName == None :
         p4ProgName =''
     return p4ProgName
 
-def is_sim_profile_selected():
-    return 'sim' in get_selected_profile_name()
+def do_basic_path_validation():
+    # Do basic path verification.
+    validate_path_existence(get_sde_pkg_abs_path(), 'Barefoot SDE')
+    validate_path_existence(get_ref_bsp_abs_path(), 'BF BSP')

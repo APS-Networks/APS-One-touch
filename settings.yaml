@@ -11,8 +11,7 @@ BSP: &bsp
 
 BF SDE: &bf_sde
   sde_pkg: /BF/bf-sde-9.4.0.tgz
-  sde_home: /BF/bf-sde-9.4.0 # SDE path relative to PATH_PREFIX for installing SDE. If left blank default is APS-One-touch/<bf-sde-x.y.z>.
-  sde_version: 9.4.0 #Required only for running stratum, will be ignored otherwise.
+  sde_home: /BF/bf-sde-9.4.0 #Path will be automatically created by AOT, this is SDE installation dir path (relative to PATH_PREFIX as every other path in this file). If left blank default is APS-One-touch/<bf-sde-x.y.z>.
   p4studio_build_profile: p4_runtime_profile #Leave it blank to enter detailed interactive P4 Studio build shell, Value is overridden to stratum_profile in case stratum_hw_profile or stratum_sim_profile is selected
   p4_prog: #Leave it blank to start SDE without a P4 program or give p4 program name which is already built in SDE. Applicable when sde_*_profile is selected from below.
   modules: #Following barefoot SDE modules will be loaded before starting SDE.
@@ -31,43 +30,3 @@ SAL :
   sal_home: /APS-One-touch/release/sal_1.2.0 #Path to directory where SAL artifacts are present
   tp_install: #3rdParty libs path to run the SAL, defaults to sal_home/sal_tp_install
 
-STRATUM: &stratum
-  stratum_home: /stratum
-  stratum_config: #default is APS-One-touch/stratum_config
-  mode: bsp #bsp or bsp-less ('bsp' mode is recommended)
-
-#To quick start just type in the profile name in 'selected' with * in the beginning.
-#All files and directory path are relative to user's home.
-# Profile which have 'sim' in their names are meant to work on PCs in simulation mode,
-# Rest are suitable for actual switches.
-BUILD_PROFILES: &build_profiles
-
-  sde_sim: &sde_sim_profile #If selected, Configure 'BF SDE' and 'BSP' node above in the file.
-    name: sde_sim_profile
-    details: *bf_sde
-    deps:
-
-  sde_hw: &sde_hw_profile #If selected, Configure 'BF SDE' and 'BSP' node above in the file.
-    name: sde_hw_profile
-    details: *bf_sde
-    deps: *bsp
-
-  sal_hw: &sal_hw_profile
-    name: sal_hw_profile
-    deps: *sde_hw_profile
-
-  sal_sim: &sal_sim_profile
-    name: sal_sim_profile
-    deps: *sde_sim_profile
-
-  stratum_sim: &stratum_sim_profile #If selected, Configure STRATUM node above.
-    name: stratum_sim_profile
-    details: *stratum
-    deps: *sal_sim_profile
-
-  stratum_hw: &stratum_hw_profile #If selected, Configure STRATUM node above.
-    name: stratum_hw_profile
-    details: *stratum
-    deps: *sal_hw_profile
-
-  selected: *sde_hw_profile

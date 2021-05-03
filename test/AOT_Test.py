@@ -2,6 +2,7 @@ from __future__ import print_function
 
 import sys
 import unittest
+from unittest import skip
 
 import HtmlTestRunner
 
@@ -11,9 +12,6 @@ from threading import Thread
 import socket
 import time
 import os
-
-import stratum
-
 
 def is_port_up(host, port, retries=10, timeout=2):
     result = 0
@@ -56,6 +54,7 @@ class AOTTests(unittest.TestCase):
         t = Thread(target=sal.execute_user_action, name='Run SAL', args=('r',))
         t.daemon = True
         t.start()
+        time.sleep(5)
         self.assertTrue(is_port_up('127.0.0.1', 50054))
         self.assertTrue(sal.execute_user_action('c'))
         kill_process('salRefApp')
@@ -76,25 +75,6 @@ class AOTTests(unittest.TestCase):
         self.assertTrue(
             is_port_up('127.0.0.1', 9999, retries=30, timeout=2))
         kill_process('bf_switchd')
-
-    @unittest.skip('')
-    def test_build_stratum(self):
-        self.assertTrue(stratum.execute_user_action('c'))
-        self.assertTrue(stratum.execute_user_action('b'))
-
-    @unittest.skip('')
-    def test_run_stratum(self):
-        self.assertTrue(stratum.execute_user_action('c'))
-        self.assertTrue(stratum.execute_user_action('b'))
-        t = Thread(target=stratum.execute_user_action, name='run_stratum',
-                   args=('r',))
-        t.daemon = True
-        t.start()
-        self.assertTrue(
-            is_port_up('127.0.0.1', 28000, retries=30, timeout=2))
-        self.assertTrue(
-            is_port_up('127.0.0.1', 9999, retries=30, timeout=2))
-        kill_process('stratum_bf')
 
 
 if __name__ == '__main__':

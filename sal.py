@@ -1,13 +1,12 @@
-import logging
 import os
 
 import common
 import constants
 from bf_sde import set_sde_env_n_load_drivers, load_bf_sde_profile
 from common import delete_files, get_env_var, get_gb_lib_home_absolute, \
-    execute_cmd, get_selected_profile_name, set_env_var, get_gb_src_home_absolute, \
-    get_abs_path, get_selected_profile_dict, \
-    append_to_env_var, create_release, get_from_setting_dict, get_p4_prog_name
+    execute_cmd, set_env_var, get_gb_src_home_absolute, \
+    get_abs_path, \
+    append_to_env_var, create_release, get_from_setting_dict, get_p4_prog_name, do_basic_path_validation, read_settings
 from constants import path_env_var_name
 from drivers import load_and_verify_kernel_modules
 
@@ -92,22 +91,6 @@ def get_sal_repo_from_config():
         get(constants.sal_sw_attr_node).get(constants.sal_repo_node_name)
 
 
-def get_sal_profile_dict():
-    selected_profile = get_selected_profile_dict()
-    selected_profile_name = get_selected_profile_name()
-    if selected_profile_name in [constants.sal_hw_profile_name,
-                                 constants.sal_sim_profile_name]:
-        return selected_profile
-    elif selected_profile_name == constants.stratum_sim_profile_name:
-        return common.settings_dict.get(constants.build_profiles_node).get(
-            constants.sal_sim_profile_node)
-    elif selected_profile_name == constants.stratum_hw_profile_name:
-        return common.settings_dict.get(constants.build_profiles_node).get(
-            constants.sal_hw_profile_node)
-    else:
-        logging.error('There is no selected or associated SAL profile')
-
-
 def install_sal_deps():
     os.system('python3 -m pip install grpcio-tools')
     os.system('sudo apt install g++-8 gcc-8')
@@ -186,7 +169,7 @@ def clean_sal():
 
 def run_sal(debug):
     print('Starting SAL reference application...')
-    if get_selected_profile_name() == constants.sal_hw_profile_name and not load_and_verify_kernel_modules():
+    if not load_and_verify_kernel_modules():
         print("ERROR:Some kernel modules are not loaded.")
         exit(0)
     sal_home=get_env_var(constants.sal_home_env_var_name)
@@ -420,4 +403,5 @@ def just_load_sal():
 
 
 if __name__ == '__main__':
+    do_basic_path_validation()
     just_load_sal()

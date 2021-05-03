@@ -9,18 +9,17 @@ import constants
 from common import create_symlinks, execute_cmd_n_get_output, get_env_var, \
     get_from_setting_dict, \
     get_sde_dir_name_in_tar, get_sde_home_absolute, get_sde_pkg_abs_path, \
-    get_sde_profile_details, get_sde_profile_name, get_selected_profile_name, \
     set_env_var, validate_path_existence, \
     append_to_env_var, \
     dname, get_switch_model, execute_cmd, get_ref_bsp_abs_path, \
     get_aps_bsp_pkg_abs_path, execute_cmd_n_get_output_2, get_abs_path, \
-    get_from_advance_setting_dict, create_release, get_p4_prog_name
-from constants import stratum_profile, p4_prog_node_name, p4_prog_env_var_name
+    get_from_advance_setting_dict, create_release, get_p4_prog_name, do_basic_path_validation, read_settings
+from constants import stratum_profile, p4_prog_env_var_name
 from drivers import load_and_verify_kernel_modules
 
 
 def get_sde_build_flags():
-    return get_sde_profile_details().get(constants.sde_build_flags_node)
+    return get_from_setting_dict(constants.sde_details_node, constants.sde_build_flags_node)
 
 
 def get_p4_studio_build_profile_name():
@@ -40,7 +39,7 @@ def build_sde():
     # Deletion is required otherwise moving the directories
     # in further steps might create issues.
     # And delete only when user have opted for not to resume build
-    if sde_build_flags is not None and '-rb' not in sde_build_flags\
+    if sde_build_flags is not None and '-rb' not in sde_build_flags \
             and '-bm' not in sde_build_flags:
         try:
             print("Deleting previous installation at {}.".format(
@@ -60,10 +59,6 @@ def build_sde():
     build_opt = "-up"
     p4studio_build_profile = get_p4_studio_build_profile_name()
 
-    if get_selected_profile_name() in [constants.stratum_hw_profile_name,
-                                       constants.stratum_sim_profile_name]:
-        p4studio_build_profile = stratum_profile
-
     if p4studio_build_profile == "" or p4studio_build_profile is None:
         build_opt = ""
         p4studio_build_profile = ""
@@ -80,8 +75,7 @@ def build_sde():
     else:
         print('No build flag will be used for BF_SDE build.')
     os.environ[
-        constants.path_env_var_name] += os.pathsep + sde_home_absolute + \
-                                        '/install/bin/'
+        constants.path_env_var_name] += os.pathsep + sde_home_absolute + '/install/bin/'
     print('Building sde with command {}'.format(sde_install_cmd))
     os.system(sde_install_cmd)
     return True
@@ -91,13 +85,7 @@ def start_bf_switchd():
     # os.chdir(common.dname)
     print('Starting BF switchd.')
     set_sde_env_n_load_drivers()
-    profile_name = get_sde_profile_name()
-
-    if profile_name == constants.sde_sim_profile_name:
-        # TODO Do something meaningful, Possibly launch tofino model in separate shell,
-        # Currently This just an interrupt for user to start tofino model.
-        input('Make sure that tofino-model is running?')
-
+    
     p4_prog_name = get_env_var(p4_prog_env_var_name)
 
     # LD_LIBRARY_PATH is set for ONLPv2 case, libs in install/lib folder are
@@ -108,14 +96,9 @@ def start_bf_switchd():
 
     if not p4_prog_name:
         print("Starting switchd without p4 program")
-        start_switchd_cmd = "sudo {0}/install/bin/bf_switchd --install-dir {" \
-                            "0}/install --conf-file {" \
-                            "0}/pkgsrc/p4-examples/tofino/tofino_skip_p4.conf" \
-                            ".in --skip-p4".format(get_env_var('SDE'))
-        if profile_name == constants.sde_hw_profile_name:
-            start_switchd_cmd = "sudo -E {0}/run_switchd.sh -c {" \
-                                "0}/pkgsrc/p4-examples/tofino/tofino_skip_p4.conf.in --skip-p4".format(
-                get_env_var('SDE'))
+        start_switchd_cmd = "sudo -E {0}/run_switchd.sh -c {" \
+                            "0}/pkgsrc/p4-examples/tofino/tofino_skip_p4.conf.in --skip-p4".format(
+            get_env_var('SDE'))
     else:
         print("Starting switchd with P4 prog:{}".format(p4_prog_name))
         start_switchd_cmd = 'sudo -E {0}/run_switchd.sh -p {1}'.format(
@@ -182,21 +165,20 @@ def prepare_bsp_pkg():
             format(bsp_repo_abs, earliest_commit_hash, latest_commit_hash,
                    bsp_repo_abs + '/' + get_diff_file_name()))
     create_release(bsp_repo_abs, [[bsp_repo_abs, get_diff_file_name()],
-                                [bsp_repo_abs, '/platforms/apsn/']])
+                                  [bsp_repo_abs, '/platforms/apsn/']])
 
 
 def ask_user_for_building_bsp():
-    if get_sde_profile_name() == constants.sde_hw_profile_name:
-        in_put = input("BSP : build y/[n]  "
-                       "OR developer's option- packaging(p)?")
-        if not in_put:
-            in_put = "n"
-        #Order is important, if 'p' and 'y' both oprions are given
-        # Then first package then build
-        if "p" in in_put:
-            prepare_bsp_pkg()
-        if "y" in in_put:
-            install_switch_bsp()
+    in_put = input("BSP : build y/[n]  "
+                   "OR developer's option- packaging(p)?")
+    if not in_put:
+        in_put = "n"
+    # Order is important, if 'p' and 'y' both oprions are given
+    # Then first package then build
+    if "p" in in_put:
+        prepare_bsp_pkg()
+    if "y" in in_put:
+        install_switch_bsp()
 
 
 def ask_user_for_starting_sde():
@@ -213,11 +195,7 @@ def load_bf_sde_profile():
     ask_user_for_building_sde()
     ask_user_for_building_bsp()
     prepare_sde_release()
-    # SDE to be started only in case of SDE profiles
-    # Else SDE will be started by either SAL or STRATUM
-    if get_selected_profile_name() in [constants.sde_hw_profile_name,
-                                       constants.sde_sim_profile_name]:
-        ask_user_for_starting_sde()
+    ask_user_for_starting_sde()
 
 
 def prepare_sde_release():
@@ -249,13 +227,10 @@ def set_sde_env():
 
 
 def load_drivers():
-    if get_sde_profile_name() == constants.sde_hw_profile_name:
-        print('Loading kernel modules.')
-        if not load_and_verify_kernel_modules():
-            print("ERROR:Some kernel modules are not loaded.")
-            #exit(0)
-    else:
-        print('Running simulation, No need to load kernel modules.')
+    print('Loading kernel modules.')
+    if not load_and_verify_kernel_modules():
+        print("ERROR:Some kernel modules are not loaded.")
+        exit(0)
 
 
 def set_sde_env_n_load_drivers():
@@ -274,7 +249,7 @@ def install_switch_bsp():
     print("Installing {}".format(aps_bsp_installation_file))
     aps_zip = zipfile.ZipFile(aps_bsp_installation_file)
     aps_zip.extractall(Path(aps_bsp_installation_file).parent)
-    aps_bsp_dir = aps_zip.namelist()[0]+'/apsn/'
+    aps_bsp_dir = aps_zip.namelist()[0] + '/apsn/'
     aps_bsp_dir_absolute = str(
         Path(aps_bsp_installation_file).parent) + '/' + aps_bsp_dir
     aps_zip.close()
@@ -341,6 +316,7 @@ def just_load_sde():
 
 
 if __name__ == '__main__':
+    do_basic_path_validation()
     just_load_sde()
 
 
@@ -354,4 +330,3 @@ def get_default_bsp_repo_path():
     else:
         print('Development BSp can\'t be retrieved for switch model'.
               format(get_switch_model()))
-
