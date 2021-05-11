@@ -171,7 +171,7 @@ def run_sal(debug):
     print('Starting SAL reference application...')
     if not load_and_verify_kernel_modules():
         print("ERROR:Some kernel modules are not loaded.")
-        exit(0)
+        #exit(0)
     sal_home=get_env_var(constants.sal_home_env_var_name)
     sal_executable = sal_home + '/build/salRefApp'
     sal_run_cmd = 'sudo -E LD_LIBRARY_PATH={0}:{1}:{2}:{3}:{4} {6} {5}'.format(
@@ -403,5 +403,4 @@ def just_load_sal():
 
 
 if __name__ == '__main__':
-    do_basic_path_validation()
     just_load_sal()
