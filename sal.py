@@ -91,10 +91,9 @@ def get_sal_repo_from_config():
         get(constants.sal_sw_attr_node).get(constants.sal_repo_node_name)
 
 
-def install_sal_deps():
+def install_sal_build_deps():
     os.system('python3 -m pip install grpcio-tools')
     os.system('sudo apt install g++-8 gcc-8')
-    #os.system('sudo apt install libjsonrpccpp-dev libjsonrpccpp-tools')
     return True
 
 
@@ -171,7 +170,7 @@ def run_sal(debug):
     print('Starting SAL reference application...')
     if not load_and_verify_kernel_modules():
         print("ERROR:Some kernel modules are not loaded.")
-        #exit(0)
+        exit(0)
     sal_home=get_env_var(constants.sal_home_env_var_name)
     sal_executable = sal_home + '/build/salRefApp'
     sal_run_cmd = 'sudo -E LD_LIBRARY_PATH={0}:{1}:{2}:{3}:{4} {6} {5}'.format(
@@ -210,8 +209,12 @@ def execute_test_cmd(ip):
     os.system(test_cmd)
 
 
+def install_sal_test_deps():
+    os.system('python3 -m pip3 install future paramiko grpcio-tools html-testRunner')
+    return True
+
+
 def execute_sal_tests():
-    set_sal_test_env()
     print("Executing tests from %s." % get_env_var(constants.sal_home_env_var_name))
     dut_ips = set(get_dut_ips())
     if dut_ips is not None:
@@ -366,7 +369,7 @@ def execute_user_action(sal_input):
     if 'i' in sal_input:
         rc &= install_sal_thirdparty_deps()
     if 'b' in sal_input:
-        rc &= install_sal_deps()
+        rc &= install_sal_build_deps()
         rc &= set_sal_env()
         rc &= build_sal()
     if 'p' in sal_input:
@@ -375,6 +378,8 @@ def execute_user_action(sal_input):
         set_sal_runtime_env()
         rc &= run_sal('d' in sal_input)
     if 't' in sal_input:
+        set_sal_test_env()
+        install_sal_test_deps()
         rc &= execute_sal_tests()
     return rc
 

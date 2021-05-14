@@ -230,7 +230,7 @@ def load_drivers():
     print('Loading kernel modules.')
     if not load_and_verify_kernel_modules():
         print("ERROR:Some kernel modules are not loaded.")
-        exit(0)
+        #exit(0)
 
 
 def set_sde_env_n_load_drivers():
