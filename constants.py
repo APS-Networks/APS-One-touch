@@ -35,6 +35,7 @@ path_prefix_node = 'PATH_PREFIX'
 # SAL related nodes
 details_node = 'details'
 tp_install_node_name = 'tp_install'
+dut_ips_node_name = 'dut_ips'
 # SDE related nodes
 sde_build_flags_node = 'build_flags'
 sde_modules_node = 'modules'

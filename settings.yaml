@@ -5,11 +5,11 @@
 
 PATH_PREFIX: #Various paths used in this setting file are evaluated relative to this, Default is user home directory
 
-BSP: &bsp
+BSP:
   ref_bsp: /bsp/bf-reference-bsp-9.4.0.tar #Reference BSP to be downloaded from Intel's support portal.
   aps_bsp_pkg: /bsp/bf-reference-bsp-9.4.0-BF2556_1.0.0.zip #Porting code for APS switch.
 
-BF SDE: &bf_sde
+BF SDE:
   sde_pkg: /BF/bf-sde-9.4.0.tgz
   sde_home: /BF/bf-sde-9.4.0 #Path will be automatically created by AOT, this is SDE installation dir path (relative to PATH_PREFIX as every other path in this file). If left blank default is APS-One-touch/<bf-sde-x.y.z>.
   p4studio_build_profile: p4_runtime_profile #Leave it blank to enter detailed interactive P4 Studio build shell, Value is overridden to stratum_profile in case stratum_hw_profile or stratum_sim_profile is selected
@@ -23,10 +23,15 @@ BF SDE: &bf_sde
                #e.g. for p4studio flag '-rb' write '- -rb'
     - --skip-os-check
     - -rb
-    #- -iod
-    #- -bm bf-drivers
+    # More flags can be added or removed as needed.
 
 SAL :
   sal_home: /APS-One-touch/release/sal_1.2.0 #Path to directory where SAL artifacts are present
   tp_install: #3rdParty libs path to run the SAL, defaults to <sal_home>/sal_tp_install
+  # If executing SAL tests configure
+  dut_ips: #The IP of devices to execute tests upon
+    - 127.0.0.1
+    - 10.10.192.218
+    - 10.10.192.219
+
 
