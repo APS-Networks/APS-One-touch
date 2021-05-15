@@ -29,9 +29,9 @@ SAL :
   sal_home: /APS-One-touch/release/sal_1.2.0 #Path to directory where SAL artifacts are present
   tp_install: #3rdParty libs path to run the SAL, defaults to <sal_home>/sal_tp_install
   # If executing SAL tests configure
-  dut_ips: #The IP of devices to execute tests upon
-    - 127.0.0.1
-    - 10.10.192.218
-    - 10.10.192.219
+  dut_ips: #One or more <Switch_IP:SAL_gRPC_port> to execute tests upon
+    - 127.0.0.1:50054
+    - 10.10.192.218:50054
+    - 10.10.192.219:50054
 
 

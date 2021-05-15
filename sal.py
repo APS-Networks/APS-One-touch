@@ -203,9 +203,9 @@ def set_sal_test_env():
     print("%s = %s" % (pythonpath_env_var_name,get_env_var(pythonpath_env_var_name)))
 
 
-def execute_test_cmd(ip):
-    test_cmd = 'python3 %s/test/SAL_Tests.py %s' % \
-               (get_env_var(constants.sal_home_env_var_name), ip)
+def execute_test_cmd(ip, sal_grpc_port):
+    test_cmd = 'python3 %s/test/SAL_Tests.py %s %s' % \
+               (get_env_var(constants.sal_home_env_var_name), ip, sal_grpc_port)
     os.system(test_cmd)
 
 
@@ -219,10 +219,19 @@ def execute_sal_tests():
     dut_ips = set(get_dut_ips())
     if dut_ips is not None:
         for ip in dut_ips:
-            if is_valid_ip(ip):
-                t = Thread(target=execute_test_cmd, name='SAL Tests thread for %s ' % ip, args=(ip,))
-                print("Starting %s" % t.name)
-                t.start()
+            ip_port = ip.split(':')
+            try:
+                dev_ip = ip_port[0]
+                sal_grpc_port = ip_port[1]
+                if not is_valid_ip(dev_ip) and not sal_grpc_port:
+                    raise ValueError
+            except (IndexError, ValueError) as e:
+                print("ERROR: Invalid DUT_IP or gRPC Port provided for connecting to SAL. : %s" % e)
+                exit(0)
+
+            t = Thread(target=execute_test_cmd, name='SAL Tests thread for %s ' % ip, args=(dev_ip, sal_grpc_port,))
+            print("Starting %s" % t.name)
+            t.start()
     return True
 
 
