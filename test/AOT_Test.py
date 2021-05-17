@@ -12,6 +12,8 @@ import socket
 import time
 import os
 
+from sal import get_sal_ip_port_dict
+
 
 def is_port_up(host, port, retries=10, timeout=2):
     result = 0
@@ -55,7 +57,8 @@ class AOTTests(unittest.TestCase):
         t.daemon = True
         t.start()
         time.sleep(5)
-        self.assertTrue(is_port_up('127.0.0.1', 50054))
+        for dev_ip, sal_grpc_port in get_sal_ip_port_dict().items():
+            self.assertTrue(is_port_up(dev_ip, sal_grpc_port))
         self.assertTrue(sal.execute_user_action('c'))
         kill_process('salRefApp')
 
