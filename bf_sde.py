@@ -13,7 +13,7 @@ from common import create_symlinks, execute_cmd_n_get_output, get_env_var, \
     append_to_env_var, \
     dname, get_switch_model, execute_cmd, get_ref_bsp_abs_path, \
     get_aps_bsp_pkg_abs_path, execute_cmd_n_get_output_2, get_abs_path, \
-    get_from_advance_setting_dict, create_release, get_p4_prog_name, do_basic_path_validation, read_settings
+    get_from_advance_setting_dict, create_release, get_p4_prog_name, do_basic_path_validation
 from constants import stratum_profile, p4_prog_env_var_name
 from drivers import load_and_verify_kernel_modules
 
@@ -85,7 +85,7 @@ def start_bf_switchd():
     # os.chdir(common.dname)
     print('Starting BF switchd.')
     set_sde_env_n_load_drivers()
-    
+
     p4_prog_name = get_env_var(p4_prog_env_var_name)
 
     # LD_LIBRARY_PATH is set for ONLPv2 case, libs in install/lib folder are
@@ -96,9 +96,8 @@ def start_bf_switchd():
 
     if not p4_prog_name:
         print("Starting switchd without p4 program")
-        start_switchd_cmd = "sudo -E {0}/run_switchd.sh -c {" \
-                            "0}/pkgsrc/p4-examples/tofino/tofino_skip_p4.conf.in --skip-p4".format(
-            get_env_var('SDE'))
+        start_switchd_cmd = "sudo -E {0}/run_switchd.sh -c {0}/pkgsrc/p4-examples/tofino/tofino_skip_p4.conf.in " \
+                            "--skip-p4".format(get_env_var('SDE'))
     else:
         print("Starting switchd with P4 prog:{}".format(p4_prog_name))
         start_switchd_cmd = 'sudo -E {0}/run_switchd.sh -p {1}'.format(
@@ -161,9 +160,8 @@ def prepare_bsp_pkg():
         '\':!.gitignore\' '
         '\':!autom4te.cache\' '
         '\':!*Makefile.in\' '
-        '> {3}'.
-            format(bsp_repo_abs, earliest_commit_hash, latest_commit_hash,
-                   bsp_repo_abs + '/' + get_diff_file_name()))
+        '> {3}'.format(bsp_repo_abs, earliest_commit_hash, latest_commit_hash,
+                       bsp_repo_abs + '/' + get_diff_file_name()))
     create_release(bsp_repo_abs, [[bsp_repo_abs, get_diff_file_name()],
                                   [bsp_repo_abs, '/platforms/apsn/']])
 
@@ -230,7 +228,7 @@ def load_drivers():
     print('Loading kernel modules.')
     if not load_and_verify_kernel_modules():
         print("ERROR:Some kernel modules are not loaded.")
-        #exit(0)
+        # exit(0)
 
 
 def set_sde_env_n_load_drivers():
@@ -267,7 +265,7 @@ def install_switch_bsp():
     pltfm_tar.extractall()
     bf_pltfm_dir = str(Path(
         get_ref_bsp_abs_path()).parent) + '/' + ref_bsp_dir + '/packages/' + \
-                   pltfm_tar.getnames()[0]
+        pltfm_tar.getnames()[0]
 
     aps_pltfm_dir = bf_pltfm_dir + '/platforms/apsn/'
     if os.path.exists(aps_pltfm_dir):

@@ -2,7 +2,6 @@ from __future__ import print_function
 
 import sys
 import unittest
-from unittest import skip
 
 import HtmlTestRunner
 
@@ -12,6 +11,7 @@ from threading import Thread
 import socket
 import time
 import os
+
 
 def is_port_up(host, port, retries=10, timeout=2):
     result = 0
