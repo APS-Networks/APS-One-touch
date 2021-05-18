@@ -30,7 +30,7 @@ SAL :
   tp_install: #3rdParty libs path to run the SAL, defaults to <sal_home>/sal_tp_install
   # If executing SAL tests configure
   dut_ips: #One or more <Switch_IP:SAL_gRPC_port> to execute SAL tests upon,
-           #SAL should be running on following address(es)
+           #SAL should be running on following device address(es) before running any tests.
     - 127.0.0.1:50054
     - 10.10.192.218:50054
     - 10.10.192.219:50054
