@@ -13,7 +13,7 @@ BF SDE:
   sde_pkg: /BF/bf-sde-9.4.0.tgz
   sde_home: /BF/bf-sde-9.4.0 #Path will be automatically created by AOT, this is SDE installation dir path (relative to PATH_PREFIX as every other path in this file). If left blank default is APS-One-touch/<bf-sde-x.y.z>.
   p4studio_build_profile: p4_runtime_profile #Leave it blank to enter detailed interactive P4 Studio build shell, Value is overridden to stratum_profile in case stratum_hw_profile or stratum_sim_profile is selected
-  p4_prog: #Leave it blank to start SDE without a P4 program or give p4 program name which is already built in SDE. Applicable when sde_*_profile is selected from below.
+  p4_prog: #Leave it blank to start SDE without a P4 program or give p4 program name which is already built in SDE.
   modules: #Following barefoot SDE modules will be loaded before starting SDE.
     - bf_kdrv
     #- bf_kpkt
