@@ -8,9 +8,7 @@ import subprocess
 import yaml
 
 import constants
-from constants import sal_hw_profile_name, sal_sim_profile_name, \
-    sde_hw_profile_name, sde_sim_profile_name, stratum_hw_profile_name, \
-    stratum_sim_profile_name, BSP_node, aps_bsp_pkg_node, ref_bsp_node, \
+from constants import BSP_node, aps_bsp_pkg_node, ref_bsp_node, \
     switch_model_env_var_name, bf2556x_1t, bf6064x_t, p4_prog_node_name
 import shutil
 
@@ -20,7 +18,6 @@ dname = os.path.dirname(abspath)
 
 
 def read_settings():
-    settings_file = None
     try:
         # Custom path for settings file can be given as CLI arg.
         settings_file = sys.argv[1]
@@ -50,8 +47,6 @@ def read_advance_settings():
     """
     Settings used for development.
     """
-    advance_settings_file = None
-
     try:
         # Custom path for settings file can be given as CLI arg.
         advance_settings_file = sys.argv[2]
@@ -118,7 +113,8 @@ def get_2nd_latest_git_tag(local_git_repo):
     # If only one tag exists then second last release tag refers to previous
     # commit hash to latest release tag.
     return execute_cmd_n_get_output_2(
-        'git --git-dir {0}/.git describe --abbrev=0 --tags `git --git-dir {0}/.git rev-list --tags --skip=1 --max-count=1` --always'.
+        'git --git-dir {0}/.git describe --abbrev=0 --tags `git --git-dir {0}/.git rev-list --tags --skip=1 '
+        '--max-count=1` --always'.
         format(local_git_repo)).strip()
 
 
@@ -133,12 +129,12 @@ def create_nested_dir(destination_location, dir_path):
     Returns:
     """
     nested_path_list = dir_path.split('/')
-    #clear up empty strings in the path
+    # clear up empty strings in the path
     nested_path_list = list(filter(None, nested_path_list))
-    #Slice the last dir
+    # Slice the last dir
     nested_path_list = nested_path_list[:-1]
     for d in nested_path_list:
-        destination_location += '/'+d+'/'
+        destination_location += '/' + d + '/'
         if not os.path.exists(destination_location):
             os.mkdir(destination_location)
 
@@ -157,25 +153,21 @@ def create_release(local_git_repo, files_to_release):
     hash_rel_tag_latest = get_git_tag_hash(local_git_repo, rel_tag_latest)
     hash_latest = get_latest_git_hash(local_git_repo)
 
-    arch_name = None
-    start_hash_for_RN = None
-    end_hash_for_RN = None
-
     if hash_latest == hash_rel_tag_latest:
         print('Preparing main release {}'.format(rel_tag_latest))
         print('Preparing release notes since release tag {}'.format(
             release_tag_2ndlast))
-        start_hash_for_RN = release_tag_2ndlast
-        end_hash_for_RN = rel_tag_latest
+        start_hash_for_rn = release_tag_2ndlast
+        end_hash_for_rn = rel_tag_latest
         arch_name = aot_release_dir + '/{0}_{1}'. \
             format(os.path.basename(local_git_repo), rel_tag_latest)
     else:
         print('Preparing development release.')
-        start_hash_for_RN = rel_tag_latest
-        end_hash_for_RN = hash_latest
+        start_hash_for_rn = rel_tag_latest
+        end_hash_for_rn = hash_latest
         suffix = execute_cmd_n_get_output_2(
             'git --git-dir {0}/.git describe --tags'.
-                format(local_git_repo)).strip()
+            format(local_git_repo)).strip()
         arch_name = aot_release_dir + '/{0}_{1}'. \
             format(os.path.basename(local_git_repo), suffix)
 
@@ -189,7 +181,7 @@ def create_release(local_git_repo, files_to_release):
         os.mkdir(arch_name)
 
     rel_notes_file = 'RelNotes_{}.txt'.format(os.path.basename(os.path.normpath(arch_name)))
-    make_rel_notes(local_git_repo, rel_notes_file, start_hash_for_RN, end_hash_for_RN)
+    make_rel_notes(local_git_repo, rel_notes_file, start_hash_for_rn, end_hash_for_rn)
     for arr in files_to_release:
         abs_file_path = arr[0] + '/' + arr[1]
         create_nested_dir(arch_name, arr[1])
@@ -197,15 +189,14 @@ def create_release(local_git_repo, files_to_release):
             shutil.copytree(abs_file_path, arch_name + '/' + arr[1])
         else:
             shutil.copyfile(abs_file_path, arch_name + '/' + arr[1])
-    shutil.copyfile(local_git_repo+'/'+rel_notes_file, arch_name + '/' + rel_notes_file)
+    shutil.copyfile(local_git_repo + '/' + rel_notes_file, arch_name + '/' + rel_notes_file)
     shutil.make_archive(arch_name, 'zip', arch_name)
     print('Release is available at {}'.format(aot_release_dir))
 
 
 def make_rel_notes(local_git_repo, rel_notes_file, start_hash_for_rn, end_hash_for_rn):
-    cmd = 'git --git-dir {0}/.git log --pretty=format:%s {2}..{3} > {0}/{1}'.\
-        format(local_git_repo, rel_notes_file,
-        start_hash_for_rn, end_hash_for_rn)
+    cmd = 'git --git-dir {0}/.git log --pretty=format:%s {2}..{3} > {0}/{1}'. \
+        format(local_git_repo, rel_notes_file, start_hash_for_rn, end_hash_for_rn)
 
     print('Executing command : {}'.format(cmd))
     os.system(cmd)
@@ -265,7 +256,7 @@ def get_abs_path(pth):
 def get_env_var(var_name):
     try:
         return os.environ[var_name]
-    except KeyError as e:
+    except KeyError:
         print('INFO: env_var {} is not set.'.format(var_name))
 
 
@@ -392,47 +383,6 @@ def get_sde_install_dir_absolute():
     return get_sde_home_absolute() + '/install'
 
 
-def get_sde_profile_dict():
-    """
-    Method returns sde profile dictionary valid for selected profile.
-    """
-    if get_selected_profile_name() in [sal_hw_profile_name,
-                                       stratum_hw_profile_name]:
-        return settings_dict.get(constants.build_profiles_node).get(
-            constants.sde_hw_profile_node)
-    elif get_selected_profile_name() in [sal_sim_profile_name,
-                                         stratum_sim_profile_name]:
-        return settings_dict.get(constants.build_profiles_node).get(
-            constants.sde_sim_profile_node)
-    elif get_selected_profile_name() in [sde_hw_profile_name,
-                                         sde_sim_profile_name]:
-        return get_selected_profile_dict()
-    else:
-        print(
-            "Selected profile is not or doesn't have associated SDE profile !")
-
-
-def get_sde_profile_name():
-    return get_sde_profile_dict().get(constants.name_node)
-
-
-def get_sde_profile_details():
-    return get_sde_profile_dict().get(constants.details_node)
-
-
-def get_sde_version():
-    return get_sde_profile_details().get(constants.sde_version_node)
-
-
-def get_selected_profile_dict():
-    return settings_dict.get(constants.build_profiles_node).get(
-        constants.selected_node)
-
-
-def get_selected_profile_name():
-    return get_selected_profile_dict().get(constants.name_node)
-
-
 def get_gb_src_home_from_config():
     return advance_settings_dict.get('GB').get('gb_src')
 
@@ -450,8 +400,7 @@ def get_gb_lib_home_absolute():
 
 
 def get_switch_model():
-    output = execute_cmd_n_get_output_2('sudo dmidecode -s system-product-name');
-    switch_model = None
+    output = execute_cmd_n_get_output_2('sudo dmidecode -s system-product-name')
     if 'BF2556' in output:
         switch_model = bf2556x_1t
     elif 'BF6064' in output:
@@ -474,11 +423,15 @@ def get_switch_model_from_env():
         exit(0)
     return model_name
 
-def get_p4_prog_name():
-    p4ProgName = get_from_setting_dict('BF SDE', p4_prog_node_name)
-    if p4ProgName == None :
-        p4ProgName =''
-    return p4ProgName
 
-def is_sim_profile_selected():
-    return 'sim' in get_selected_profile_name()
+def get_p4_prog_name():
+    p4_prog_name = get_from_setting_dict('BF SDE', p4_prog_node_name)
+    if p4_prog_name is None:
+        p4_prog_name = ''
+    return p4_prog_name
+
+
+def do_basic_path_validation():
+    # Do basic path verification.
+    validate_path_existence(get_sde_pkg_abs_path(), 'Barefoot SDE')
+    validate_path_existence(get_ref_bsp_abs_path(), 'BF BSP')

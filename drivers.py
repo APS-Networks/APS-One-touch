@@ -4,9 +4,9 @@ import tarfile
 import constants
 from common import execute_cmd_n_get_output, get_env_var, dname, \
     create_symlinks, \
-    is_ubuntu, get_switch_model, get_sde_profile_details
+    is_ubuntu, get_switch_model, get_from_setting_dict
 from constants import sde_module_bf_kdrv_string_value, \
-     sde_module_bf_kpkt_string_value
+    sde_module_bf_kpkt_string_value
 
 installation_files = {
     "irq_debug_tgz": "./irq_debug.tgz"
@@ -14,7 +14,7 @@ installation_files = {
 
 
 def get_sde_modules():
-    return get_sde_profile_details().get(constants.sde_modules_node)
+    return get_from_setting_dict(constants.sde_details_node, constants.sde_modules_node)
 
 
 def load_and_verify_kernel_modules():
@@ -98,7 +98,7 @@ def load_and_verify_kernel_modules_bf2556():
 
     i2cbuses = execute_cmd_n_get_output('sudo -E i2cdetect -l')
     print(i2cbuses)
-    if 'i2c-0' not in i2cbuses or\
+    if 'i2c-0' not in i2cbuses or \
             'i2c-1' not in i2cbuses or \
             'i2c-2' not in i2cbuses:
         print('Required I2C buses are not available in your device')

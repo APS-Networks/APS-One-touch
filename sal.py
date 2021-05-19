@@ -1,14 +1,15 @@
-import logging
+import ipaddress
 import os
+from threading import Thread
 
 import common
 import constants
 from bf_sde import set_sde_env_n_load_drivers, load_bf_sde_profile
 from common import delete_files, get_env_var, get_gb_lib_home_absolute, \
-    execute_cmd, get_selected_profile_name, set_env_var, get_gb_src_home_absolute, \
-    get_abs_path, get_selected_profile_dict, \
+    execute_cmd, set_env_var, get_gb_src_home_absolute, \
+    get_abs_path, \
     append_to_env_var, create_release, get_from_setting_dict, get_p4_prog_name
-from constants import path_env_var_name
+from constants import path_env_var_name, pythonpath_env_var_name
 from drivers import load_and_verify_kernel_modules
 
 
@@ -31,8 +32,6 @@ def set_sal_env():
         return False
     rc = set_env_var(constants.sal_home_env_var_name, get_sal_repo_absolute())
     print('SAL_HOME: {}'.format(get_env_var(constants.sal_home_env_var_name)))
-    rc &= set_env_var(constants.pythonpath_env_var_name,
-                      get_env_var(constants.sal_home_env_var_name))
     rc &= set_env_var(constants.sde_include_env_var_name,
                       get_env_var(
                           constants.sde_install_env_var_name) + '/include')
@@ -42,22 +41,20 @@ def set_sal_env():
                       get_gb_lib_home_absolute())
     rc &= set_env_var(constants.tp_install_env_var_name,
                       get_tp_install_path_absolute())
-    print('SAL_HOME: {0} \
-    \n PYTHONPATH: {1} \
-    \n SDE: {2} \
-    \n SDE_INSTALL: {3} \
-    \n SDE_INCLUDE: {4} \
-    \n GB_SRC_HOME: {5} \
-    \n GB_LIB_HOME: {6} \
-    \n TP_INSTALL: {7}'.format(
-        get_env_var(constants.sal_home_env_var_name),
-        get_env_var(constants.pythonpath_env_var_name),
-        get_env_var(constants.sde_env_var_name),
-        get_env_var(constants.sde_install_env_var_name),
-        get_env_var(constants.sde_include_env_var_name),
-        get_env_var(constants.gb_src_home_env_var_name),
-        get_env_var(constants.gb_lib_home_env_var_name),
-        get_env_var(constants.tp_install_env_var_name)))
+    print('SAL_HOME: %s \
+    \n SDE: %s \
+    \n SDE_INSTALL: %s \
+    \n SDE_INCLUDE: %s \
+    \n GB_SRC_HOME: %s \
+    \n GB_LIB_HOME: %s \
+    \n TP_INSTALL: %s' %
+          (get_env_var(constants.sal_home_env_var_name),
+           get_env_var(constants.sde_env_var_name),
+           get_env_var(constants.sde_install_env_var_name),
+           get_env_var(constants.sde_include_env_var_name),
+           get_env_var(constants.gb_src_home_env_var_name),
+           get_env_var(constants.gb_lib_home_env_var_name),
+           get_env_var(constants.tp_install_env_var_name)))
     return rc
 
 
@@ -92,26 +89,9 @@ def get_sal_repo_from_config():
         get(constants.sal_sw_attr_node).get(constants.sal_repo_node_name)
 
 
-def get_sal_profile_dict():
-    selected_profile = get_selected_profile_dict()
-    selected_profile_name = get_selected_profile_name()
-    if selected_profile_name in [constants.sal_hw_profile_name,
-                                 constants.sal_sim_profile_name]:
-        return selected_profile
-    elif selected_profile_name == constants.stratum_sim_profile_name:
-        return common.settings_dict.get(constants.build_profiles_node).get(
-            constants.sal_sim_profile_node)
-    elif selected_profile_name == constants.stratum_hw_profile_name:
-        return common.settings_dict.get(constants.build_profiles_node).get(
-            constants.sal_hw_profile_node)
-    else:
-        logging.error('There is no selected or associated SAL profile')
-
-
-def install_sal_deps():
+def install_sal_build_deps():
     os.system('python3 -m pip install grpcio-tools')
     os.system('sudo apt install g++-8 gcc-8')
-    #os.system('sudo apt install libjsonrpccpp-dev libjsonrpccpp-tools')
     return True
 
 
@@ -134,8 +114,7 @@ def build_sal():
 
 
 def prepare_sal_release():
-
-    files_to_copy= [
+    files_to_copy = [
         [get_sal_repo_absolute(), '/include/'],
         [get_sal_repo_absolute(), '/src/include/'],
         [get_sal_repo_absolute(), '/build'],
@@ -184,94 +163,124 @@ def clean_sal():
     return True
 
 
-def run_sal():
+def run_sal(debug):
     print('Starting SAL reference application...')
-    if get_selected_profile_name() == constants.sal_hw_profile_name and not load_and_verify_kernel_modules():
+    if not load_and_verify_kernel_modules():
         print("ERROR:Some kernel modules are not loaded.")
         exit(0)
-    sal_home=get_env_var(constants.sal_home_env_var_name)
+    sal_home = get_env_var(constants.sal_home_env_var_name)
     sal_executable = sal_home + '/build/salRefApp'
-    sal_run_cmd = 'sudo -E LD_LIBRARY_PATH={0}:{1}:{2}:{3}:{4} {5}'.format(
+    sal_run_cmd = 'sudo -E LD_LIBRARY_PATH={0}:{1}:{2}:{3}:{4} {6} {5}'.format(
         sal_home + '/build',
         sal_home + '/lib',
         get_env_var(constants.tp_install_env_var_name) + '/lib',
         get_env_var(constants.sal_home_env_var_name) + '/install/lib',
-        get_env_var(constants.sde_install_env_var_name) + '/lib', sal_executable)
+        get_env_var(constants.sde_install_env_var_name) + '/lib', sal_executable,
+        'gdb' if debug else '')
     print('Running SAL with command: {}'.format(sal_run_cmd))
     execute_cmd(sal_run_cmd)
     return True
 
 
-# Currently SAL has to be tested from within SAL package package
-# def test_sal():
-#     # First kill salRefApp in case it is already running
-#     os.system("sudo pkill -9 {}".format('salRefApp'))
-#
-#     # Run sal in a separate thread.
-#     t = Thread(target=run_sal, name='Run SAL')
-#     t.daemon = True
-#     t.start()
-#     set_sal_runtime_env()
-#     print(get_env_var(constants.sal_home_env_var_name))
-#     sys.path.append(get_env_var(constants.sal_home_env_var_name))
-#     sys.path.append(get_env_var(constants.sal_home_env_var_name) + "/test/")
-#
-#     try:
-#         host = sys.argv[1]
-#         ssh_user = sys.argv[2]
-#         ssh_password = sys.argv[3]
-#         os.system('python3 {0}/test/sal_service_test_BF2556.py {1} {2} {3}'.
-#                   format(get_env_var(constants.sal_home_env_var_name),
-#                          host, ssh_user, ssh_password))
-#
-#     except IndexError:
-#         print(
-#             'While executing tests provide device IP ssh user and pssword '
-#             'separated with space to the script.')
-#     finally:
-#         os.system("sudo pkill -9 {}".format('salRefApp'))
-#     return True
+def get_dut_ips():
+    return get_from_setting_dict(constants.sal_sw_attr_node, constants.dut_ips_node_name)
+
+
+def is_valid_ip(ipaddr):
+    try:
+        ipaddress.ip_address(ipaddr)
+        return True
+    except ValueError:
+        print('address/netmask is invalid : %s' % ipaddr)
+        return False
+
+
+def set_sal_test_env():
+    set_env_var(constants.sal_home_env_var_name, get_sal_home_absolute())
+    append_to_env_var(pythonpath_env_var_name, get_env_var(constants.sal_home_env_var_name))
+    append_to_env_var(pythonpath_env_var_name, get_env_var(constants.sal_home_env_var_name) + "/test")
+    print("%s = %s" % (pythonpath_env_var_name, get_env_var(pythonpath_env_var_name)))
+
+
+def execute_test_cmd(ip, sal_grpc_port):
+    test_cmd = 'python3 %s/test/SAL_Tests.py %s %s' % \
+               (get_env_var(constants.sal_home_env_var_name), ip, sal_grpc_port)
+    os.system(test_cmd)
+
+
+def install_sal_test_deps():
+    os.system('python3 -m pip3 install future paramiko grpcio-tools html-testRunner')
+    return True
+
+
+def get_sal_ip_port_dict():
+    ip_port_dict = {}
+    dut_ips = get_dut_ips()
+    if dut_ips is not None:
+        for ip in dut_ips:
+            ip_port = ip.split(':')
+            try:
+                dev_ip = ip_port[0]
+                sal_grpc_port = ip_port[1]
+                if not is_valid_ip(dev_ip) and not sal_grpc_port:
+                    raise ValueError
+                elif dev_ip not in ip_port_dict:
+                    ip_port_dict[dev_ip] = sal_grpc_port
+            except (IndexError, ValueError) as e:
+                print("ERROR: Invalid DUT_IP or gRPC Port provided for connecting to SAL. : %s" % e)
+    print("Devices to be tested %s" % ip_port_dict)
+    return ip_port_dict
+
+
+def execute_sal_tests():
+    print("Executing tests from %s." % get_env_var(constants.sal_home_env_var_name))
+
+    for dev_ip, sal_grpc_port in get_sal_ip_port_dict().items():
+        t = Thread(target=execute_test_cmd, name='SAL Tests thread for device %s ' % dev_ip,
+                   args=(dev_ip, sal_grpc_port,))
+        print("Starting %s" % t.name)
+        t.start()
+    return True
+
 
 # Dependencies will be built inside local repository at following fixed path.
 # To run SAL path for 3rdParty path 'tp_install' in settings.yaml is used,
 # Which may or may not be same as following 3rdParty build path.
 sal_3rdparty_build_dir = '/sal_tp_install'
-sal_3rdparty_build_path = get_sal_repo_absolute()+sal_3rdparty_build_dir
+sal_3rdparty_build_path = get_sal_repo_absolute() + sal_3rdparty_build_dir
 
 
 def install_sal_thirdparty_deps():
     print('Installing SAL 3rdparty dependencies.')
 
-
     if not os.path.exists(sal_3rdparty_build_path):
         os.makedirs(sal_3rdparty_build_path)
 
-    i=input('Install boost y/[n] ?')
-    if not i or i not in ['y','n'] :
-        i='n'
-    if i is 'y' and not installBoost():
+    i = input('Install boost y/[n] ?')
+    if not i or i not in ['y', 'n']:
+        i = 'n'
+    if i is 'y' and not install_boost():
         return False
-    
-    i=input('Install protobuf y/[n] ?')
-    if not i or i not in ['y','n'] :
-        i='n'
-    if i is 'y' and not installProtobuf():
+
+    i = input('Install protobuf y/[n] ?')
+    if not i or i not in ['y', 'n']:
+        i = 'n'
+    if i is 'y' and not install_protobuf():
         return False
 
     append_to_env_var(constants.path_env_var_name,
                       sal_3rdparty_build_path + '/bin/')
     print(get_env_var(path_env_var_name))
 
-    i=input('Install gRPC y/[n] ?')
-    if not i or i not in ['y','n']:
-        i='n'
-    if i is 'y' and not installgRPC():
-
+    i = input('Install gRPC y/[n] ?')
+    if not i or i not in ['y', 'n']:
+        i = 'n'
+    if i is 'y' and not install_grpc():
         return False
     return True
 
 
-def installProtobuf():
+def install_protobuf():
     print('Installing protobuf.')
     protobuf_ver = 'v3.6.1'
     protobuf_dir = '{0}/protobuf{1}/'.format(sal_3rdparty_build_path, protobuf_ver)
@@ -302,20 +311,20 @@ def installProtobuf():
     return True
 
 
-def installgRPC():
+def install_grpc():
     print('Installing gRPC.')
-    gRPC_ver = 'v1.17.0'
-    gRPC_dir = '{0}/grpc{1}/'.format(sal_3rdparty_build_path, gRPC_ver)
-    if os.path.exists(gRPC_dir):
-        print('{0} already exists, will rebuild.'.format(gRPC_dir))
+    grpc_ver = 'v1.17.0'
+    grpc_dir = '{0}/grpc{1}/'.format(sal_3rdparty_build_path, grpc_ver)
+    if os.path.exists(grpc_dir):
+        print('{0} already exists, will rebuild.'.format(grpc_dir))
     else:
         os.system(
-            'git clone https://github.com/google/grpc.git {}'.format(gRPC_dir))
-        os.chdir(gRPC_dir)
-        os.system('git checkout tags/{}'.format(gRPC_ver))
+            'git clone https://github.com/google/grpc.git {}'.format(grpc_dir))
+        os.chdir(grpc_dir)
+        os.system('git checkout tags/{}'.format(grpc_ver))
         os.system('git submodule update --init --recursive')
 
-    os.chdir(gRPC_dir)
+    os.chdir(grpc_dir)
     make_cmd = 'make clean && LD_LIBRARY_PATH={0}/lib/ PKG_CONFIG_PATH={0}/lib/pkgconfig/:$PKG_CONFIG_PATH \
     make -s -I{0} LDFLAGS=-L{0}/lib prefix={0}'.format(sal_3rdparty_build_path, 'include/')
     print('Executing CMD: {}'.format(make_cmd))
@@ -332,7 +341,7 @@ def installgRPC():
     return True
 
 
-def installBoost():
+def install_boost():
     print('Installing Boost.')
     boost_ver = '1_67_0'
     boost_dir = '{0}/boost_{1}/'.format(sal_3rdparty_build_path, boost_ver)
@@ -342,13 +351,13 @@ def installBoost():
         print('{0} already exists, will rebuild.'.format(boost_dir))
     else:
         os.system('wget http://downloads.sourceforge.net/project/boost/boost/{0}/{1} -P {2}'.
-                  format(boost_ver.replace('_','.'),boost_arch_name,sal_3rdparty_build_path))
+                  format(boost_ver.replace('_', '.'), boost_arch_name, sal_3rdparty_build_path))
 
-    rc=os.system('tar -xvf {0} -C {1}'.
-              format(sal_3rdparty_build_path+'/'+boost_arch_name,sal_3rdparty_build_path))
+    rc = os.system('tar -xvf {0} -C {1}'.
+                   format(sal_3rdparty_build_path + '/' + boost_arch_name, sal_3rdparty_build_path))
     os.chdir(boost_dir)
     print('./bootstrap.sh --prefix={}'.format(sal_3rdparty_build_path))
-    rc &=os.system('./bootstrap.sh --prefix={}'.format(sal_3rdparty_build_path))
+    rc &= os.system('./bootstrap.sh --prefix={}'.format(sal_3rdparty_build_path))
     rc &= os.system('./b2 -j')
     rc &= os.system('./b2 --with-system --with-log --with-program_options install')
     rc &= os.system('sudo ldconfig')
@@ -375,18 +384,18 @@ def execute_user_action(sal_input):
     if 'i' in sal_input:
         rc &= install_sal_thirdparty_deps()
     if 'b' in sal_input:
-        rc &= install_sal_deps()
+        rc &= install_sal_build_deps()
         rc &= set_sal_env()
         rc &= build_sal()
     if 'p' in sal_input:
         rc &= prepare_sal_release()
-    if 'r' in sal_input:
+    if 'r' in sal_input or 'd' in sal_input:
         set_sal_runtime_env()
-        rc &= run_sal()
+        rc &= run_sal('d' in sal_input)
     if 't' in sal_input:
-        print('Running SAL tests from AOT are currently not supported, '
-              'Should run from within SAL package only')
-        # rc &= test_sal()
+        set_sal_test_env()
+        install_sal_test_deps()
+        rc &= execute_sal_tests()
     return rc
 
 
@@ -394,7 +403,9 @@ def take_user_input():
     sal_input = input(
         "SAL : run(r), [do_nothing(n)], "
         "OR developer's options - "
-        "build(b), clean(c), install 3rdParty SWs(i), prepare rel(p) ? ")
+        "build(b), clean(c), debug(d), execute_tests(t), "
+        "install 3rdParty SWs(i), "
+        "prepare rel(p) ? ")
 
     if 'n' in sal_input or not sal_input:
         # In case user give nasty input like cbrn
