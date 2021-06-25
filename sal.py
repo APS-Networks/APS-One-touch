@@ -138,11 +138,14 @@ def prepare_sal_release():
     if not package_input:
         package_input = 'y'
     if package_input == 'y':
-        files_to_copy.append([get_sal_repo_absolute(), '/{}/lib'.format(sal_3rdparty_build_dir)])
-        files_to_copy.append([get_sal_repo_absolute(), '/{}/include'.format(sal_3rdparty_build_dir)])
-        files_to_copy.append([get_sal_repo_absolute(), '/{}/bin'.format(sal_3rdparty_build_dir)])
-        files_to_copy.append([get_sal_repo_absolute(), '/{}/share'.format(sal_3rdparty_build_dir)])
-
+        files_to_copy.append([get_sal_repo_absolute(), '/{}/lib'.
+                              format(sal_3rdparty_build_dir)])
+        files_to_copy.append([get_sal_repo_absolute(), '/{}/include'.
+                              format(sal_3rdparty_build_dir)])
+        files_to_copy.append([get_sal_repo_absolute(), '/{}/bin'.
+                              format(sal_3rdparty_build_dir)])
+        files_to_copy.append([get_sal_repo_absolute(), '/{}/share'.
+                              format(sal_3rdparty_build_dir)])
     create_release(get_sal_repo_absolute(), files_to_copy)
 
     return True
@@ -155,7 +158,8 @@ def clean_sal():
                   '/Makefile',
                   '/CMakeFiles', '/cmake-build-debug']]
     execute_cmd(
-        'make -C {} clean'.format(get_env_var(constants.sal_home_env_var_name)))
+        'make -C {} clean'.
+        format(get_env_var(constants.sal_home_env_var_name)))
 
     for file in to_delete:
         print('Deteling {}'.format(file))
@@ -259,13 +263,13 @@ def install_sal_thirdparty_deps():
     i = input('Install boost y/[n] ?')
     if not i or i not in ['y', 'n']:
         i = 'n'
-    if i is 'y' and not install_boost():
+    if i == 'y' and not install_boost():
         return False
 
     i = input('Install protobuf y/[n] ?')
     if not i or i not in ['y', 'n']:
         i = 'n'
-    if i is 'y' and not install_protobuf():
+    if i == 'y' and not install_protobuf():
         return False
 
     append_to_env_var(constants.path_env_var_name,
@@ -275,7 +279,7 @@ def install_sal_thirdparty_deps():
     i = input('Install gRPC y/[n] ?')
     if not i or i not in ['y', 'n']:
         i = 'n'
-    if i is 'y' and not install_grpc():
+    if i == 'y' and not install_grpc():
         return False
     return True
 

@@ -301,7 +301,7 @@ def install_switch_bsp():
             "CFLAGS=-Wno-error ./configure --prefix={0} {1}".format(
                 os.environ['BSP_INSTALL'], thrift_flag))
     os.system("make")
-    os.system("sudo make install")
+    os.system("sudo make uninstall install")
     os.chdir(dname)
     return True
 
