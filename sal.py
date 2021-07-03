@@ -106,7 +106,7 @@ def build_sal():
 
     execute_cmd(cmake_cmd)
     execute_cmd(
-        'LD_LIBRARY_PATH={0}/lib:$LD_LIBRARY_PATH make -j -C {1}'.format(
+        'LD_LIBRARY_PATH={0}/lib:$LD_LIBRARY_PATH make -C {1}'.format(
             get_env_var(constants.tp_install_env_var_name),
             get_env_var(constants.sal_home_env_var_name)))
 
@@ -213,7 +213,8 @@ def execute_test_cmd(ip, sal_grpc_port):
 
 
 def install_sal_test_deps():
-    os.system('python3 -m pip3 install future paramiko grpcio-tools html-testRunner')
+    os.system('pip3 install --upgrade pip')
+    os.system('pip3 install future paramiko grpcio-tools html-testRunner setuptools_rust')
     return True
 
 
@@ -405,11 +406,11 @@ def execute_user_action(sal_input):
 
 def take_user_input():
     sal_input = input(
-        "SAL : run(r), [do_nothing(n)], "
-        "OR developer's options - "
-        "build(b), clean(c), debug(d), execute_tests(t), "
-        "install 3rdParty SWs(i), "
-        "prepare rel(p) ? ")
+        "SAL : run(r), execute_tests(t), [do_nothing(n)]? ")
+        # "OR developer's options - "
+        # "build(b), clean(c), debug(d),  "
+        # "install 3rdParty SWs(i), "
+        # "prepare rel(p) ? ")
 
     if 'n' in sal_input or not sal_input:
         # In case user give nasty input like cbrn

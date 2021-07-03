@@ -167,8 +167,8 @@ def prepare_bsp_pkg():
 
 
 def ask_user_for_building_bsp():
-    in_put = input("BSP : build y/[n]  "
-                   "OR developer's option- packaging(p)?")
+    in_put = input("BSP : build y/[n]? ")
+    # "OR developer's option- packaging(p)?")
     if not in_put:
         in_put = "n"
     # Order is important, if 'p' and 'y' both oprions are given
@@ -242,7 +242,7 @@ def install_bsp_deps():
 
 
 def install_switch_bsp():
-    set_sde_env_n_load_drivers()
+    set_sde_env()
     aps_bsp_installation_file = get_aps_bsp_pkg_abs_path()
     print("Installing {}".format(aps_bsp_installation_file))
     aps_zip = zipfile.ZipFile(aps_bsp_installation_file)
