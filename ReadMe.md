@@ -23,7 +23,8 @@ but As mentioned above users can get all below SWs (except SDE and OS) in a sing
 
 |Device|AOT|SAL|APSN BSP|SDE|Ref-BSP|OS (Recommended)|Kernel|
 |---|---|---|---|---|---|---|---|
-|BF2556X_1T<br>BF6064X_T|v1.5.2|sal_1.3.3|bf-reference-bsp-9.4.0-BF2556_1.0.4.zip<br>bf-reference-bsp-9.4.0-BF2556_1.0.3.zip<br>bf-reference-bsp-9.4.0-BF6064_1.0.1.zip|BF_SDE_9.5.0|bf-reference-bsp-9.5.0|Ubuntu Server 18.04.4 LTS|5.4.x
+|BF2556X_1T<br>BF6064X_T|v1.5.3|sal_1.3.4|bf-reference-bsp-9.4.0-BF2556_1.0.4.zip<br>bf-reference-bsp-9.4.0-BF6064_1.0.1.zip|BF_SDE_9.5.0|bf-reference-bsp-9.5.0|Ubuntu Server 18.04.4 LTS|5.4.x
+|BF2556X_1T<br>BF6064X_T|v1.5.2|sal_1.3.3|bf-reference-bsp-9.4.0-BF2556_1.0.3.zip<br>bf-reference-bsp-9.4.0-BF6064_1.0.1.zip|BF_SDE_9.5.0|bf-reference-bsp-9.5.0|Ubuntu Server 18.04.4 LTS|5.4.x
 |BF2556X_1T<br>BF6064X_T|v1.5.1|sal_1.3.1|bf-reference-bsp-9.4.0-BF2556_1.0.2.zip<br>bf-reference-bsp-9.4.0-BF6064_1.0.1.zip|BF_SDE_9.4.0|bf-reference-bsp-9.4.0|Ubuntu Server 18.04.4 LTS|5.4.x
 |BF2556X_1T<br>BF6064X_T|v1.5.0|sal_1.3.0|bf-reference-bsp-9.4.0-BF2556_1.0.2.zip<br>bf-reference-bsp-9.4.0-BF6064_1.0.1.zip|BF_SDE_9.4.0|bf-reference-bsp-9.4.0|Ubuntu Server 18.04.4 LTS|5.4.x
 |BF2556X_1T<br>BF6064X_T|v1.4.2|sal_1.2.0|bf-reference-bsp-9.4.0-BF2556_1.0.1.zip<br>bf-reference-bsp-9.4.0-BF6064_1.0.1.zip|BF_SDE_9.4.0|bf-reference-bsp-9.4.0|Ubuntu Server 18.04.4 LTS|5.4.x
