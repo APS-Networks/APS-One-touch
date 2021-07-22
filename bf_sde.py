@@ -128,8 +128,6 @@ def ask_user_for_building_sde():
     if install_sde == "y":
         create_symlinks()
         build_sde()
-    else:
-        print("You selected not to build SDE.")
 
 
 def get_diff_file_name():
