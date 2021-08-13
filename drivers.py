@@ -20,10 +20,6 @@ def get_sde_modules():
 def load_and_verify_kernel_modules():
     output = execute_cmd_n_get_output('lsmod')
     bf_mod = True
-    i2c_i801 = True
-
-    os.system("sudo modprobe -q i2c-i801")
-    os.system("sudo modprobe -q i2c-dev")
 
     sde_module_names = get_sde_modules()
     if sde_module_names is not None:
@@ -47,12 +43,6 @@ def load_and_verify_kernel_modules():
 
     output = execute_cmd_n_get_output('lsmod')
 
-    if 'i2c_i801' not in output and is_ubuntu():
-        # Ubuntu check is there because i2c_i801 appears only in output of
-        # lsmod in Ubuntu
-        i2c_i801 = False
-        print('ERROR:i2c_i801 is not loaded.')
-
     if not any(mod in output for mod in [sde_module_bf_kdrv_string_value,
                                          sde_module_bf_kpkt_string_value]):
         bf_mod = False
@@ -62,9 +52,9 @@ def load_and_verify_kernel_modules():
 
     # Load switch specific kernel modules
     if get_switch_model() == constants.bf2556x_1t:
-        return bf_mod and i2c_i801 and load_and_verify_kernel_modules_bf2556()
+        return bf_mod and load_and_verify_kernel_modules_bf2556()
     else:
-        return bf_mod and i2c_i801 and load_and_verify_kernel_modules_bf6064()
+        return bf_mod and load_and_verify_kernel_modules_bf6064()
 
 
 def load_and_verify_kernel_modules_bf6064():
@@ -95,14 +85,6 @@ sde_folder_path = ""
 def load_and_verify_kernel_modules_bf2556():
     output = execute_cmd_n_get_output('lsmod')
     irq_debug = True
-
-    i2cbuses = execute_cmd_n_get_output('sudo -E i2cdetect -l')
-    print(i2cbuses)
-    if 'i2c-0' not in i2cbuses or \
-            'i2c-1' not in i2cbuses or \
-            'i2c-2' not in i2cbuses:
-        print('Required I2C buses are not available in your device')
-        exit(0)
 
     if 'irq_debug' not in output:
         install_irq_debug()
