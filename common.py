@@ -409,9 +409,10 @@ def get_switch_model():
         print('Switch model couldn\'t be retrieved from System, Checking environment for {}'.
               format(switch_model_env_var_name))
         switch_model = get_switch_model_from_env()
-
-    print('Switch model is {}'.format(switch_model))
     return switch_model
+
+
+print("Switch model is", get_switch_model())
 
 
 def get_switch_model_from_env():

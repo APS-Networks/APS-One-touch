@@ -242,6 +242,16 @@ def install_bsp_deps():
 def install_switch_bsp():
     set_sde_env()
     aps_bsp_installation_file = get_aps_bsp_pkg_abs_path()
+    if (get_switch_model() == constants.bf6064x_t and (
+            'BF2556' in aps_bsp_installation_file or 'bf2556' in aps_bsp_installation_file)) \
+            or (get_switch_model() == constants.bf2556x_1t and (
+            'BF6064' in aps_bsp_installation_file or 'bf6064' in aps_bsp_installation_file)):
+        print("ERROR: Incompatible BSP provided in settings.yaml,"
+              " Switch model is {model} but BSP is {bsp}".
+              format(model=get_switch_model(),
+                     bsp=aps_bsp_installation_file))
+        exit(0)
+
     print("Installing {}".format(aps_bsp_installation_file))
     aps_zip = zipfile.ZipFile(aps_bsp_installation_file)
     aps_zip.extractall(Path(aps_bsp_installation_file).parent)
