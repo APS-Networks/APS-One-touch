@@ -399,6 +399,16 @@ def get_gb_lib_home_absolute():
     return get_abs_path(get_gb_lib_home_from_config())
 
 
+def get_switch_model_from_env():
+    model_name = get_env_var(switch_model_env_var_name)
+    if model_name is None or model_name not in [bf2556x_1t, bf6064x_t]:
+        print('Please set env_var SWITCH_MODEL with values either {0} or {1}, '
+              'e.g.- export SWITCH_MODEL={0}'.
+              format(bf2556x_1t, bf6064x_t))
+        exit(0)
+    return model_name
+
+
 def get_switch_model():
     output = execute_cmd_n_get_output_2('sudo dmidecode -s system-product-name')
     if 'BF2556' in output:
@@ -413,16 +423,6 @@ def get_switch_model():
 
 
 print("Switch model is", get_switch_model())
-
-
-def get_switch_model_from_env():
-    model_name = get_env_var(switch_model_env_var_name)
-    if model_name is None or model_name not in [bf2556x_1t, bf6064x_t]:
-        print('Please set env_var SWITCH_MODEL with values either {0} or {1}, '
-              'e.g.- export SWITCH_MODEL={0}'.
-              format(bf2556x_1t, bf6064x_t))
-        exit(0)
-    return model_name
 
 
 def get_p4_prog_name():
