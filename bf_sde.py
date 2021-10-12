@@ -31,7 +31,7 @@ def install_sde_deps():
 
 
 def build_sde():
-    install_sde_deps()
+    #install_sde_deps()
     sde_tar = tarfile.open(get_sde_pkg_abs_path())
     sde_home_absolute = get_sde_home_absolute()
     sde_build_flags = get_sde_build_flags()
@@ -39,14 +39,14 @@ def build_sde():
     # Deletion is required otherwise moving the directories
     # in further steps might create issues.
     # And delete only when user have opted for not to resume build
-    if sde_build_flags is not None and '-rb' not in sde_build_flags \
-            and '-bm' not in sde_build_flags:
-        try:
-            print("Deleting previous installation at {}.".format(
-                sde_home_absolute))
-            os.system('sudo rm -rf {}'.format(sde_home_absolute))
-        except FileNotFoundError:
-            print('{} already deleted.'.format(sde_home_absolute))
+    # if sde_build_flags is not None and '-rb' not in sde_build_flags \
+    #         and '-bm' not in sde_build_flags:
+    try:
+        print("Deleting previous installation at {}.".format(
+            sde_home_absolute))
+        os.system('sudo rm -rf {}'.format(sde_home_absolute))
+    except FileNotFoundError:
+        print('{} already deleted.'.format(sde_home_absolute))
 
     # Extract tar here i.e. in APS one touch directory
     sde_tar.extractall()
@@ -56,24 +56,12 @@ def build_sde():
         shutil.move(get_sde_dir_name_in_tar(), sde_home_absolute)
     sde_tar.close()
     os.chdir(sde_home_absolute)
-    build_opt = "-up"
-    p4studio_build_profile = get_p4_studio_build_profile_name()
+    p4studio_build_profile = get_abs_path(get_p4_studio_build_profile_name())
 
-    if p4studio_build_profile == "" or p4studio_build_profile is None:
-        build_opt = ""
-        p4studio_build_profile = ""
-
-    sde_install_cmd = "{0}/p4studio_build/p4studio_build.py {1} {2}".format(
+    sde_install_cmd = "{0}/p4studio/p4studio profile apply {1}".format(
         sde_home_absolute,
-        build_opt,
         p4studio_build_profile)
 
-    if sde_build_flags is not None:
-        for flag in sde_build_flags:
-            if flag:
-                sde_install_cmd += ' ' + flag
-    else:
-        print('No build flag will be used for BF_SDE build.')
     os.environ[
         constants.path_env_var_name] += os.pathsep + sde_home_absolute + '/install/bin/'
     print('Building sde with command {}'.format(sde_install_cmd))
