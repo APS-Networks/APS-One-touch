@@ -14,6 +14,9 @@ BF SDE:
   sde_home: /BF/bf-sde-9.7.0 #Path will be automatically created by AOT, this is SDE installation dir path (relative to PATH_PREFIX as every other path in this file). If left blank default is APS-One-touch/<bf-sde-x.y.z>.
   p4studio_build_profile: /BF/bf-sde-9.7.0/p4studio/profiles/p4-runtime-tofino.yaml
   p4_prog: #Leave it blank to start SDE without a P4 program or give p4 program name which is already built in SDE.
+  modules: #Following barefoot SDE modules will be loaded before starting SDE.
+    - bf_kdrv
+    #- bf_kpkt
 
 SAL :
   sal_home: /APS-One-touch/release/sal_1.3.3 #Path to directory where SAL artifacts are present
