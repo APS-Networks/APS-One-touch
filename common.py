@@ -348,9 +348,6 @@ def get_sde_pkg_abs_path():
 def get_aps_bsp_pkg_abs_path():
     bsp_pkg = get_abs_path(
         get_from_setting_dict(BSP_node, aps_bsp_pkg_node))
-    if not zipfile.is_zipfile(bsp_pkg):
-        print("Invalid APS BSP zip file {} can not build.".format(bsp_pkg))
-        exit(0)
     return bsp_pkg
 
 
@@ -435,4 +432,3 @@ def get_p4_prog_name():
 def do_basic_path_validation():
     # Do basic path verification.
     validate_path_existence(get_sde_pkg_abs_path(), 'Barefoot SDE')
-    validate_path_existence(get_ref_bsp_abs_path(), 'BF BSP')

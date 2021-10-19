@@ -6,7 +6,7 @@ import zipfile
 from pathlib import Path
 
 import constants
-from common import create_symlinks, execute_cmd_n_get_output, get_env_var, \
+from common import create_symlinks, delete_files, execute_cmd_n_get_output, get_env_var, \
     get_from_setting_dict, \
     get_sde_dir_name_in_tar, get_sde_home_absolute, get_sde_pkg_abs_path, \
     set_env_var, validate_path_existence, \
@@ -153,16 +153,22 @@ def prepare_bsp_pkg():
 
 
 def ask_user_for_building_bsp():
-    in_put = input("BSP : build y/[n]? ")
+    in_put = input("BSP : build y/c(clean)/[n]? ")
     # "OR developer's option- packaging(p)?")
     if not in_put:
         in_put = "n"
     # Order is important, if 'p' and 'y' both oprions are given
     # Then first package then build
-    if "p" in in_put:
-        prepare_bsp_pkg()
-    if "y" in in_put:
-        install_switch_bsp()
+
+    for i in in_put:
+        if i == "p":
+            prepare_bsp_pkg()
+        elif i == "y":
+            install_switch_bsp()
+        elif i == "c":
+            clean_bsp()
+        else:
+            print("Unknown option for BSP build {}:".format(i))
 
 
 def ask_user_for_starting_sde():
@@ -227,6 +233,22 @@ def install_bsp_deps():
     os.system('sudo apt -y install libusb-1.0-0-dev libcurl4-openssl-dev')
 
 
+def clean_bsp():
+    print('Cleaning BSP...')
+    to_delete = [get_aps_bsp_pkg_abs_path() + f for f in
+                 ['/CMakeCache.txt',
+                  '/Makefile',
+                  '/CMakeFiles', '/cmake-build-debug']]
+    execute_cmd(
+        'make -C {} clean'.
+        format(get_aps_bsp_pkg_abs_path()))
+
+    for file in to_delete:
+        print('Deteling {}'.format(file))
+        delete_files(file)
+    return True
+
+
 def install_switch_bsp():
     set_sde_env()
     aps_bsp_installation_file = get_aps_bsp_pkg_abs_path()
@@ -241,64 +263,20 @@ def install_switch_bsp():
         exit(0)
 
     print("Installing {}".format(aps_bsp_installation_file))
-    aps_zip = zipfile.ZipFile(aps_bsp_installation_file)
-    aps_zip.extractall(Path(aps_bsp_installation_file).parent)
-    aps_bsp_dir = aps_zip.namelist()[0] + '/apsn/'
-    aps_bsp_dir_absolute = str(
-        Path(aps_bsp_installation_file).parent) + '/' + aps_bsp_dir
-    aps_zip.close()
-
-    ref_bsp_tar = tarfile.open(get_ref_bsp_abs_path())
-    ref_bsp_tar.extractall(Path(get_ref_bsp_abs_path()).parent)
-    ref_bsp_dir = ref_bsp_tar.getnames()[0]
-    os.chdir(str(
-        Path(get_ref_bsp_abs_path()).parent) + '/' + ref_bsp_dir + '/packages')
-    pltfm_tar_name = ''
-    for f in os.listdir('./'):
-        if f.endswith('.tgz'):
-            pltfm_tar_name = f
-    pltfm_tar = tarfile.open(pltfm_tar_name)
-    pltfm_tar.extractall()
-    bf_pltfm_dir = str(Path(
-        get_ref_bsp_abs_path()).parent) + '/' + ref_bsp_dir + '/packages/' + \
-        pltfm_tar.getnames()[0]
-
-    aps_pltfm_dir = bf_pltfm_dir + '/platforms/apsn/'
-    if os.path.exists(aps_pltfm_dir):
-        shutil.rmtree(aps_pltfm_dir)
-
-    shutil.copytree(aps_bsp_dir_absolute, aps_pltfm_dir)
-
-    pltfm_tar.close()
-    ref_bsp_tar.close()
-    os.chdir(bf_pltfm_dir)
-    os.system('patch -p1 < {0}/{1}'.format(str(
-        Path(aps_bsp_installation_file).parent), get_diff_file_name()))
-    # os.environ['BSP'] = os.getcwd()
-    # print("BSP home directory set to {}".format(os.environ['BSP']))
+    
     os.environ['BSP_INSTALL'] = get_env_var('SDE_INSTALL')
     print(
         "BSP_INSTALL directory set to {}".format(
             os.environ['BSP_INSTALL']))
 
     install_bsp_deps()
-    os.system("autoreconf && autoconf")
-    os.system("chmod +x ./autogen.sh")
-    thrift_flag = ''
-    if get_p4_studio_build_profile_name() != stratum_profile:
-        thrift_flag = '--enable-thrift'
-    if get_switch_model() == constants.bf2556x_1t:
-        execute_cmd(
-            "CFLAGS=-Wno-error ./configure --prefix={0} {1} "
-            "--with-tof-brgup-plat".format(
-                os.environ['BSP_INSTALL'], thrift_flag))
-    else:
-        execute_cmd(
-            "CFLAGS=-Wno-error ./configure --prefix={0} {1}".format(
-                os.environ['BSP_INSTALL'], thrift_flag))
-    os.system("make")
-    os.system("sudo make uninstall install")
-    os.chdir(dname)
+    cmake_cmd = 'cmake -DCMAKE_INSTALL_PREFIX={}'.format(get_env_var('SDE_INSTALL'))
+    cmake_cmd += ' -B ' + aps_bsp_installation_file
+    cmake_cmd += ' -S ' + aps_bsp_installation_file
+    execute_cmd(cmake_cmd)
+    os.system("make -C {0}".format(aps_bsp_installation_file))
+    os.system("make -C {0} install".format(aps_bsp_installation_file))
+    
     return True
 
 
