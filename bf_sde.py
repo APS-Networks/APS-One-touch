@@ -15,7 +15,7 @@ from common import create_symlinks, delete_files, execute_cmd_n_get_output, get_
     get_aps_bsp_pkg_abs_path, execute_cmd_n_get_output_2, get_abs_path, \
     get_from_advance_setting_dict, create_release, get_p4_prog_name, do_basic_path_validation
 from constants import stratum_profile, p4_prog_env_var_name
-from drivers import load_and_verify_kernel_modules
+from drivers import load_drivers
 
 
 def get_sde_build_flags():
@@ -214,14 +214,6 @@ def set_sde_env():
     else:
         print('ERROR: SDE directory couldnt be found, exiting .')
         exit(0)
-
-
-def load_drivers():
-    print('Loading kernel modules.')
-    if not load_and_verify_kernel_modules():
-        print("ERROR:Some kernel modules are not loaded.")
-        exit(0)
-
 
 def set_sde_env_n_load_drivers():
     set_sde_env()

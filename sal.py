@@ -10,7 +10,7 @@ from common import delete_files, get_env_var, get_gb_lib_home_absolute, \
     get_abs_path, \
     append_to_env_var, create_release, get_from_setting_dict, get_p4_prog_name
 from constants import path_env_var_name, pythonpath_env_var_name
-from drivers import load_and_verify_kernel_modules
+from drivers import load_drivers
 
 
 def set_sal_runtime_env():
@@ -169,9 +169,7 @@ def clean_sal():
 
 def run_sal(debug):
     print('Starting SAL reference application...')
-    if not load_and_verify_kernel_modules():
-        print("ERROR:Some kernel modules are not loaded.")
-        exit(0)
+    load_drivers()
     sal_home = get_env_var(constants.sal_home_env_var_name)
     sal_executable = sal_home + '/build/salRefApp'
     sal_run_cmd = 'sudo -E LD_LIBRARY_PATH={0}:{1}:{2}:{3}:{4} {6} {5}'.format(

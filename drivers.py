@@ -57,6 +57,13 @@ def load_and_verify_kernel_modules():
         return bf_mod and load_and_verify_kernel_modules_bf6064()
 
 
+def load_drivers():
+    print('Loading kernel modules.')
+    if not load_and_verify_kernel_modules():
+        print("ERROR:Some kernel modules are not loaded.")
+        exit(0)
+
+
 def load_and_verify_kernel_modules_bf6064():
     execute_cmd_n_get_output('sudo i2cset -y 0 0x70 0x20 \
     sudo i2cset -y 0 0x32 0xE 0x0 \
