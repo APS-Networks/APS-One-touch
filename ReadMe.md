@@ -12,10 +12,9 @@ Please note - users can get all below SWs (except SDE) in a single archive with 
 
 |SW|Details|Where to get it|
 |---|---|---|
-|bf-reference-bsp-&lt;Release>-&lt;APSN switch model>_&lt;APSN ver>.zip|APSN Switches Platform package & Patch|APSN's Support Portal|
+|bf-reference-bsp-&lt;Release>-&lt;APSN switch model>_&lt;APSN ver>.zip|APSN BSP|APSN's Support Portal|
 |sal_&lt;Release>|Switch Abstraction Layer for APSN Switches|APSN's Support Portal|
 |bf-sde-&lt;Release>|Intel's Tofino SDE|Intel's Support Portal|
-|bf-reference-bsp-&lt;Release>|Intel's Standard BSP for Tofino|APSN's Support Portal|
  
 ## Release Compatibility 
 Following is the compatibility mapping among various SWs. Although those SWs can be downloaded from Intel's and APSN's support portals individually
@@ -23,6 +22,7 @@ but As mentioned above users can get all below SWs (except SDE and OS) in a sing
 
 |Device|AOT|SAL|APSN BSP|SDE|Ref-BSP|OS (Recommended)|Kernel|
 |---|---|---|---|---|---|---|---|
+|BF2556X_1T<br>BF6064X_T|v1.6.1|sal_1.3.5|bf-reference-bsp-9.7.0-BF2556_1.0.0.zip<br>bf-reference-bsp-9.7.0-BF6064_1.0.0.zip|BF_SDE_9.7.0|-|Ubuntu Server 20.04.x LTS|-
 |BF2556X_1T<br>BF6064X_T|v1.5.3|sal_1.3.4|bf-reference-bsp-9.4.0-BF2556_1.0.4.zip<br>bf-reference-bsp-9.4.0-BF6064_1.0.1.zip|BF_SDE_9.5.0|bf-reference-bsp-9.5.0|Ubuntu Server 18.04.4 LTS|5.4.x
 |BF2556X_1T<br>BF6064X_T|v1.5.2|sal_1.3.3|bf-reference-bsp-9.4.0-BF2556_1.0.3.zip<br>bf-reference-bsp-9.4.0-BF6064_1.0.1.zip|BF_SDE_9.5.0|bf-reference-bsp-9.5.0|Ubuntu Server 18.04.4 LTS|5.4.x
 |BF2556X_1T<br>BF6064X_T|v1.5.1|sal_1.3.1|bf-reference-bsp-9.4.0-BF2556_1.0.2.zip<br>bf-reference-bsp-9.4.0-BF6064_1.0.1.zip|BF_SDE_9.4.0|bf-reference-bsp-9.4.0|Ubuntu Server 18.04.4 LTS|5.4.x
@@ -37,7 +37,6 @@ For a quick start user should at least check for following node values in settin
 - BF SDE
   - sde_pkg 
 - BSP 
-  - ref_bsp
   - aps_bsp_pkg 
 -SAL
   - sal_home
@@ -84,3 +83,4 @@ For most of the end users settings.yaml is enough to be configured.
 
 ## Support
 Raise issues in GitHub repo : <https://github.com/apsnw/APS-One-touch/issues> or in APSN's support portal.
+s

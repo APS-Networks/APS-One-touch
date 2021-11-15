@@ -6,7 +6,7 @@
 PATH_PREFIX: #Various paths used in this setting file are evaluated relative to this, Default is user home diretory
 
 BSP:
-  bsp_repo: /bsp/bf-reference-bsp-9.4.0-BF2556  # Local Repository path to complete BSP code.
+  bsp_repo: /bsp/bf-reference-bsp-9.7.0-BF2556  # Local Repository path to complete BSP code, used while creating release package.
 
 SAL:
   sal_repo: sal # Local sal repo path.
