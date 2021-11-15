@@ -148,8 +148,11 @@ def prepare_bsp_pkg():
         '\':!*Makefile.in\' '
         '> {3}'.format(bsp_repo_abs, earliest_commit_hash, latest_commit_hash,
                        bsp_repo_abs + '/' + get_diff_file_name()))
-    create_release(bsp_repo_abs, [[bsp_repo_abs, get_diff_file_name()],
-                                  [bsp_repo_abs, '/platforms/apsn/']])
+    create_release(bsp_repo_abs, [[bsp_repo_abs, '/platforms/apsn/'],
+                                  [bsp_repo_abs, '/platforms/common/'],
+                                  [bsp_repo_abs, '/platforms/include/'],
+                                  [bsp_repo_abs, '/CMakeLists.txt'],
+                                  [bsp_repo_abs, '/drivers']])
 
 
 def ask_user_for_building_bsp():
