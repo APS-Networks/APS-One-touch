@@ -265,9 +265,18 @@ def install_switch_bsp():
             os.environ['BSP_INSTALL']))
 
     install_bsp_deps()
-    cmake_cmd = 'cmake -DCMAKE_INSTALL_PREFIX={}'.format(get_env_var('SDE_INSTALL'))
-    cmake_cmd += ' -B ' + aps_bsp_installation_file
-    cmake_cmd += ' -S ' + aps_bsp_installation_file
+    
+    import subprocess
+    out = subprocess.check_output("cmake --version", shell=True)
+    res = re.search(r'version\s*([\d.]+)', str(out)).group(1)
+    if res >= '3.13':
+        cmake_cmd = 'cmake -DCMAKE_INSTALL_PREFIX={}'.format(get_env_var('SDE_INSTALL'))
+        cmake_cmd += ' -B ' + aps_bsp_installation_file
+        cmake_cmd += ' -S ' + aps_bsp_installation_file
+    else:
+        cmake_cmd = 'cmake -DCMAKE_INSTALL_PREFIX={}'.format(get_env_var('SDE_INSTALL'))
+        cmake_cmd += ' -B' + aps_bsp_installation_file
+        cmake_cmd += ' -H' + aps_bsp_installation_file
     execute_cmd(cmake_cmd)
     os.system("make -C {0}".format(aps_bsp_installation_file))
     os.system("make -C {0} install".format(aps_bsp_installation_file))
