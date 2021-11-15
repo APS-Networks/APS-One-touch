@@ -267,6 +267,7 @@ def install_switch_bsp():
     install_bsp_deps()
     
     import subprocess
+    import re
     out = subprocess.check_output("cmake --version", shell=True)
     res = re.search(r'version\s*([\d.]+)', str(out)).group(1)
     if res >= '3.13':
