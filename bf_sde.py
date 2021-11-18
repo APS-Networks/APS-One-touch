@@ -170,6 +170,8 @@ def ask_user_for_building_bsp():
             install_switch_bsp()
         elif i == "c":
             clean_bsp()
+        elif i== "n":
+            pass                
         else:
             print("Unknown option for BSP build {}:".format(i))
 
