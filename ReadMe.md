@@ -1,5 +1,8 @@
 # APS One Touch (AOT)
 
+⚠️ **APS One Touch is now deprecated**. Intel compatible BSP packages for the BSPs can be found on our support portal,
+as are Debian installers for other software dependencies such as the SAL.**
+
 AOT is an easy tool to setup APSN's switches. AOT configures BF2556X_1T and BF6064X_T with BF_SDE, BSP, SAL(Switch Abstraction Layer).
 To get the files required by installer refer [Required Software](#required-software) section below.
 
